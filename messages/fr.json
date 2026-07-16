@@ -1,0 +1,78 @@
+{
+  "nav": {
+    "whoWeAre": "Qui sommes-nous",
+    "practiceAreas": "Domaines d'expertise",
+    "industries": "Secteurs",
+    "regionalCoverage": "Couverture régionale",
+    "ourStandards": "Nos standards",
+    "training": "Formation",
+    "contact": "Contact",
+    "home": "Accueil",
+    "menu": "Menu",
+    "closeMenu": "Fermer le menu",
+    "clientPortal": "Portail client"
+  },
+  "footer": {
+    "tagline": "Une intelligence de confiance pour des décisions critiques",
+    "practiceAreas": "Domaines d'expertise",
+    "company": "Entreprise",
+    "offices": "Bureaux",
+    "legal": "Mentions légales",
+    "dataProtection": "Politique de protection des données",
+    "allRightsReserved": "Tous droits réservés.",
+    "followUs": "Suivez-nous"
+  },
+  "common": {
+    "learnMore": "En savoir plus",
+    "viewAll": "Voir tout",
+    "getInTouch": "Nous contacter",
+    "speakToOurTeam": "Parler à notre équipe",
+    "readFullPolicy": "Lire notre politique complète",
+    "exploreServices": "Découvrir nos services",
+    "relatedServices": "Domaines d'expertise associés",
+    "backTo": "Retour à"
+  },
+  "contactForm": {
+    "title": "Envoyez-nous une demande confidentielle",
+    "name": "Nom complet",
+    "email": "Email professionnel",
+    "phone": "Téléphone (facultatif)",
+    "serviceInterest": "Domaine d'intérêt",
+    "serviceInterestPlaceholder": "Sélectionnez un domaine d'expertise",
+    "generalEnquiry": "Demande générale",
+    "message": "Comment pouvons-nous vous aider ?",
+    "submit": "Envoyer la demande",
+    "submitting": "Envoi en cours...",
+    "success": "Merci. Votre demande a bien été reçue et sera traitée en toute confidentialité. Notre équipe vous répondra sous un jour ouvré.",
+    "error": "Une erreur est survenue. Veuillez réessayer ou nous écrire directement.",
+    "validation": {
+      "name": "Veuillez saisir votre nom.",
+      "email": "Veuillez saisir une adresse email valide.",
+      "message": "Veuillez décrire votre demande (au moins 10 caractères)."
+    },
+    "confidentialityNote": "Toutes les demandes sont traitées de manière strictement confidentielle."
+  },
+  "loading": {
+    "preloader": "Intelligence de confiance",
+    "home": "Préparation d'une intelligence de confiance...",
+    "whoWeAre": "Présentation du cabinet...",
+    "practiceAreas": "Assemblage de nos domaines d'expertise...",
+    "industries": "Cartographie des secteurs servis...",
+    "regionalCoverage": "Tracé du réseau PRIMA...",
+    "ourStandards": "Revue de nos standards...",
+    "training": "Préparation de nos formations...",
+    "contact": "Ouverture d'un canal confidentiel...",
+    "policy": "Chargement de notre politique de protection des données..."
+  },
+  "localeSwitcher": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "backHome": "Retour à l'accueil"
+  }
+}

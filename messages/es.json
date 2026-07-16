@@ -1,0 +1,78 @@
+{
+  "nav": {
+    "whoWeAre": "Quiénes somos",
+    "practiceAreas": "Áreas de práctica",
+    "industries": "Sectores",
+    "regionalCoverage": "Cobertura regional",
+    "ourStandards": "Nuestros estándares",
+    "training": "Formación",
+    "contact": "Contacto",
+    "home": "Inicio",
+    "menu": "Menú",
+    "closeMenu": "Cerrar menú",
+    "clientPortal": "Portal de clientes"
+  },
+  "footer": {
+    "tagline": "Inteligencia confiable para decisiones críticas",
+    "practiceAreas": "Áreas de práctica",
+    "company": "Empresa",
+    "offices": "Oficinas",
+    "legal": "Legal",
+    "dataProtection": "Política de protección de datos",
+    "allRightsReserved": "Todos los derechos reservados.",
+    "followUs": "Síguenos"
+  },
+  "common": {
+    "learnMore": "Más información",
+    "viewAll": "Ver todo",
+    "getInTouch": "Contáctenos",
+    "speakToOurTeam": "Hable con nuestro equipo",
+    "readFullPolicy": "Lea nuestra política completa",
+    "exploreServices": "Explore nuestros servicios",
+    "relatedServices": "Áreas de práctica relacionadas",
+    "backTo": "Volver a"
+  },
+  "contactForm": {
+    "title": "Envíenos una consulta confidencial",
+    "name": "Nombre completo",
+    "email": "Correo electrónico de trabajo",
+    "phone": "Teléfono (opcional)",
+    "serviceInterest": "Área de interés",
+    "serviceInterestPlaceholder": "Seleccione un área de práctica",
+    "generalEnquiry": "Consulta general",
+    "message": "¿Cómo podemos ayudarle?",
+    "submit": "Enviar consulta",
+    "submitting": "Enviando...",
+    "success": "Gracias. Su consulta ha sido recibida y será tratada con estricta confidencialidad. Nuestro equipo responderá en un día hábil.",
+    "error": "Algo salió mal. Inténtelo de nuevo o escríbanos directamente.",
+    "validation": {
+      "name": "Por favor, introduzca su nombre.",
+      "email": "Por favor, introduzca un correo electrónico válido.",
+      "message": "Por favor, describa su consulta (al menos 10 caracteres)."
+    },
+    "confidentialityNote": "Todas las consultas se tratan de forma estrictamente confidencial."
+  },
+  "loading": {
+    "preloader": "Inteligencia confiable",
+    "home": "Preparando inteligencia confiable...",
+    "whoWeAre": "Presentando la firma...",
+    "practiceAreas": "Organizando nuestras áreas de práctica...",
+    "industries": "Mapeando los sectores que servimos...",
+    "regionalCoverage": "Trazando la red PRIMA...",
+    "ourStandards": "Revisando nuestros estándares...",
+    "training": "Preparando nuestros programas de formación...",
+    "contact": "Abriendo un canal confidencial...",
+    "policy": "Cargando nuestra política de protección de datos..."
+  },
+  "localeSwitcher": {
+    "label": "Idioma",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que busca no existe o ha sido movida.",
+    "backHome": "Volver al inicio"
+  }
+}

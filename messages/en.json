@@ -1,0 +1,78 @@
+{
+  "nav": {
+    "whoWeAre": "Who We Are",
+    "practiceAreas": "Practice Areas",
+    "industries": "Industries",
+    "regionalCoverage": "Regional Coverage",
+    "ourStandards": "Our Standards",
+    "training": "Training",
+    "contact": "Contact",
+    "home": "Home",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "clientPortal": "Client Portal"
+  },
+  "footer": {
+    "tagline": "Trusted Intelligence for Critical Decisions",
+    "practiceAreas": "Practice Areas",
+    "company": "Company",
+    "offices": "Offices",
+    "legal": "Legal",
+    "dataProtection": "Data Protection Policy",
+    "allRightsReserved": "All rights reserved.",
+    "followUs": "Follow us"
+  },
+  "common": {
+    "learnMore": "Learn more",
+    "viewAll": "View all",
+    "getInTouch": "Get in touch",
+    "speakToOurTeam": "Speak to our team",
+    "readFullPolicy": "Read our full policy",
+    "exploreServices": "Explore our services",
+    "relatedServices": "Related practice areas",
+    "backTo": "Back to"
+  },
+  "contactForm": {
+    "title": "Send us a confidential enquiry",
+    "name": "Full name",
+    "email": "Work email",
+    "phone": "Phone (optional)",
+    "serviceInterest": "Area of interest",
+    "serviceInterestPlaceholder": "Select a practice area",
+    "generalEnquiry": "General enquiry",
+    "message": "How can we help?",
+    "submit": "Submit enquiry",
+    "submitting": "Submitting...",
+    "success": "Thank you. Your enquiry has been received and will be handled in strict confidence. Our team will respond within one business day.",
+    "error": "Something went wrong. Please try again or email us directly.",
+    "validation": {
+      "name": "Please enter your name.",
+      "email": "Please enter a valid email address.",
+      "message": "Please describe your enquiry (at least 10 characters)."
+    },
+    "confidentialityNote": "All enquiries are treated as strictly confidential."
+  },
+  "loading": {
+    "preloader": "Trusted Intelligence",
+    "home": "Preparing trusted intelligence...",
+    "whoWeAre": "Introducing the firm...",
+    "practiceAreas": "Assembling our practice areas...",
+    "industries": "Mapping the sectors we serve...",
+    "regionalCoverage": "Charting the PRIMA network...",
+    "ourStandards": "Reviewing our standards...",
+    "training": "Preparing our training programs...",
+    "contact": "Opening a confidential channel...",
+    "policy": "Loading our data protection policy..."
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Francais",
+    "es": "Espanol"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "backHome": "Back to homepage"
+  }
+}
