@@ -59,8 +59,15 @@ export function NotificationsBell() {
         setOpen(false);
       }
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   const markAllRead = async () => {
@@ -90,7 +97,8 @@ export function NotificationsBell() {
           if (!open) load();
         }}
         aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
-        className="relative rounded-md p-2 text-slate-body transition-colors hover:bg-mist hover:text-navy"
+        aria-expanded={open}
+        className="relative rounded-md p-2.5 text-slate-body transition-colors hover:bg-mist hover:text-navy"
       >
         <Bell className="h-5 w-5" aria-hidden />
         {unread > 0 ? (
@@ -102,7 +110,7 @@ export function NotificationsBell() {
       </button>
 
       {open ? (
-        <div className="animate-dialog-in absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-line bg-white shadow-2xl shadow-navy/15 sm:w-96">
+        <div className="animate-dialog-in fixed inset-x-3 top-[4.5rem] z-[70] flex max-h-[min(70vh,28rem)] flex-col overflow-hidden rounded-xl border border-line bg-white shadow-2xl shadow-navy/15 lg:absolute lg:inset-x-auto lg:right-0 lg:top-auto lg:mt-2 lg:w-96">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="text-sm font-bold text-navy">Notifications</p>
             {unread > 0 ? (
@@ -115,7 +123,7 @@ export function NotificationsBell() {
               </button>
             ) : null}
           </div>
-          <div className="max-h-96 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {items.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-slate-body">
                 Nothing yet. Activity that concerns you shows up here.

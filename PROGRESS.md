@@ -149,6 +149,11 @@ Verified end-to-end: created a Finance role via the UI, inserted it after HR (hr
 - New `supabase/functions/send-email` Edge Function performs the SMTP send from Supabase infrastructure (denomailer), gated by the service role key; `notify()` now delivers by HTTPS call to it, keeping all SMTP off Vercel. Direct SMTP remains only as a local-dev fallback, and a mail failure never breaks an action.
 - Verified: build/lint clean; a real contact submission logged the expected function 404 (not yet deployed), still returned success, and created the in-app notification. Deploy + secrets commands documented in README (needs the account owner's Supabase access token).
 
+## Phase 6c (2026-07-17): Notification bell UX fix (DONE)
+
+- Desktop: the bell moved from the bottom of the sidebar (where its dropdown opened off-screen) to an always-visible floating glass pill at the top right; the panel opens downward and fully on-screen.
+- Mobile/tablet: the panel is now a fixed sheet under the top bar (no more clipping on narrow viewports), with viewport-aware height, larger touch target, ESC to close, and aria-expanded state.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

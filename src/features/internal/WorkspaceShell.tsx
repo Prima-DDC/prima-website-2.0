@@ -67,13 +67,19 @@ export function WorkspaceShell({
               <p className="truncate text-sm font-semibold text-navy">{displayName}</p>
               <p className="text-xs capitalize text-slate-body">{profile.role}</p>
             </div>
-            <NotificationsBell />
           </div>
           <div className="mt-2">
             <LogoutButton />
           </div>
         </div>
       </aside>
+
+      {/* Desktop utility bar: notifications always visible at the top right */}
+      <div className="fixed right-6 top-4 z-40 hidden lg:block">
+        <div className="glass rounded-full border border-line/70 px-1.5 py-1 shadow-lg shadow-navy/10">
+          <NotificationsBell />
+        </div>
+      </div>
 
       {/* Mobile top bar */}
       <header className="glass sticky top-0 z-30 flex h-16 items-center justify-between px-4 lg:hidden">
