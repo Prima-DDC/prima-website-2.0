@@ -91,6 +91,18 @@ Environment variables (see `.env.example`):
 4. Deploy, then point the `primaddc.com` DNS at Vercel (keep the existing MX records for mail; only move the A/CNAME records for the web host).
 5. After the first deploy, submit `https://www.primaddc.com/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
 
+## Notification emails (Supabase Edge Function)
+
+Notification emails are sent by the `send-email` Supabase Edge Function (`supabase/functions/send-email`), so the Vercel app only makes an HTTPS call and no SMTP runs on Vercel. One-time setup with your Supabase access token (create one at supabase.com/dashboard/account/tokens):
+
+```bash
+set SUPABASE_ACCESS_TOKEN=sbp_your_token
+npx supabase functions deploy send-email --project-ref iccbchzopnomagcqbhqe
+npx supabase secrets set SMTP_HOST=mail.primaddc.com SMTP_PORT=465 SMTP_USER=noreply@primaddc.com SMTP_PASS=your_mailbox_password "SMTP_FROM=PRIMA Workspace <noreply@primaddc.com>" --project-ref iccbchzopnomagcqbhqe
+```
+
+Until the function is deployed, the app logs the miss and falls back to direct SMTP when `SMTP_*` env vars are set locally; in-app notifications always work regardless.
+
 ## Scripts
 
 | Script | Purpose |

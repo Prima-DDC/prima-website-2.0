@@ -144,6 +144,11 @@ Verified: 24-check e2e suite passed against the production build (full chain inc
 
 Verified end-to-end: created a Finance role via the UI, inserted it after HR (hr, finance, manager, ceo), walked a document through all four stages through the real forms (PDF issued with four signatories), confirmed delete-guard and rename, then restored the canonical chain. Build + ESLint clean.
 
+## Phase 6b (2026-07-17): Notification emails via Supabase Edge Function (DONE)
+
+- New `supabase/functions/send-email` Edge Function performs the SMTP send from Supabase infrastructure (denomailer), gated by the service role key; `notify()` now delivers by HTTPS call to it, keeping all SMTP off Vercel. Direct SMTP remains only as a local-dev fallback, and a mail failure never breaks an action.
+- Verified: build/lint clean; a real contact submission logged the expected function 404 (not yet deployed), still returned success, and created the in-app notification. Deploy + secrets commands documented in README (needs the account owner's Supabase access token).
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

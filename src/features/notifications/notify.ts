@@ -10,6 +10,39 @@ export interface NotificationInput {
   link?: string;
 }
 
+/**
+ * Primary delivery: the Supabase "send-email" Edge Function (HTTPS call,
+ * SMTP happens on Supabase's infrastructure; nothing SMTP runs on Vercel).
+ * Returns false when the function is not deployed or rejects the send.
+ */
+async function sendViaSupabase(
+  emails: string[],
+  subject: string,
+  html: string,
+): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return false;
+  try {
+    const res = await fetch(`${url}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ to: emails, subject, html }),
+    });
+    if (!res.ok) {
+      console.error("send-email function returned", res.status, await res.text());
+    }
+    return res.ok;
+  } catch (err) {
+    console.error("send-email function unreachable:", err);
+    return false;
+  }
+}
+
+/** Local-development fallback: direct SMTP via nodemailer, if configured. */
 function transporter() {
   const host = process.env.SMTP_HOST;
   const user = process.env.SMTP_USER;
@@ -53,19 +86,25 @@ export async function notify(
   );
 
   try {
-    const mail = transporter();
-    if (!mail) return;
     const { data: profiles } = await db
       .from("profiles")
       .select("email")
       .in("id", recipients);
     const emails = (profiles ?? []).map((p) => p.email).filter(Boolean);
     if (emails.length === 0) return;
+
+    const subject = `PRIMA Workspace: ${input.title}`;
+    const html = emailHtml(input.title, input.body, input.link ?? null);
+
+    if (await sendViaSupabase(emails, subject, html)) return;
+
+    const mail = transporter();
+    if (!mail) return;
     await mail.sendMail({
       from: process.env.SMTP_FROM ?? process.env.SMTP_USER,
       bcc: emails,
-      subject: `PRIMA Workspace: ${input.title}`,
-      html: emailHtml(input.title, input.body, input.link ?? null),
+      subject,
+      html,
     });
   } catch (err) {
     console.error("notification email failed:", err);
