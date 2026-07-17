@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -270,7 +271,7 @@ export async function updateOpsDocument(
   _prev: OpsState,
   formData: FormData,
 ): Promise<OpsState> {
-  const admin = await requireRole("admin");
+  const admin = await requireCapability("manage_documents");
 
   const docId = z.string().uuid().parse(formData.get("docId"));
   const docType = z
@@ -325,7 +326,7 @@ export async function deleteOpsDocument(
   _prev: OpsState,
   formData: FormData,
 ): Promise<OpsState> {
-  const acting = await requireRole("admin");
+  const acting = await requireCapability("manage_documents");
   const docId = z.string().uuid().parse(formData.get("docId"));
 
   const db = createSupabaseAdminClient();

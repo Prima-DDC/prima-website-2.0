@@ -2,7 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import {
   STAFF_PROFILE_COLUMNS,
   toStaffProfile,
@@ -19,7 +19,7 @@ export default async function AdminUserPage({
 }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const acting = await requireRole("admin");
+  const acting = await requireCapability("manage_users");
 
   const supabase = await createSupabaseServerClient();
   const { data: row } = await supabase

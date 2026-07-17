@@ -170,6 +170,13 @@ Verified by a 10-check e2e suite through the real UI: defaults correct (admin ex
 
 Verified by a 12-check e2e suite through the real UI: defaults, restricting a role to one submit type (UI + action + RLS all blocked the rest), a per-type chain that skipped CEO for leave forms while fund requests still required CEO, approval-queue filtering by type, and re-granting. Build + ESLint clean; em-dash gate 0; roles reset to baseline and test users removed.
 
+## Phase 9 (2026-07-17): Capability-based feature delegation (DONE)
+
+- `role_capabilities(role, capability)` + `has_capability()` let an admin delegate management features to any role. Seven capabilities: manage_content, manage_media, manage_inbox, manage_documents, manage_support, manage_users, manage_roles. Admin implicitly holds all; default for other roles is none (unchanged behavior).
+- Assigned from the admin Roles page via a per-role capability matrix (chips). Enforced at three levels: the admin layout admits any role with at least one capability and filters the nav to it; every admin page calls requireCapability(); every management server action is gated; and RLS policies were repointed from is_admin() to has_capability(...) so direct DB access honors the same rule.
+
+Verified by a 13-check e2e suite: a custom role with no capabilities is denied the whole admin area; granting manage_content via the real UI opened Content only (Users/Media stayed denied, nav filtered); RLS let that role edit content but not read enquiries; swapping capabilities flipped access accordingly; admin still reached every section. Build + ESLint clean; em-dash gate 0; test artifacts removed.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

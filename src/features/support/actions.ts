@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -125,7 +126,7 @@ export async function updateTicketStatus(
   _prev: SupportState,
   formData: FormData,
 ): Promise<SupportState> {
-  await requireRole("admin");
+  await requireCapability("manage_support");
 
   const ticketId = z.string().uuid().parse(formData.get("ticketId"));
   const status = z

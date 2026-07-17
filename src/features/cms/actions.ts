@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const LOCALES = ["en", "fr", "es"] as const;
@@ -31,7 +31,7 @@ export async function saveContentBlock(
   _prev: CmsState,
   formData: FormData,
 ): Promise<CmsState> {
-  await requireRole("admin");
+  await requireCapability("manage_content");
   try {
     const page = z.string().min(1).parse(formData.get("page"));
     const section = z.string().min(1).parse(formData.get("section"));
@@ -73,7 +73,7 @@ export async function saveEntity(
   _prev: CmsState,
   formData: FormData,
 ): Promise<CmsState> {
-  await requireRole("admin");
+  await requireCapability("manage_content");
   try {
     const table = z
       .enum(Object.keys(ENTITY_TABLES) as [EntityTable, ...EntityTable[]])
@@ -109,7 +109,7 @@ export async function saveSiteSettings(
   _prev: CmsState,
   formData: FormData,
 ): Promise<CmsState> {
-  await requireRole("admin");
+  await requireCapability("manage_content");
   try {
     const value = JSON.parse(z.string().parse(formData.get("value")));
     const admin = createSupabaseAdminClient();

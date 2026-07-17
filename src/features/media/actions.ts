@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const MEDIA_BUCKET = "public-media";
@@ -25,7 +25,7 @@ export async function uploadMedia(
   _prev: MediaState,
   formData: FormData,
 ): Promise<MediaState> {
-  await requireRole("admin");
+  await requireCapability("manage_media");
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
@@ -55,7 +55,7 @@ export async function uploadMedia(
 }
 
 export async function deleteMedia(formData: FormData): Promise<void> {
-  await requireRole("admin");
+  await requireCapability("manage_media");
   const path = z.string().min(1).parse(formData.get("path"));
   const admin = createSupabaseAdminClient();
   await admin.storage.from(MEDIA_BUCKET).remove([path]);

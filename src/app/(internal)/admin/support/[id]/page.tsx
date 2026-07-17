@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { requireCapability } from "@/features/capabilities/service";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categoryLabel } from "@/features/support/config";
@@ -12,6 +13,7 @@ export default async function AdminTicketPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireCapability("manage_support");
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 

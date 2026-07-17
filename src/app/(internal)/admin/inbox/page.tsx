@@ -1,4 +1,5 @@
 import { Archive, MailOpen } from "lucide-react";
+import { requireCapability } from "@/features/capabilities/service";
 import { ConfirmButton } from "@/components/ConfirmDialog";
 import { updateSubmissionStatus } from "@/features/contact/admin-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -10,6 +11,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function InboxPage() {
+  await requireCapability("manage_inbox");
   const supabase = await createSupabaseServerClient();
   const { data: submissions } = await supabase
     .from("contact_submissions")

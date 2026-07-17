@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireCapability } from "@/features/capabilities/service";
 import { EditorForm } from "@/features/cms/EditorForm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -7,6 +8,7 @@ export default async function ServiceEditorPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  await requireCapability("manage_content");
   const { slug } = await params;
   const supabase = await createSupabaseServerClient();
   const { data: service } = await supabase

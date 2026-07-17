@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export interface RolesState {
@@ -29,7 +29,7 @@ export async function createRole(
   _prev: RolesState,
   formData: FormData,
 ): Promise<RolesState> {
-  await requireRole("admin");
+  await requireCapability("manage_roles");
 
   const parsed = labelSchema.safeParse(formData.get("label"));
   if (!parsed.success) return { error: "Enter a role name (2-60 characters)." };
@@ -62,7 +62,7 @@ export async function renameRole(
   _prev: RolesState,
   formData: FormData,
 ): Promise<RolesState> {
-  await requireRole("admin");
+  await requireCapability("manage_roles");
 
   const key = z.string().min(1).parse(formData.get("key"));
   const parsed = labelSchema.safeParse(formData.get("label"));
@@ -83,7 +83,7 @@ export async function deleteRole(
   _prev: RolesState,
   formData: FormData,
 ): Promise<RolesState> {
-  await requireRole("admin");
+  await requireCapability("manage_roles");
   const key = z.string().min(1).parse(formData.get("key"));
 
   const db = createSupabaseAdminClient();
@@ -127,7 +127,7 @@ const DOC_TYPE_KEYS = [
  * none. This is a plain (void) form action so the matrix stays lightweight.
  */
 export async function setPermission(formData: FormData): Promise<void> {
-  await requireRole("admin");
+  await requireCapability("manage_roles");
   const role = z.string().min(1).parse(formData.get("role"));
   const docType = z.enum(DOC_TYPE_KEYS).parse(formData.get("docType"));
   const field = z.enum(["can_submit", "can_approve"]).parse(formData.get("field"));
@@ -166,11 +166,44 @@ export async function setPermission(formData: FormData): Promise<void> {
   revalidatePath("/admin/ops");
 }
 
+const CAPABILITY_ENUM = [
+  "manage_content",
+  "manage_media",
+  "manage_inbox",
+  "manage_documents",
+  "manage_support",
+  "manage_users",
+  "manage_roles",
+] as const;
+
+/** Grants or revokes a management capability for a role (admin holds all). */
+export async function setCapability(formData: FormData): Promise<void> {
+  await requireCapability("manage_roles");
+  const role = z.string().min(1).parse(formData.get("role"));
+  const capability = z.enum(CAPABILITY_ENUM).parse(formData.get("capability"));
+  const value = formData.get("value") === "true";
+
+  const db = createSupabaseAdminClient();
+  if (value) {
+    await db
+      .from("role_capabilities")
+      .upsert({ role, capability }, { onConflict: "role,capability" });
+  } else {
+    await db
+      .from("role_capabilities")
+      .delete()
+      .eq("role", role)
+      .eq("capability", capability);
+  }
+
+  revalidateRoles();
+}
+
 export async function moveStage(
   _prev: RolesState,
   formData: FormData,
 ): Promise<RolesState> {
-  await requireRole("admin");
+  await requireCapability("manage_roles");
   const role = z.string().min(1).parse(formData.get("role"));
   const direction = z.enum(["up", "down"]).parse(formData.get("direction"));
 

@@ -1,8 +1,10 @@
 import { ArrowRight, Briefcase } from "lucide-react";
+import { requireCapability } from "@/features/capabilities/service";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function ServicesAdminPage() {
+  await requireCapability("manage_content");
   const supabase = await createSupabaseServerClient();
   const { data: services } = await supabase
     .from("services")

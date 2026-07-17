@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { ConfirmButton } from "@/components/ConfirmDialog";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
@@ -9,7 +9,7 @@ import { getRoles } from "@/features/roles/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function UsersPage() {
-  const acting = await requireRole("admin");
+  const acting = await requireCapability("manage_users");
   const supabase = await createSupabaseServerClient();
   const roles = await getRoles();
   const { data: users } = await supabase

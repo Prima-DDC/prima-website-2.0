@@ -1,4 +1,8 @@
-import { requireRole } from "@/features/auth/helpers";
+import { CAPABILITIES } from "@/features/capabilities/config";
+import {
+  getCapabilityMatrix,
+  requireCapability,
+} from "@/features/capabilities/service";
 import { DOC_CONFIG, DOC_TYPES } from "@/features/ops/config";
 import { getApprovalContext } from "@/features/ops/stages";
 import { getRoles } from "@/features/roles/queries";
@@ -9,9 +13,13 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function RolesPage() {
-  await requireRole("admin");
+  await requireCapability("manage_roles");
 
-  const [roles, ctx] = await Promise.all([getRoles(), getApprovalContext()]);
+  const [roles, ctx, capabilityMatrix] = await Promise.all([
+    getRoles(),
+    getApprovalContext(),
+    getCapabilityMatrix(),
+  ]);
 
   const supabase = await createSupabaseServerClient();
   const { data: profiles } = await supabase.from("profiles").select("role");
@@ -44,6 +52,12 @@ export default async function RolesPage() {
           memberCounts={memberCounts}
           docTypes={docTypes}
           matrix={matrix}
+          capabilities={CAPABILITIES.map((c) => ({
+            key: c.key,
+            label: c.label,
+            description: c.description,
+          }))}
+          capabilityMatrix={capabilityMatrix}
         />
       </div>
     </div>

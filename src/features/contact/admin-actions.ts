@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function updateSubmissionStatus(formData: FormData): Promise<void> {
-  await requireRole("admin");
+  await requireCapability("manage_inbox");
   const id = z.string().uuid().parse(formData.get("id"));
   const status = z.enum(["new", "read", "archived"]).parse(formData.get("status"));
 

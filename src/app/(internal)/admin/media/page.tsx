@@ -1,4 +1,5 @@
 import { FileIcon, Trash2 } from "lucide-react";
+import { requireCapability } from "@/features/capabilities/service";
 import Image from "next/image";
 import { ConfirmButton } from "@/components/ConfirmDialog";
 import { deleteMedia } from "@/features/media/actions";
@@ -9,6 +10,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 const BUCKET = "public-media";
 
 export default async function MediaAdminPage() {
+  await requireCapability("manage_media");
   const admin = createSupabaseAdminClient();
   const { data: files } = await admin.storage
     .from(BUCKET)

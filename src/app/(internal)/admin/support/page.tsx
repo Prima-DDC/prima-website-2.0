@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireCapability } from "@/features/capabilities/service";
 import { categoryLabel, TICKET_STATUS_STYLES, type TicketStatus } from "@/features/support/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -15,6 +16,7 @@ export default async function AdminSupportPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  await requireCapability("manage_support");
   const { status = "open" } = await searchParams;
   const supabase = await createSupabaseServerClient();
 

@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { requireCapability } from "@/features/capabilities/service";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { DOC_CONFIG, type DocType } from "@/features/ops/config";
@@ -10,6 +11,7 @@ export default async function EditOpsDocumentPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireCapability("manage_documents");
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 

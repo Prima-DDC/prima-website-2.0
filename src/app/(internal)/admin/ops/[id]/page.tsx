@@ -1,4 +1,5 @@
 import { ArrowLeft, PencilLine } from "lucide-react";
+import { requireCapability } from "@/features/capabilities/service";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApprovalTrail } from "@/features/ops/ApprovalTrail";
@@ -23,6 +24,7 @@ export default async function AdminOpsDocumentPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireCapability("manage_documents");
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 

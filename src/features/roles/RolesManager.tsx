@@ -17,6 +17,7 @@ import {
   deleteRole,
   moveStage,
   renameRole,
+  setCapability,
   setPermission,
   type RolesState,
 } from "./actions";
@@ -180,18 +181,54 @@ function StageLine({ stage, index, total }: { stage: ApprovalStage; index: numbe
   );
 }
 
+function CapabilityChip({
+  role,
+  capability,
+  label,
+  active,
+}: {
+  role: string;
+  capability: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <form action={setCapability} className="inline">
+      <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="capability" value={capability} />
+      <input type="hidden" name="value" value={String(!active)} />
+      <button
+        type="submit"
+        aria-pressed={active}
+        className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+          active
+            ? "border-navy bg-navy text-white shadow-sm shadow-navy/25"
+            : "border-line bg-white text-slate-body hover:border-navy/50 hover:text-navy"
+        }`}
+      >
+        {active ? <Check className="h-3 w-3" aria-hidden /> : null}
+        {label}
+      </button>
+    </form>
+  );
+}
+
 export function RolesManager({
   roles,
   stages,
   memberCounts,
   docTypes,
   matrix,
+  capabilities,
+  capabilityMatrix,
 }: {
   roles: RoleRow[];
   stages: ApprovalStage[];
   memberCounts: Record<string, number>;
   docTypes: Array<{ key: string; label: string }>;
   matrix: PermissionMatrix;
+  capabilities: Array<{ key: string; label: string; description: string }>;
+  capabilityMatrix: Record<string, string[]>;
 }) {
   const [createState, createAction, createPending] = useActionState(createRole, initial);
 
@@ -277,6 +314,39 @@ export function RolesManager({
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* Management capabilities */}
+      <section className="rounded-lg border border-line bg-white p-6">
+        <h2 className="font-semibold text-navy">Management capabilities</h2>
+        <p className="mt-1 text-xs text-slate-body">
+          Assign admin-dashboard features to any role. A role with a capability
+          can use that section (content, media, inbox, request administration,
+          support, users, or roles). Admin always holds all capabilities.
+        </p>
+        <div className="mt-5 space-y-4">
+          {roles
+            .filter((role) => role.key !== "admin" && role.key !== "client")
+            .map((role) => {
+              const held = capabilityMatrix[role.key] ?? [];
+              return (
+                <div key={role.key} className="rounded-lg border border-line bg-mist/30 p-4">
+                  <p className="text-sm font-bold text-navy">{role.label}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {capabilities.map((c) => (
+                      <CapabilityChip
+                        key={`${role.key}-${c.key}`}
+                        role={role.key}
+                        capability={c.key}
+                        label={c.label}
+                        active={held.includes(c.key)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </section>
 

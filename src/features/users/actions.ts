@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { notify } from "@/features/notifications/notify";
 import { roleExists } from "@/features/roles/queries";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -15,7 +15,7 @@ export interface UsersState {
 const roleSchema = z.string().trim().min(1).max(60);
 
 export async function updateUserRole(formData: FormData): Promise<void> {
-  const acting = await requireRole("admin");
+  const acting = await requireCapability("manage_users");
   const userId = z.string().uuid().parse(formData.get("userId"));
   const role = roleSchema.parse(formData.get("role"));
   if (!(await roleExists(role))) return;
@@ -45,7 +45,7 @@ export async function sendPasswordReset(
   _prev: UsersState,
   formData: FormData,
 ): Promise<UsersState> {
-  await requireRole("admin");
+  await requireCapability("manage_users");
   const email = z.string().trim().email().parse(formData.get("email"));
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -61,7 +61,7 @@ export async function deleteUser(
   _prev: UsersState,
   formData: FormData,
 ): Promise<UsersState> {
-  const acting = await requireRole("admin");
+  const acting = await requireCapability("manage_users");
   const userId = z.string().uuid().parse(formData.get("userId"));
 
   // An admin cannot delete themselves; prevents locking everyone out.
@@ -81,7 +81,7 @@ export async function inviteUser(
   _prev: UsersState,
   formData: FormData,
 ): Promise<UsersState> {
-  await requireRole("admin");
+  await requireCapability("manage_users");
 
   const parsed = inviteSchema.safeParse({
     email: formData.get("email"),
@@ -136,7 +136,7 @@ export async function adminUpdateUser(
   _prev: UsersState,
   formData: FormData,
 ): Promise<UsersState> {
-  const acting = await requireRole("admin");
+  const acting = await requireCapability("manage_users");
 
   const parsed = staffSchema.safeParse({
     userId: formData.get("userId"),

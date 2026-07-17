@@ -1,7 +1,9 @@
 import { EditorForm } from "@/features/cms/EditorForm";
+import { requireCapability } from "@/features/capabilities/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function OfficesAdminPage() {
+  await requireCapability("manage_content");
   const supabase = await createSupabaseServerClient();
   const { data: offices } = await supabase
     .from("offices")

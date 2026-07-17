@@ -14,6 +14,7 @@ import {
 import { getApprovalsMap } from "@/features/ops/queries";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { getSessionProfile } from "@/features/auth/helpers";
+import { requireCapability } from "@/features/capabilities/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // stageProgress uses the chain configured for that request type.
@@ -30,6 +31,7 @@ export default async function OpsQueuePage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  await requireCapability("manage_documents");
   const { status = "submitted" } = await searchParams;
   const profile = await getSessionProfile();
   const canSubmit =
