@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MediaImage } from "@/components/MediaImage";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { LinkedItemGrid } from "@/features/content/components/LinkedItemGrid";
@@ -42,9 +43,9 @@ export default async function RegionalCoveragePage({
     getTranslations({ locale, namespace: "footer" }),
   ]);
 
-  const introContent = pick(intro, locale);
-  const pillarsContent = pick(pillars, locale);
-  const ctaContent = pick(cta, locale);
+  const introContent = pick(intro.t, locale);
+  const pillarsContent = pick(pillars.t, locale);
+  const ctaContent = pick(cta.t, locale);
 
   return (
     <>
@@ -58,15 +59,33 @@ export default async function RegionalCoveragePage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-          <Reveal>
-            <p className="max-w-3xl border-l-2 border-brand pl-6 text-lg leading-relaxed text-slate-body">
-              {introContent.paragraphs[1]}
-            </p>
-          </Reveal>
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <Reveal>
+              <p className="border-l-2 border-brand pl-6 text-lg leading-relaxed text-slate-body">
+                {introContent.paragraphs[1]}
+              </p>
+            </Reveal>
+            {pillars.imagePath ? (
+              <Reveal delay={150}>
+                <div className="group">
+                  <MediaImage
+                    path={pillars.imagePath}
+                    alt={pillarsContent.title}
+                    width={960}
+                    height={640}
+                    hoverZoom
+                    sizes="(min-width: 1024px) 45vw, 100vw"
+                    className="aspect-[3/2] rounded-lg shadow-xl shadow-navy/15"
+                  />
+                </div>
+              </Reveal>
+            ) : null}
+          </div>
           <Reveal className="mt-14">
             <h2 className="text-3xl font-bold text-navy">{pillarsContent.title}</h2>
           </Reveal>

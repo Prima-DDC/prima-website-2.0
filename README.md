@@ -79,6 +79,7 @@ Environment variables (see `.env.example`):
 - **CMS** (`/admin`): every content block, practice area, industry, office, SEO record, and site setting is editable per locale; media library backed by Supabase Storage.
 - **Ops portal** (`/portal`): employees submit the 5 document types (auto numbered `PRIMA-HC-2026-0001` style); admins approve/reject with comments in `/admin/ops`; approval renders a branded PDF into the private `ops-pdfs` bucket, downloadable via 60-second signed URLs. Full audit trail in `ops_events`.
 - **Roles**: proxy gates authentication; layouts enforce roles server-side; RLS enforces them at the database. Admins land on `/admin`, everyone else on `/portal`.
+- **Media**: all imagery lives in Supabase Storage (`public-media`), optimized to webp, rendered via next/image with shimmer skeletons, blur-in reveals, ken burns banners, and hover zoom. Every block and practice-area image is editable in the CMS. A service worker makes the public site offline-first (cache-first assets/media, stale-while-revalidate pages) with a PWA manifest.
 
 ## Deployment (Vercel)
 
@@ -98,6 +99,7 @@ Environment variables (see `.env.example`):
 | `npm run db:migrate` | Apply `supabase/migrations/*.sql` (tracked in `public._migrations`) |
 | `npm run db:seed` | Idempotent content seed from `src/features/content/fallback/` |
 | `npm run create-admin -- <email> <password> [name]` | Bootstrap or repair an admin account |
+| `npm run media:upload` | Optimize (sharp, webp) and upload site imagery to Supabase Storage |
 
 ## Content notes
 

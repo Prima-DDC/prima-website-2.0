@@ -11,7 +11,7 @@ export default async function ServiceEditorPage({
   const supabase = await createSupabaseServerClient();
   const { data: service } = await supabase
     .from("services")
-    .select("slug, icon, t")
+    .select("slug, icon, image_path, t")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -27,7 +27,14 @@ export default async function ServiceEditorPage({
           kind="entity"
           title="Practice area content"
           hidden={{ table: "services", key: service.slug }}
-          scalars={[{ name: "icon", label: "Icon (Lucide name)", value: service.icon }]}
+          scalars={[
+            { name: "icon", label: "Icon (Lucide name)", value: service.icon },
+            {
+              name: "image_path",
+              label: "Image (media library path or URL)",
+              value: service.image_path ?? "",
+            },
+          ]}
           t={service.t}
         />
       </div>

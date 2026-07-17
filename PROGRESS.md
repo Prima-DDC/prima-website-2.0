@@ -67,6 +67,30 @@ Verified end-to-end: all 5 document types submitted through the real forms as an
 - README.md with architecture, setup, scripts, and the exact Vercel + Supabase auth deployment steps.
 - `.gitattributes` (LF), `.env.example`, test artifacts removed from the database (only the admin profile remains).
 
+## Phase 2 (2026-07-17): User CRUD, media enrichment, offline-first (DONE)
+
+### Slice A: User management CRUD
+
+- Admin can now, per user row in /admin/users: change role (existing), send a password reset email (branded recovery template via custom SMTP), and delete the user (confirm dialog warns that their documents go too; self-deletion blocked server-side, matching the existing self-demotion guard).
+- Verified end-to-end through the real UI form actions: reset accepted with success message; deleted user removed from the list and from Supabase Auth.
+
+### Slice B: Media pipeline to Supabase Storage
+
+- Migration `0003_media.sql`: `content_blocks.image_path`.
+- `scripts/upload-media.ts` (`npm run media:upload`): optimizes with sharp (resize, webp q80) and uploads 15 curated assets to `public-media/site/`:
+  - 5 authentic old-site photos (office sign, reception, PRIMA training session, seminar audience, GDCA cyber policy handover); the old binoculars/magnifying-glass shots were excluded per the brand direction.
+  - 10 curated Unsplash images (corporate towers, analysts, formal boardroom, Johannesburg skyline, document review, data intelligence, forensic lab, insurance claims, handshake), each candidate-chained, size-validated, and visually reviewed via contact sheets before acceptance.
+- `src/lib/media.ts` (path or URL passthrough) + `MediaImage` component.
+
+### Slices C + D: Media-rich site, loading effects, offline-first
+
+- `getBlock` now returns `{ t, imagePath }`; every page passes images through. Seeded assignments: home hero (corporate towers, ken burns + navy gradient), home who-we-are (office sign with floating stat badge), regional teaser (African skyline), page banners for who-we-are/practice-areas/industries/regional/standards/training/contact, per-service images on cards and detail heros, standards side image (cyber policy handover), regional side image (seminar audience).
+- `MediaImage`: shimmer skeleton while loading, blur + scale + fade reveal on load, optional slow ken burns for banners and hover zoom on cards; reduced motion respected. All images served from Supabase Storage through next/image optimization (verified 200 via /_next/image).
+- CMS: every block editor and the service editor expose the image field (media library path or URL); save revalidates instantly. Verified end-to-end by swapping the home hero image through the real admin form and reverting.
+- Offline-first: `public/sw.js` (cache-first for /_next/static, /_next/image, Supabase media, fonts; stale-while-revalidate for public pages; /admin, /portal, /login, /auth, /api never cached), registered in both layouts (production only), plus a PWA manifest (`/manifest.webmanifest`) with brand colors.
+
+Verified: build + ESLint clean, em-dash gate 0 in repo and DB, all pages render Supabase-hosted media in all locales, optimized image endpoint 200, sw.js + manifest served, user CRUD and CMS image editing tested through real form actions.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

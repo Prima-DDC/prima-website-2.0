@@ -1,6 +1,7 @@
 import { requireRole } from "@/features/auth/helpers";
 import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
+import { UserRowActions } from "@/features/users/UserRowActions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function UsersPage() {
@@ -27,6 +28,7 @@ export default async function UsersPage() {
                   <th className="px-5 py-3 font-semibold">User</th>
                   <th className="px-5 py-3 font-semibold">Role</th>
                   <th className="px-5 py-3 font-semibold">Joined</th>
+                  <th className="px-5 py-3 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -71,6 +73,17 @@ export default async function UsersPage() {
                     </td>
                     <td className="px-5 py-3.5 text-xs text-slate-body">
                       {new Date(user.created_at).toLocaleDateString("en-GB")}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {user.id === acting.id ? (
+                        <span className="text-xs text-slate-body/60">Signed in</span>
+                      ) : (
+                        <UserRowActions
+                          userId={user.id}
+                          email={user.email}
+                          name={user.full_name || user.email}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}

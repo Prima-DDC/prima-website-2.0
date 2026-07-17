@@ -8,6 +8,7 @@ import { SERVICES } from "./fallback/services";
 import { PAGE_SEO } from "./fallback/seo";
 import { SITE_SETTINGS } from "./fallback/settings";
 import type {
+  ContentBlock,
   Industry,
   Localized,
   Office,
@@ -35,23 +36,25 @@ async function fromDb<T>(
 export async function getBlock<T>(
   page: string,
   section: string,
-): Promise<Localized<T>> {
-  const t = await fromDb(async (db) => {
+): Promise<ContentBlock<T>> {
+  const row = await fromDb(async (db) => {
     const { data } = await db
       .from("content_blocks")
-      .select("t")
+      .select("t, image_path")
       .eq("page", page)
       .eq("section", section)
       .maybeSingle();
-    return (data?.t as Localized<T> | undefined) ?? null;
+    return data
+      ? { t: data.t as Localized<T>, imagePath: data.image_path as string | null }
+      : null;
   });
-  if (t) return t;
+  if (row) return row;
 
   const fallback = CONTENT_BLOCKS.find(
     (b) => b.page === page && b.section === section,
   );
   if (!fallback) throw new Error(`Missing content block: ${page}/${section}`);
-  return fallback.t as Localized<T>;
+  return { t: fallback.t as Localized<T>, imagePath: fallback.imagePath };
 }
 
 type ServiceRow = {

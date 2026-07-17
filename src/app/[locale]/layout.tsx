@@ -7,6 +7,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { getSiteSettings } from "@/features/content/queries";
 import { JsonLd } from "@/features/seo/JsonLd";
 import { organizationSchema } from "@/features/seo/schemas";
+import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import { Footer } from "@/features/site-layout/Footer";
 import { Header } from "@/features/site-layout/Header";
 import { Preloader } from "@/features/site-layout/Preloader";
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.primaddc.com",
   ),
+  manifest: "/manifest.webmanifest",
 };
 
 export default async function LocaleLayout({
@@ -60,6 +62,7 @@ export default async function LocaleLayout({
       <body className="flex min-h-full flex-col">
         <JsonLd data={organizationSchema(settings, locale as Locale)} />
         <NextIntlClientProvider>
+          <RegisterServiceWorker />
           <Preloader note={t("preloader")} />
           <Header />
           <main className="flex-1">{children}</main>

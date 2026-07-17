@@ -23,7 +23,7 @@ export default async function DataProtectionPolicyPage({
   setRequestLocale(locale);
 
   const policy = await getBlock<TextBlock>("data-protection-policy", "policy");
-  const content = pick(policy, locale);
+  const content = pick(policy.t, locale);
 
   return (
     <>

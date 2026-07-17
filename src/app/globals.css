@@ -24,6 +24,7 @@
   --animate-shimmer: shimmer 2.2s linear infinite;
   --animate-grid-pan: grid-pan 40s linear infinite;
   --animate-draw: draw 2.2s ease-out forwards;
+  --animate-kenburns: kenburns 24s ease-in-out infinite alternate;
 }
 
 body {
@@ -134,6 +135,40 @@ body {
     opacity: 0;
     visibility: hidden;
   }
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.12) translate(1.5%, -1.5%);
+  }
+}
+
+@keyframes skeleton-sheen {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+/* ------------------------------------------------------ media skeletons */
+.skeleton {
+  background:
+    linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 70%
+    ),
+    linear-gradient(135deg, #e6efe9 0%, #dfe7ef 100%);
+  background-size:
+    200% 100%,
+    100% 100%;
+  animation: skeleton-sheen 1.6s linear infinite;
 }
 
 /* --------------------------------------------------------- glass effects */

@@ -38,8 +38,8 @@ export default async function PracticeAreasPage({
     getTranslations({ locale, namespace: "common" }),
   ]);
 
-  const introContent = pick(intro, locale);
-  const ctaContent = pick(cta, locale);
+  const introContent = pick(intro.t, locale);
+  const ctaContent = pick(cta.t, locale);
 
   return (
     <>
@@ -53,6 +53,7 @@ export default async function PracticeAreasPage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       <section className="bg-white">
@@ -65,6 +66,7 @@ export default async function PracticeAreasPage({
                   <ServiceCard
                     slug={service.slug}
                     icon={service.icon}
+                    imagePath={service.imagePath}
                     index={i + 1}
                     title={s.title}
                     tagline={s.tagline}

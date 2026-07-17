@@ -31,6 +31,42 @@ const inviteSchema = z.object({
   role: roleSchema,
 });
 
+export async function sendPasswordReset(
+  _prev: UsersState,
+  formData: FormData,
+): Promise<UsersState> {
+  await requireRole("admin");
+  const email = z.string().trim().email().parse(formData.get("email"));
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/auth/confirm`,
+  });
+  if (error) return { error: error.message };
+  return { error: null, success: `Password reset email sent to ${email}.` };
+}
+
+export async function deleteUser(
+  _prev: UsersState,
+  formData: FormData,
+): Promise<UsersState> {
+  const acting = await requireRole("admin");
+  const userId = z.string().uuid().parse(formData.get("userId"));
+
+  // An admin cannot delete themselves; prevents locking everyone out.
+  if (userId === acting.id) {
+    return { error: "You cannot delete your own account." };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/users");
+  return { error: null, success: "User deleted." };
+}
+
 export async function inviteUser(
   _prev: UsersState,
   formData: FormData,

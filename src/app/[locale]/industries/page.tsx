@@ -41,8 +41,8 @@ export default async function IndustriesPage({
     getTranslations({ locale, namespace: "common" }),
   ]);
 
-  const introContent = pick(intro, locale);
-  const ctaContent = pick(cta, locale);
+  const introContent = pick(intro.t, locale);
+  const ctaContent = pick(cta.t, locale);
   const serviceTitle = (slug: string) => {
     const service = services.find((s) => s.slug === slug);
     return service ? pick(service.t, locale).shortTitle : slug;
@@ -60,6 +60,7 @@ export default async function IndustriesPage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       <section className="bg-white">

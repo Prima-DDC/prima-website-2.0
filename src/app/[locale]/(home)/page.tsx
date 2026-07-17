@@ -1,5 +1,6 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MediaImage } from "@/components/MediaImage";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CertificationsStrip } from "@/features/content/components/CertificationsStrip";
@@ -81,22 +82,30 @@ export default async function HomePage({
     getTranslations({ locale, namespace: "nav" }),
   ]);
 
-  const who = pick(whoWeAre, locale);
-  const regional = pick(regionalTeaser, locale);
-  const standards = pick(standardsExcerpt, locale);
-  const ctaContent = pick(cta, locale);
+  const who = pick(whoWeAre.t, locale);
+  const regional = pick(regionalTeaser.t, locale);
+  const standards = pick(standardsExcerpt.t, locale);
+  const statItems = pick(statBar.t, locale).items;
+  const ctaContent = pick(cta.t, locale);
 
   return (
     <>
-      <Hero block={pick(hero, locale)} />
-      <StatBar items={pick(statBar, locale).items} />
+      <Hero block={pick(hero.t, locale)} imagePath={hero.imagePath} />
+      <StatBar items={statItems} />
 
-      {/* Who we are excerpt */}
+      {/* Who we are excerpt with authentic office imagery */}
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
-          <div className="grid gap-12 lg:grid-cols-2">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal>
               <SectionHeading kicker={who.kicker} title={who.title} />
+              <div className="mt-6 space-y-5 border-l-2 border-brand pl-6">
+                {who.paragraphs.map((p) => (
+                  <p key={p.slice(0, 40)} className="leading-relaxed text-slate-body">
+                    {p}
+                  </p>
+                ))}
+              </div>
               <Link
                 href="/who-we-are"
                 className="group mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:text-brand-dark"
@@ -105,22 +114,43 @@ export default async function HomePage({
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Reveal>
-            <Reveal delay={150}>
-              <div className="space-y-5 border-l-2 border-brand pl-6">
-                {who.paragraphs.map((p) => (
-                  <p key={p.slice(0, 40)} className="leading-relaxed text-slate-body">
-                    {p}
-                  </p>
-                ))}
-              </div>
-            </Reveal>
+            {whoWeAre.imagePath ? (
+              <Reveal delay={150}>
+                <div className="group relative">
+                  <div
+                    aria-hidden
+                    className="absolute -left-4 -top-4 h-full w-full rounded-lg border-2 border-brand/30 transition-transform duration-500 group-hover:-translate-x-1 group-hover:-translate-y-1"
+                  />
+                  <MediaImage
+                    path={whoWeAre.imagePath}
+                    alt={who.title}
+                    width={960}
+                    height={640}
+                    hoverZoom
+                    sizes="(min-width: 1024px) 45vw, 100vw"
+                    className="aspect-[3/2] rounded-lg shadow-2xl shadow-navy/20"
+                  />
+                  <div className="glass-dark absolute -bottom-6 left-6 flex items-center gap-3 rounded-xl px-5 py-4 shadow-xl">
+                    <ShieldCheck className="h-8 w-8 text-brand-bright" aria-hidden />
+                    <div>
+                      <p className="font-serif text-2xl font-bold leading-none text-white">
+                        {statItems[0]?.value}
+                      </p>
+                      <p className="mt-1 text-xs font-medium text-white/80">
+                        {statItems[0]?.label}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ) : null}
           </div>
         </div>
       </section>
 
-      <CredentialClusters block={pick(credentials, locale)} />
+      <CredentialClusters block={pick(credentials.t, locale)} />
       <CertificationsStrip
-        block={pick(certifications, locale)}
+        block={pick(certifications.t, locale)}
         certifications={pick(settings.certifications, locale)}
       />
 
@@ -150,6 +180,7 @@ export default async function HomePage({
                   <ServiceCard
                     slug={service.slug}
                     icon={service.icon}
+                    imagePath={service.imagePath}
                     index={i + 1}
                     title={s.title}
                     tagline={s.tagline}
@@ -166,7 +197,10 @@ export default async function HomePage({
       <section className="bg-mist/60">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
           <Reveal>
-            <SectionHeading kicker={tNav("industries")} title={pick(getIndustriesHeading(), locale)} />
+            <SectionHeading
+              kicker={tNav("industries")}
+              title={pick(getIndustriesHeading(), locale)}
+            />
           </Reveal>
           <div className="mt-10">
             <IndustriesStrip
@@ -180,9 +214,26 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Regional coverage teaser (dark) */}
+      {/* Regional coverage teaser over African skyline */}
       <section className="relative overflow-hidden bg-navy">
-        <div className="bg-live-grid-dark absolute inset-0" aria-hidden />
+        {regionalTeaser.imagePath ? (
+          <>
+            <MediaImage
+              path={regionalTeaser.imagePath}
+              alt={regional.title}
+              fill
+              kenburns
+              sizes="100vw"
+              className="absolute inset-0"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/85 to-navy/50"
+            />
+          </>
+        ) : (
+          <div className="bg-live-grid-dark absolute inset-0" aria-hidden />
+        )}
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
           <Reveal>
             <SectionHeading
@@ -202,7 +253,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      <ClientsStats block={pick(clientsStats, locale)} />
+      <ClientsStats block={pick(clientsStats.t, locale)} />
 
       {/* Standards excerpt */}
       <section className="bg-white">

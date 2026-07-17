@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
-    "create-admin": "tsx --env-file=.env.local scripts/create-admin.ts"
+    "create-admin": "tsx --env-file=.env.local scripts/create-admin.ts",
+    "media:upload": "tsx --env-file=.env.local scripts/upload-media.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",

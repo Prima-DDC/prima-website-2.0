@@ -33,7 +33,7 @@ export default async function ContactPage({
     getServices(),
   ]);
 
-  const introContent = pick(intro, locale);
+  const introContent = pick(intro.t, locale);
   const serviceOptions = services.map((s) => ({
     slug: s.slug,
     title: pick(s.t, locale).title,
@@ -54,6 +54,7 @@ export default async function ContactPage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       <section className="bg-white">

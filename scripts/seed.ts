@@ -30,6 +30,7 @@ await upsert(
     page: b.page,
     section: b.section,
     sort: b.sort,
+    image_path: b.imagePath,
     t: b.t,
   })),
   "page,section",

@@ -11,7 +11,7 @@ export default async function ContentPageEditor({
   const supabase = await createSupabaseServerClient();
   const { data: blocks } = await supabase
     .from("content_blocks")
-    .select("page, section, sort, t")
+    .select("page, section, sort, image_path, t")
     .eq("page", page)
     .order("sort");
 
@@ -32,6 +32,13 @@ export default async function ContentPageEditor({
             kind="block"
             title={block.section.replace(/-/g, " ")}
             hidden={{ page: block.page, section: block.section }}
+            scalars={[
+              {
+                name: "image_path",
+                label: "Image (media library path or URL, empty for none)",
+                value: block.image_path ?? "",
+              },
+            ]}
             t={block.t}
           />
         ))}

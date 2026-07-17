@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MediaImage } from "@/components/MediaImage";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { CertificationsStrip } from "@/features/content/components/CertificationsStrip";
@@ -52,10 +53,10 @@ export default async function WhoWeArePage({
       getTranslations({ locale, namespace: "common" }),
     ]);
 
-  const introContent = pick(intro, locale);
-  const mv = pick(missionVision, locale);
-  const faqContent = pick(faq, locale);
-  const ctaContent = pick(cta, locale);
+  const introContent = pick(intro.t, locale);
+  const mv = pick(missionVision.t, locale);
+  const faqContent = pick(faq.t, locale);
+  const ctaContent = pick(cta.t, locale);
 
   return (
     <>
@@ -72,6 +73,7 @@ export default async function WhoWeArePage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       <section className="bg-white">
@@ -85,6 +87,19 @@ export default async function WhoWeArePage({
                   </p>
                 ))}
               </div>
+              {missionVision.imagePath ? (
+                <div className="group mt-8">
+                  <MediaImage
+                    path={missionVision.imagePath}
+                    alt={introContent.title}
+                    width={960}
+                    height={640}
+                    hoverZoom
+                    sizes="(min-width: 1024px) 45vw, 100vw"
+                    className="aspect-[3/2] rounded-lg shadow-xl shadow-navy/15"
+                  />
+                </div>
+              ) : null}
             </Reveal>
             <Reveal delay={150}>
               <div className="grid gap-6">
@@ -103,10 +118,10 @@ export default async function WhoWeArePage({
         </div>
       </section>
 
-      <StatBar items={pick(statBar, locale).items} />
-      <CredentialClusters block={pick(credentials, locale)} />
+      <StatBar items={pick(statBar.t, locale).items} />
+      <CredentialClusters block={pick(credentials.t, locale)} />
       <CertificationsStrip
-        block={pick(certifications, locale)}
+        block={pick(certifications.t, locale)}
         certifications={pick(settings.certifications, locale)}
       />
 

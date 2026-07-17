@@ -17,9 +17,25 @@ function block<T>(
   section: string,
   sort: number,
   t: Localized<T>,
+  imagePath: string | null = null,
 ): ContentBlockRow {
-  return { page, section, sort, t };
+  return { page, section, sort, imagePath, t };
 }
+
+/** Media slots in the Supabase public-media bucket (seeded by media:upload). */
+const IMG = {
+  heroCorporate: "site/hero-corporate.webp",
+  officeSign: "site/office-sign.webp",
+  officeReception: "site/office-reception.webp",
+  trainingSession: "site/training-session.webp",
+  seminarAudience: "site/seminar-audience.webp",
+  cyberPolicy: "site/cyber-policy-handover.webp",
+  boardroom: "site/boardroom-meeting.webp",
+  corporateBuilding: "site/corporate-building.webp",
+  citySkyline: "site/city-skyline.webp",
+  documentsReview: "site/documents-review.webp",
+  handshake: "site/partnership-handshake.webp",
+} as const;
 
 export const CONTENT_BLOCKS: ContentBlockRow[] = [
   // ---------------------------------------------------------------- home
@@ -968,3 +984,25 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
     },
   }),
 ];
+
+// Image assignments per block (page/section). Kept separate from the copy so
+// the mapping is auditable at a glance; editable later via the admin CMS.
+const BLOCK_IMAGES: Record<string, string> = {
+  "home/hero": IMG.heroCorporate,
+  "home/who-we-are": IMG.officeSign,
+  "home/regional-teaser": IMG.citySkyline,
+  "who-we-are/intro": IMG.boardroom,
+  "who-we-are/mission-vision": IMG.officeSign,
+  "practice-areas/intro": IMG.corporateBuilding,
+  "industries/intro": IMG.handshake,
+  "regional-coverage/intro": IMG.citySkyline,
+  "regional-coverage/pillars": IMG.seminarAudience,
+  "our-standards/intro": IMG.documentsReview,
+  "our-standards/standards": IMG.cyberPolicy,
+  "training/intro": IMG.trainingSession,
+  "contact/intro": IMG.officeReception,
+};
+
+for (const b of CONTENT_BLOCKS) {
+  b.imagePath = BLOCK_IMAGES[`${b.page}/${b.section}`] ?? null;
+}

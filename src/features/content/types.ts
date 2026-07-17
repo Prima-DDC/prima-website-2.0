@@ -167,5 +167,12 @@ export interface ContentBlockRow {
   page: string;
   section: string;
   sort: number;
+  imagePath: string | null;
   t: Localized<unknown>;
+}
+
+/** A content block as consumed by pages: localized payload + optional image. */
+export interface ContentBlock<T> {
+  t: Localized<T>;
+  imagePath: string | null;
 }

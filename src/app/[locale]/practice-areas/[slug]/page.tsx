@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { MediaImage } from "@/components/MediaImage";
 import { Reveal } from "@/components/Reveal";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { getBlock, getIndustries, getService } from "@/features/content/queries";
@@ -58,7 +59,7 @@ export default async function PracticeAreaPage({
   if (!service) notFound();
 
   const s = pick(service.t, locale);
-  const ctaContent = pick(cta, locale);
+  const ctaContent = pick(cta.t, locale);
   const related = industries.filter((i) =>
     i.relatedServiceSlugs.includes(service.slug),
   );
@@ -80,8 +81,30 @@ export default async function PracticeAreaPage({
           ]),
         ]}
       />
-      <section className="relative overflow-hidden border-b border-line bg-mist/50">
-        <AnimatedBackground />
+      <section
+        className={`relative overflow-hidden border-b border-line ${
+          service.imagePath ? "bg-navy-deep" : "bg-mist/50"
+        }`}
+      >
+        {service.imagePath ? (
+          <>
+            <MediaImage
+              path={service.imagePath}
+              alt={s.title}
+              fill
+              priority
+              kenburns
+              sizes="100vw"
+              className="absolute inset-0"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-r from-navy-deep/95 via-navy-deep/80 to-navy-deep/40"
+            />
+          </>
+        ) : (
+          <AnimatedBackground />
+        )}
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
           <div
             className="animate-fade-up flex h-14 w-14 items-center justify-center rounded-lg bg-brand text-white shadow-lg shadow-brand/25"
@@ -90,13 +113,17 @@ export default async function PracticeAreaPage({
             <ServiceIcon name={service.icon} className="h-7 w-7" />
           </div>
           <h1
-            className="animate-fade-up mt-6 max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight text-navy sm:text-5xl"
+            className={`animate-fade-up mt-6 max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl ${
+              service.imagePath ? "text-white" : "text-navy"
+            }`}
             style={{ animationDelay: "0.15s" }}
           >
             {s.title}
           </h1>
           <p
-            className="animate-fade-up mt-4 max-w-3xl text-xl font-medium text-brand-dark"
+            className={`animate-fade-up mt-4 max-w-3xl text-xl font-medium ${
+              service.imagePath ? "text-brand-bright" : "text-brand-dark"
+            }`}
             style={{ animationDelay: "0.25s" }}
           >
             {s.tagline}

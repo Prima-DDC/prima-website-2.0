@@ -40,8 +40,8 @@ export default async function TrainingPage({
     getTranslations({ locale, namespace: "common" }),
   ]);
 
-  const introContent = pick(intro, locale);
-  const ctaContent = pick(cta, locale);
+  const introContent = pick(intro.t, locale);
+  const ctaContent = pick(cta.t, locale);
   const s = service ? pick(service.t, locale) : null;
 
   return (
@@ -56,6 +56,7 @@ export default async function TrainingPage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       {s ? (

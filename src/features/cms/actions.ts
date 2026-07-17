@@ -37,10 +37,17 @@ export async function saveContentBlock(
     const section = z.string().min(1).parse(formData.get("section"));
     const t = parseLocalizedJson(formData);
 
+    const patch: Record<string, unknown> = {
+      t,
+      updated_at: new Date().toISOString(),
+    };
+    const imagePath = formData.get("image_path");
+    if (imagePath !== null) patch.image_path = String(imagePath).trim() || null;
+
     const admin = createSupabaseAdminClient();
     const { error } = await admin
       .from("content_blocks")
-      .update({ t, updated_at: new Date().toISOString() })
+      .update(patch)
       .eq("page", page)
       .eq("section", section);
     if (error) return { error: error.message };
@@ -79,7 +86,7 @@ export async function saveEntity(
       updated_at: new Date().toISOString(),
     };
     // Optional scalar columns editable alongside the localized payload.
-    for (const col of ["icon", "phone", "whatsapp", "email", "map_url"]) {
+    for (const col of ["icon", "image_path", "phone", "whatsapp", "email", "map_url"]) {
       const value = formData.get(col);
       if (value !== null) patch[col] = String(value) || null;
     }

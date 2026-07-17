@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Public_Sans, Source_Serif_4 } from "next/font/google";
+import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import "../globals.css";
 
 const publicSans = Public_Sans({
@@ -28,7 +29,10 @@ export default function InternalLayout({
       lang="en"
       className={`${publicSans.variable} ${sourceSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-mist/40">{children}</body>
+      <body className="min-h-full bg-mist/40">
+        <RegisterServiceWorker />
+        {children}
+      </body>
     </html>
   );
 }

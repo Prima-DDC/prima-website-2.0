@@ -1,5 +1,6 @@
 import { ArrowRight, Lock } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MediaImage } from "@/components/MediaImage";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
 import { LinkedItemGrid } from "@/features/content/components/LinkedItemGrid";
@@ -42,10 +43,10 @@ export default async function OurStandardsPage({
     getTranslations({ locale, namespace: "common" }),
   ]);
 
-  const introContent = pick(intro, locale);
-  const standardsContent = pick(standards, locale);
-  const dp = pick(dataProtection, locale);
-  const ctaContent = pick(cta, locale);
+  const introContent = pick(intro.t, locale);
+  const standardsContent = pick(standards.t, locale);
+  const dp = pick(dataProtection.t, locale);
+  const ctaContent = pick(cta.t, locale);
 
   return (
     <>
@@ -59,6 +60,7 @@ export default async function OurStandardsPage({
         kicker={introContent.kicker}
         title={introContent.title}
         intro={introContent.paragraphs[0]}
+        imagePath={intro.imagePath}
       />
 
       <section className="bg-white">
@@ -66,8 +68,25 @@ export default async function OurStandardsPage({
           <Reveal>
             <h2 className="text-3xl font-bold text-navy">{standardsContent.title}</h2>
           </Reveal>
-          <div className="mt-10">
-            <LinkedItemGrid items={standardsContent.items} />
+          <div className="mt-10 grid items-center gap-12 lg:grid-cols-5">
+            <div className="lg:col-span-3">
+              <LinkedItemGrid items={standardsContent.items} columns={2} />
+            </div>
+            {standards.imagePath ? (
+              <Reveal delay={150} className="lg:col-span-2">
+                <div className="group">
+                  <MediaImage
+                    path={standards.imagePath}
+                    alt={standardsContent.title}
+                    width={800}
+                    height={600}
+                    hoverZoom
+                    sizes="(min-width: 1024px) 35vw, 100vw"
+                    className="aspect-[4/3] rounded-lg shadow-xl shadow-navy/15"
+                  />
+                </div>
+              </Reveal>
+            ) : null}
           </div>
 
           <Reveal className="mt-16">

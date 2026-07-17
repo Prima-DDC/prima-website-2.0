@@ -5,7 +5,7 @@ export const SERVICES: Service[] = [
     slug: "corporate-intelligence-due-diligence",
     sort: 1,
     icon: "SearchCheck",
-    imagePath: null,
+    imagePath: "site/documents-review.webp",
     t: {
       en: {
         title: "Corporate Intelligence & Due Diligence",
@@ -163,7 +163,7 @@ export const SERVICES: Service[] = [
     slug: "investigations-fraud-risk",
     sort: 2,
     icon: "FileSearch",
-    imagePath: null,
+    imagePath: "site/analysts-working.webp",
     t: {
       en: {
         title: "Investigations & Fraud Risk Management",
@@ -285,7 +285,7 @@ export const SERVICES: Service[] = [
     slug: "forensic-services",
     sort: 3,
     icon: "Microscope",
-    imagePath: null,
+    imagePath: "site/forensic-lab.webp",
     t: {
       en: {
         title: "Forensic Services & Scientific Examination",
@@ -428,7 +428,7 @@ export const SERVICES: Service[] = [
     slug: "intelligence-risk-advisory",
     sort: 4,
     icon: "Network",
-    imagePath: null,
+    imagePath: "site/data-intelligence.webp",
     t: {
       en: {
         title: "Intelligence Analysis & Risk Advisory",
@@ -562,7 +562,7 @@ export const SERVICES: Service[] = [
     slug: "insurance-sector-solutions",
     sort: 5,
     icon: "ShieldCheck",
-    imagePath: null,
+    imagePath: "site/insurance-claims.webp",
     t: {
       en: {
         title: "Insurance Sector Solutions",
@@ -636,7 +636,7 @@ export const SERVICES: Service[] = [
     slug: "training-professional-development",
     sort: 6,
     icon: "GraduationCap",
-    imagePath: null,
+    imagePath: "site/training-session.webp",
     t: {
       en: {
         title: "Training & Professional Development",
