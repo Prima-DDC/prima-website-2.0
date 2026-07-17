@@ -49,6 +49,9 @@ export async function submitOpsDocument(
   formData: FormData,
 ): Promise<OpsState> {
   const profile = await requireRole();
+  if (!profile.canSubmit) {
+    return { error: "Your role is not permitted to submit requests. Contact administration." };
+  }
 
   const docType = z
     .enum(DOC_TYPES as unknown as [DocType, ...DocType[]])

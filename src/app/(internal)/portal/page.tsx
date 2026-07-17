@@ -25,13 +25,15 @@ export default async function PortalHome() {
             Submit and track your requests and documents.
           </p>
         </div>
-        <Link
-          href="/portal/new"
-          className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
-        >
-          <FilePlus2 className="h-4 w-4" aria-hidden />
-          New request
-        </Link>
+        {profile.canSubmit ? (
+          <Link
+            href="/portal/new"
+            className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
+          >
+            <FilePlus2 className="h-4 w-4" aria-hidden />
+            New request
+          </Link>
+        ) : null}
       </div>
 
       {!docs || docs.length === 0 ? (
@@ -39,7 +41,9 @@ export default async function PortalHome() {
           <FilePlus2 className="mx-auto h-10 w-10 text-brand" aria-hidden />
           <p className="mt-4 font-semibold text-navy">No documents yet</p>
           <p className="mt-1 text-sm text-slate-body">
-            Start by creating your first request.
+            {profile.canSubmit
+              ? "Start by creating your first request."
+              : "Documents you are involved in will appear here."}
           </p>
         </div>
       ) : (

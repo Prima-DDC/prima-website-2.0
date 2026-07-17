@@ -112,6 +112,32 @@ export async function deleteRole(
   return { error: null, success: `Role "${role.label}" deleted.` };
 }
 
+/** Toggles whether a role may submit requests/documents. */
+export async function toggleRoleSubmission(
+  _prev: RolesState,
+  formData: FormData,
+): Promise<RolesState> {
+  await requireRole("admin");
+  const key = z.string().min(1).parse(formData.get("key"));
+  const allow = formData.get("allow") === "true";
+
+  const db = createSupabaseAdminClient();
+  const { data: role, error } = await db
+    .from("roles")
+    .update({ can_submit: allow })
+    .eq("key", key)
+    .select("label")
+    .single();
+  if (error || !role) return { error: error?.message ?? "Role not found." };
+
+  revalidateRoles();
+  revalidatePath("/admin/ops");
+  return {
+    error: null,
+    success: `${role.label} ${allow ? "can now submit" : "can no longer submit"} requests.`,
+  };
+}
+
 export async function addStage(
   _prev: RolesState,
   formData: FormData,

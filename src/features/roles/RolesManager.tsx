@@ -19,6 +19,7 @@ import {
   moveStage,
   removeStage,
   renameRole,
+  toggleRoleSubmission,
   type RolesState,
 } from "./actions";
 import type { RoleRow } from "./queries";
@@ -48,6 +49,10 @@ function Feedback({ state }: { state: RolesState }) {
 function RoleLine({ role, members }: { role: RoleRow; members: number }) {
   const [renameState, renameAction, renamePending] = useActionState(renameRole, initial);
   const [deleteState, deleteAction] = useActionState(deleteRole, initial);
+  const [submitState, submitAction, submitPending] = useActionState(
+    toggleRoleSubmission,
+    initial,
+  );
   const protectedRole = role.builtIn || role.key === "admin";
 
   return (
@@ -101,7 +106,37 @@ function RoleLine({ role, members }: { role: RoleRow; members: number }) {
           </form>
         )}
       </div>
-      <Feedback state={renameState.error || renameState.success ? renameState : deleteState} />
+      <form action={submitAction} className="mt-3 flex items-center gap-2">
+        <input type="hidden" name="key" value={role.key} />
+        <input type="hidden" name="allow" value={String(!role.canSubmit)} />
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+            role.canSubmit ? "bg-brand/10 text-brand-dark" : "bg-line/50 text-slate-body"
+          }`}
+        >
+          {role.canSubmit ? "Can submit requests" : "Cannot submit requests"}
+        </span>
+        <button
+          type="submit"
+          disabled={submitPending}
+          className="rounded border border-line px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-brand hover:text-brand disabled:opacity-50"
+        >
+          {submitPending
+            ? "Saving..."
+            : role.canSubmit
+              ? "Revoke submission"
+              : "Allow submission"}
+        </button>
+      </form>
+      <Feedback
+        state={
+          renameState.error || renameState.success
+            ? renameState
+            : submitState.error || submitState.success
+              ? submitState
+              : deleteState
+        }
+      />
     </li>
   );
 }

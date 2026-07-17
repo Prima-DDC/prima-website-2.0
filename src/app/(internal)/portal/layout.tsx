@@ -15,7 +15,9 @@ export default async function PortalLayout({
 
   const items: WorkspaceNavItem[] = [
     { href: "/portal", label: "My Documents", icon: "LayoutDashboard" },
-    { href: "/portal/new", label: "New Request", icon: "FilePlus2" },
+    ...(profile.canSubmit
+      ? [{ href: "/portal/new", label: "New Request", icon: "FilePlus2" } as const]
+      : []),
     ...(isApprover
       ? [{ href: "/portal/approvals", label: "Approvals", icon: "ClipboardCheck" } as const]
       : []),

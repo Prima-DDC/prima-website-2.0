@@ -154,6 +154,13 @@ Verified end-to-end: created a Finance role via the UI, inserted it after HR (hr
 - Desktop: the bell moved from the bottom of the sidebar (where its dropdown opened off-screen) to an always-visible floating glass pill at the top right; the panel opens downward and fully on-screen.
 - Mobile/tablet: the panel is now a fixed sheet under the top bar (no more clipping on narrow viewports), with viewport-aware height, larger touch target, ESC to close, and aria-expanded state.
 
+## Phase 7 (2026-07-17): Configurable request submission permissions (DONE)
+
+- `roles.can_submit` controls which roles may create requests/documents: every role except admin by default, and newly created roles are allowed automatically. Admins toggle it per role on /admin/roles (Allow/Revoke submission with status badge).
+- Enforced at three levels: UI (New Request nav, buttons, and /portal/new pages hide or redirect), server action (clear error), and database RLS (inserts from revoked roles are refused outright).
+
+Verified by a 10-check e2e suite through the real UI: defaults correct (admin excluded), employee submitted, admin revoked via the dashboard toggle, UI gates engaged, direct database insert blocked by RLS, re-allow restored submission, and a newly created role defaulted to allowed. Build + ESLint clean.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

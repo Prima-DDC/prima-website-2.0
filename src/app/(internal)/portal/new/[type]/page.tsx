@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { requireRole } from "@/features/auth/helpers";
 import { DOC_CONFIG, docTypeFromSlug } from "@/features/ops/config";
 import { OpsForm } from "@/features/ops/OpsForm";
 
@@ -7,6 +8,9 @@ export default async function NewDocumentPage({
 }: {
   params: Promise<{ type: string }>;
 }) {
+  const profile = await requireRole();
+  if (!profile.canSubmit) redirect("/portal");
+
   const { type } = await params;
   const docType = docTypeFromSlug(type);
   if (!docType) notFound();

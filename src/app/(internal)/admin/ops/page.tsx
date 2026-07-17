@@ -10,6 +10,7 @@ import {
 import { getApprovalStages } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { StatusBadge } from "@/features/ops/StatusBadge";
+import { getSessionProfile } from "@/features/auth/helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function stageProgress(
@@ -36,6 +37,7 @@ export default async function OpsQueuePage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { status = "submitted" } = await searchParams;
+  const profile = await getSessionProfile();
   const supabase = await createSupabaseServerClient();
 
   let query = supabase
@@ -60,13 +62,15 @@ export default async function OpsQueuePage({
             expenses, leave, and invoices.
           </p>
         </div>
-        <Link
-          href="/portal/new"
-          className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
-        >
-          <FilePlus2 className="h-4 w-4" aria-hidden />
-          New document
-        </Link>
+        {profile?.canSubmit ? (
+          <Link
+            href="/portal/new"
+            className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
+          >
+            <FilePlus2 className="h-4 w-4" aria-hidden />
+            New document
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-6 flex gap-1 border-b border-line">

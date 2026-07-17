@@ -7,6 +7,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { requireRole } from "@/features/auth/helpers";
 import { DOC_CONFIG, DOC_TYPES, slugFromDocType } from "@/features/ops/config";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -17,7 +19,10 @@ const ICONS: Record<string, LucideIcon> = {
   FileText,
 };
 
-export default function NewRequestPage() {
+export default async function NewRequestPage() {
+  const profile = await requireRole();
+  if (!profile.canSubmit) redirect("/portal");
+
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-bold text-navy">New request</h1>
