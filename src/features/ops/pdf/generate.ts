@@ -14,18 +14,18 @@ export async function generateDocumentPdf({
   docNumber,
   data,
   submitterName,
-  approverName,
+  approvals,
 }: {
   docType: DocType;
   docNumber: string;
   data: Record<string, unknown>;
   submitterName: string;
-  approverName: string;
+  approvals: Array<{ label: string; name: string; date: string }>;
 }): Promise<string> {
   const logo = readFileSync(path.join(process.cwd(), "public", "logo.png"));
 
   const buffer = await renderToBuffer(
-    DocumentPdf({ docType, docNumber, data, submitterName, approverName, logo }),
+    DocumentPdf({ docType, docNumber, data, submitterName, approvals, logo }),
   );
 
   const storagePath = `${docType}/${docNumber}.pdf`;

@@ -101,7 +101,7 @@ export interface PdfInput {
   docNumber: string;
   data: Record<string, unknown>;
   submitterName: string;
-  approverName: string;
+  approvals: Array<{ label: string; name: string; date: string }>;
   logo: Buffer;
 }
 
@@ -217,7 +217,7 @@ function CertificatePage({ input }: { input: PdfInput }) {
             <View style={{ alignItems: "center" }}>
               <View style={{ width: 140, borderBottomWidth: 1, borderBottomColor: SLATE }} />
               <Text style={{ marginTop: 4, fontSize: 8, color: SLATE }}>
-                {input.approverName}
+                {input.approvals[input.approvals.length - 1]?.name ?? "PRIMA Management"}
               </Text>
               <Text style={{ fontSize: 7, color: SLATE }}>
                 Authorized signatory, PRIMA Due Diligence Consult
@@ -356,10 +356,22 @@ export function DocumentPdf(input: PdfInput) {
         <BodyByType input={input} />
 
         <View style={styles.approvalBox}>
-          <Text style={styles.label}>Approval</Text>
-          <Text style={styles.value}>
-            Approved by {input.approverName}, PRIMA Due Diligence Consult
-          </Text>
+          <Text style={styles.label}>Approvals</Text>
+          {input.approvals.map((a) => (
+            <View
+              key={a.label}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginTop: 4,
+              }}
+            >
+              <Text style={styles.value}>
+                {a.label}: {a.name}
+              </Text>
+              <Text style={{ fontSize: 9, color: SLATE }}>{a.date}</Text>
+            </View>
+          ))}
         </View>
 
         <View style={styles.footer} fixed>

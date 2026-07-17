@@ -49,6 +49,9 @@ export function InviteUserForm() {
           </label>
           <select id="invite-role" name="role" defaultValue="employee" className={inputClass}>
             <option value="employee">Employee</option>
+            <option value="hr">HR</option>
+            <option value="manager">Manager</option>
+            <option value="ceo">CEO</option>
             <option value="client">Client</option>
             <option value="admin">Admin</option>
           </select>

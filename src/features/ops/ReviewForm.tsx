@@ -3,18 +3,27 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useActionState } from "react";
 import { ConfirmButton } from "@/components/ConfirmDialog";
-import { reviewOpsDocument, type OpsState } from "./actions";
+import { signOffDocument, type OpsState } from "./actions";
 
-export function ReviewForm({ docId }: { docId: string }) {
+/** One stage of the sequential sign-off (HR, Manager, or CEO). */
+export function ReviewForm({
+  docId,
+  stageLabel,
+  isFinalStage,
+}: {
+  docId: string;
+  stageLabel: string;
+  isFinalStage: boolean;
+}) {
   const [state, formAction, pending] = useActionState<OpsState, FormData>(
-    reviewOpsDocument,
+    signOffDocument,
     { error: null },
   );
 
   return (
     <form action={formAction} className="rounded-lg border border-line bg-white p-7">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-body">
-        Review decision
+        {stageLabel} sign-off
       </h2>
       {state.error ? (
         <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
@@ -36,10 +45,11 @@ export function ReviewForm({ docId }: { docId: string }) {
         <ConfirmButton
           dialog={{
             tone: "brand",
-            title: "Approve this document?",
-            message:
-              "Approval is final: the official branded PDF is generated, and the submitter can download it immediately.",
-            confirmLabel: "Approve & generate PDF",
+            title: `Approve as ${stageLabel}?`,
+            message: isFinalStage
+              ? "This is the final sign-off: the document becomes fully approved and the official branded PDF is generated immediately."
+              : `Your ${stageLabel} sign-off is recorded in the approval trail and the document moves to the next stage.`,
+            confirmLabel: `Sign off as ${stageLabel}`,
           }}
           name="decision"
           value="approved"
@@ -47,14 +57,14 @@ export function ReviewForm({ docId }: { docId: string }) {
           className="inline-flex items-center gap-2 rounded bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
           <CheckCircle2 className="h-4 w-4" aria-hidden />
-          {pending ? "Working..." : "Approve & generate PDF"}
+          {pending ? "Working..." : `Approve (${stageLabel})`}
         </ConfirmButton>
         <ConfirmButton
           dialog={{
             tone: "danger",
             title: "Reject this document?",
             message:
-              "The submitter will see the rejection and your comment. Make sure the comment explains what needs to change.",
+              "Rejection ends the approval chain. The submitter will see your comment; make sure it explains what needs to change.",
             confirmLabel: "Reject document",
           }}
           name="decision"

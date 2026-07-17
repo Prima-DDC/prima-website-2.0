@@ -1,10 +1,19 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PencilLine } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DOC_CONFIG, type DocStatus, type DocType } from "@/features/ops/config";
+import { ApprovalTrail } from "@/features/ops/ApprovalTrail";
+import {
+  APPROVAL_STAGES,
+  DOC_CONFIG,
+  nextStage,
+  type DocStatus,
+  type DocType,
+} from "@/features/ops/config";
+import { DeleteDocButton } from "@/features/ops/DeleteDocButton";
 import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
 import { PdfDownloadButton } from "@/features/ops/PdfDownloadButton";
+import { getApprovals } from "@/features/ops/queries";
 import { ReviewForm } from "@/features/ops/ReviewForm";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -32,11 +41,14 @@ export default async function AdminOpsDocumentPage({
     email: string;
   } | null;
 
-  const { data: events } = await supabase
-    .from("ops_events")
-    .select("id, action, comment, created_at, actor, profiles:actor (full_name, email)")
-    .eq("doc_id", id)
-    .order("created_at");
+  const [approvals, { data: events }] = await Promise.all([
+    getApprovals(id),
+    supabase
+      .from("ops_events")
+      .select("id, action, comment, created_at, actor, profiles:actor (full_name, email)")
+      .eq("doc_id", id)
+      .order("created_at"),
+  ]);
 
   const timeline: OpsEvent[] = (events ?? []).map((e) => {
     const profile = e.profiles as unknown as { full_name: string | null; email: string } | null;
@@ -48,6 +60,9 @@ export default async function AdminOpsDocumentPage({
       actorName: profile?.full_name || profile?.email || "Unknown",
     };
   });
+
+  const stage = nextStage(approvals);
+  const stageMeta = APPROVAL_STAGES.find((s) => s.role === stage);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -67,12 +82,28 @@ export default async function AdminOpsDocumentPage({
             {new Date(doc.created_at).toLocaleString("en-GB")}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={doc.status as DocStatus} />
           {doc.status === "approved" && doc.pdf_path ? (
             <PdfDownloadButton docId={doc.id} />
           ) : null}
+          {doc.status === "submitted" ? (
+            <Link
+              href={`/admin/ops/${doc.id}/edit`}
+              className="inline-flex items-center gap-1.5 rounded border border-line px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-brand hover:text-brand"
+            >
+              <PencilLine className="h-4 w-4" aria-hidden /> Edit
+            </Link>
+          ) : null}
+          <DeleteDocButton docId={doc.id} docNumber={doc.doc_number} />
         </div>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-line bg-white p-7">
+        <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-slate-body">
+          Approval trail
+        </h2>
+        <ApprovalTrail approvals={approvals} docStatus={doc.status} />
       </div>
 
       <div className="mt-6 rounded-lg border border-line bg-white p-7">
@@ -82,9 +113,13 @@ export default async function AdminOpsDocumentPage({
         />
       </div>
 
-      {doc.status === "submitted" ? (
+      {doc.status === "submitted" && stageMeta ? (
         <div className="mt-6">
-          <ReviewForm docId={doc.id} />
+          <ReviewForm
+            docId={doc.id}
+            stageLabel={stageMeta.label}
+            isFinalStage={stage === APPROVAL_STAGES[APPROVAL_STAGES.length - 1].role}
+          />
         </div>
       ) : null}
 

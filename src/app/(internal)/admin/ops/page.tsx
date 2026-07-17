@@ -1,7 +1,26 @@
+import { FilePlus2 } from "lucide-react";
 import Link from "next/link";
-import { DOC_CONFIG, type DocStatus, type DocType } from "@/features/ops/config";
+import {
+  APPROVAL_STAGES,
+  DOC_CONFIG,
+  nextStage,
+  type DocStatus,
+  type DocType,
+} from "@/features/ops/config";
+import { getApprovalsMap } from "@/features/ops/queries";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+function stageProgress(
+  status: string,
+  approvals: Array<{ stage: string; status: string }>,
+): string {
+  if (status !== "submitted") return "-";
+  const stage = nextStage(approvals);
+  const done = approvals.filter((a) => a.status === "approved").length;
+  const label = APPROVAL_STAGES.find((s) => s.role === stage)?.label;
+  return label ? `${done}/${APPROVAL_STAGES.length}, awaiting ${label}` : "-";
+}
 
 const TABS: Array<{ value: string; label: string }> = [
   { value: "submitted", label: "Pending" },
@@ -25,13 +44,26 @@ export default async function OpsQueuePage({
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
   const { data: docs } = await query;
+  const approvalsMap = await getApprovalsMap((docs ?? []).map((d) => d.id));
 
   return (
     <div className="mx-auto max-w-6xl">
-      <h1 className="text-2xl font-bold text-navy">Approvals</h1>
-      <p className="mt-1 text-sm text-slate-body">
-        Review employee submissions: certificates, funds, expenses, leave, and invoices.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">Approvals</h1>
+          <p className="mt-1 text-sm text-slate-body">
+            Sequential HR, Manager, and CEO sign-off on certificates, funds,
+            expenses, leave, and invoices.
+          </p>
+        </div>
+        <Link
+          href="/portal/new"
+          className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
+        >
+          <FilePlus2 className="h-4 w-4" aria-hidden />
+          New document
+        </Link>
+      </div>
 
       <div className="mt-6 flex gap-1 border-b border-line">
         {TABS.map((tab) => (
@@ -63,6 +95,7 @@ export default async function OpsQueuePage({
                   <th className="px-5 py-3 font-semibold">Type</th>
                   <th className="px-5 py-3 font-semibold">Submitted by</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
+                  <th className="px-5 py-3 font-semibold">Sign-offs</th>
                   <th className="px-5 py-3 font-semibold">Date</th>
                 </tr>
               </thead>
@@ -90,6 +123,9 @@ export default async function OpsQueuePage({
                       </td>
                       <td className="px-5 py-3.5">
                         <StatusBadge status={doc.status as DocStatus} />
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-slate-body">
+                        {stageProgress(doc.status, approvalsMap.get(doc.id) ?? [])}
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-body">
                         {new Date(doc.created_at).toLocaleString("en-GB")}

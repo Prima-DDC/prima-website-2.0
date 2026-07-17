@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 import { ConfirmButton } from "@/components/ConfirmDialog";
 import { requireRole } from "@/features/auth/helpers";
 import { updateUserRole } from "@/features/users/actions";
@@ -10,7 +12,7 @@ export default async function UsersPage() {
   const supabase = await createSupabaseServerClient();
   const { data: users } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, created_at")
+    .select("id, email, full_name, role, photo_path, created_at")
     .order("created_at");
 
   return (
@@ -36,15 +38,27 @@ export default async function UsersPage() {
                 {(users ?? []).map((user) => (
                   <tr key={user.id}>
                     <td className="px-5 py-3.5">
-                      <p className="font-semibold text-navy">
-                        {user.full_name || user.email}
-                        {user.id === acting.id ? (
-                          <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-body">
-                            you
-                          </span>
-                        ) : null}
-                      </p>
-                      <p className="text-xs text-slate-body">{user.email}</p>
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          photoPath={user.photo_path}
+                          name={user.full_name || user.email}
+                          size={34}
+                        />
+                        <div>
+                          <Link
+                            href={`/admin/users/${user.id}`}
+                            className="font-semibold text-brand hover:text-brand-dark"
+                          >
+                            {user.full_name || user.email}
+                          </Link>
+                          {user.id === acting.id ? (
+                            <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-body">
+                              you
+                            </span>
+                          ) : null}
+                          <p className="text-xs text-slate-body">{user.email}</p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-5 py-3.5">
                       {user.id === acting.id ? (
@@ -60,6 +74,9 @@ export default async function UsersPage() {
                             className="rounded-md border border-line bg-white px-2.5 py-1.5 text-xs font-medium text-navy outline-none focus:border-brand"
                           >
                             <option value="admin">Admin</option>
+                            <option value="hr">HR</option>
+                            <option value="manager">Manager</option>
+                            <option value="ceo">CEO</option>
                             <option value="employee">Employee</option>
                             <option value="client">Client</option>
                           </select>

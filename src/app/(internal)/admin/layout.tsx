@@ -12,6 +12,7 @@ const NAV_ITEMS: WorkspaceNavItem[] = [
   { href: "/admin/media", label: "Media", icon: "ImageIcon" },
   { href: "/admin/inbox", label: "Inbox", icon: "Inbox" },
   { href: "/admin/ops", label: "Approvals", icon: "ClipboardCheck" },
+  { href: "/admin/support", label: "Support", icon: "LifeBuoy" },
   { href: "/admin/users", label: "Users", icon: "Users" },
   { href: "/portal/profile", label: "My Profile", icon: "UserRound" },
 ];

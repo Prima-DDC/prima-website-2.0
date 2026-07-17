@@ -107,6 +107,35 @@ Verified: build + ESLint clean; user reset/delete e2e re-run green against the n
 
 Verified end-to-end with a scripted authenticator (RFC 6238 TOTP in the test): invite token_hash link -> session -> profile 200; password set + profile update through the real forms (DB checked); factor enrolled and verified with computed codes; login redirected to the MFA page; /portal blocked at AAL1; code verify -> AAL2 -> portal 200; bogus link -> friendly expired message. Build + ESLint clean.
 
+## Phase 5 (2026-07-17): Approval chain, admin CRUD, staff profiles, support, notifications (DONE)
+
+### Sequential approval workflow (HR -> Manager -> CEO)
+
+- New roles hr, manager, and ceo (invitable and assignable). Every document now requires all three sign-offs in order; any rejection is final and carries a mandatory comment. `ops_approvals` stores the formal trail (unique per stage), `ops_events` the chronology.
+- Approvers get a dedicated Approvals area in the portal (queue with "Your turn" badges + detail with a three-step animated trail); admins see the same trail, stage progress in the queue, and can cover any stage. Stage gating is enforced server-side (verified by replaying another stage's form).
+- The final CEO sign-off generates the official PDF listing all three signatories with dates (visually verified).
+
+### Admin document CRUD
+
+- Create (via portal forms), Read (queue/detail), Update (edit page reusing the config-driven form, only while in review, logged as "edited" in history, submitter notified), Delete (confirm dialog, removes PDF from storage, submitter notified).
+
+### Staff profiles
+
+- Identity information (admin-only): first/last name, job title, division, start of employment, contract/temporary flag, business line, plus workspace role; edited in a full staff record editor at /admin/users/[id] (self role-change blocked).
+- Contact information (self-service): professional photo (JPG/PNG/WEBP max 8 MB, normalized to 512px webp in the private avatars pipeline), direct line, WhatsApp, alternative email, and the sign-in email (verified change). Locked identity fields are shown read-only with a pointer to support.
+- Avatars render in the workspace shell, users list, user editor, and ticket threads.
+
+### Support ticketing
+
+- Tickets (PRIMA-TK-YYYY-NNNN) with categories (profile change, IT support, access request, other), threaded replies with avatars, and admin status management (open, in progress on first admin reply, resolved, closed). RLS: owners and admins only (verified).
+
+### Notifications (in-app + email)
+
+- `notifications` table + animated bell with unread badge in the workspace shell (60s polling, mark-read, deep links). Branded HTML emails sent best-effort via SMTP (env-configured; a mail outage never breaks an action).
+- Wired everywhere: submission (HR + admins), each stage sign-off (submitter + next stage), final approval/rejection (submitter), admin edit/delete (submitter), role and staff record changes (user), ticket lifecycle (both sides), and public contact enquiries (admins).
+
+Verified: 24-check e2e suite passed against the production build (full chain incl. PDF signatories, gating, rejection, CRUD, staff record, photo upload served from storage, ticket lifecycle, notification delivery, RLS). Build + ESLint clean; em-dash gate 0; test data cleaned up afterwards.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

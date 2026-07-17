@@ -1,5 +1,6 @@
 "use server";
 
+import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 import { contactSchema } from "./schema";
 
@@ -55,5 +56,13 @@ export async function submitContactEnquiry(
     locale: parsed.data.locale,
   });
 
-  return error ? { status: "error" } : { status: "success" };
+  if (error) return { status: "error" };
+
+  await notify(await userIdsByRole(["admin"]), {
+    title: "New website enquiry",
+    body: `${parsed.data.name} (${parsed.data.email}) sent a confidential enquiry via the public site.`,
+    link: "/admin/inbox",
+  });
+
+  return { status: "success" };
 }

@@ -2,7 +2,7 @@
 
 import { Plus, Send, Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
-import { submitOpsDocument, type OpsState } from "./actions";
+import { submitOpsDocument, updateOpsDocument, type OpsState } from "./actions";
 import {
   formatMoney,
   type DocType,
@@ -24,12 +24,17 @@ function emptyItem(config: DocTypeConfig): Record<string, string> {
 export function OpsForm({
   docType,
   config,
+  docId,
+  initialData,
 }: {
   docType: DocType;
   config: Pick<DocTypeConfig, "fields" | "lineItems" | "title">;
+  /** When set, the form edits an existing document (admin correction). */
+  docId?: string;
+  initialData?: Values;
 }) {
   const [state, formAction, pending] = useActionState<OpsState, FormData>(
-    submitOpsDocument,
+    docId ? updateOpsDocument : submitOpsDocument,
     { error: null },
   );
   const [values, setValues] = useState<Values>(() => ({
@@ -37,6 +42,7 @@ export function OpsForm({
     ...(config.lineItems
       ? { [config.lineItems.name]: [emptyItem(config as DocTypeConfig)] }
       : {}),
+    ...initialData,
   }));
 
   const set = (name: string, value: unknown) =>
@@ -97,6 +103,7 @@ export function OpsForm({
     >
       <input type="hidden" name="docType" value={docType} />
       <input type="hidden" name="data" value={JSON.stringify(values)} />
+      {docId ? <input type="hidden" name="docId" value={docId} /> : null}
 
       {state.error ? (
         <p className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
@@ -195,7 +202,11 @@ export function OpsForm({
         className="group mt-8 inline-flex items-center gap-2 rounded bg-brand px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-        {pending ? "Submitting..." : `Submit ${config.title.toLowerCase()}`}
+        {pending
+          ? "Saving..."
+          : docId
+            ? "Save changes"
+            : `Submit ${config.title.toLowerCase()}`}
       </button>
     </form>
   );

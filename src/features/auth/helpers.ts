@@ -2,13 +2,17 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type Role = "admin" | "employee" | "client";
+export type Role = "admin" | "hr" | "manager" | "ceo" | "employee" | "client";
+
+/** Roles that take part in the document approval chain (admin can cover any stage). */
+export const APPROVER_ROLES: Role[] = ["admin", "hr", "manager", "ceo"];
 
 export interface SessionProfile {
   id: string;
   email: string;
   fullName: string | null;
   role: Role;
+  photoPath: string | null;
 }
 
 export async function getSessionProfile(): Promise<SessionProfile | null> {
@@ -20,7 +24,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role")
+    .select("id, email, full_name, role, photo_path")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) return null;
@@ -30,6 +34,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     email: profile.email,
     fullName: profile.full_name,
     role: profile.role as Role,
+    photoPath: profile.photo_path,
   };
 }
 

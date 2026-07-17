@@ -1,8 +1,10 @@
 import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 import { logout } from "@/features/auth/actions";
 import type { SessionProfile } from "@/features/auth/helpers";
+import { NotificationsBell } from "@/features/notifications/NotificationsBell";
 import { WorkspaceNav, type WorkspaceNavItem } from "./WorkspaceNav";
 
 function LogoutButton({ compact = false }: { compact?: boolean }) {
@@ -59,8 +61,14 @@ export function WorkspaceShell({
           <WorkspaceNav items={items} rootHref={rootHref} variant="sidebar" />
         </div>
         <div className="border-t border-line p-4">
-          <p className="truncate px-3 text-sm font-semibold text-navy">{displayName}</p>
-          <p className="px-3 text-xs capitalize text-slate-body">{profile.role}</p>
+          <div className="flex items-center gap-3 px-3">
+            <Avatar photoPath={profile.photoPath} name={displayName} size={36} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-navy">{displayName}</p>
+              <p className="text-xs capitalize text-slate-body">{profile.role}</p>
+            </div>
+            <NotificationsBell />
+          </div>
           <div className="mt-2">
             <LogoutButton />
           </div>
@@ -72,10 +80,9 @@ export function WorkspaceShell({
         <Link href={rootHref}>
           <Image src="/logo.png" alt="PRIMA" width={90} height={36} className="h-9 w-auto" />
         </Link>
-        <div className="flex items-center gap-2">
-          <span className="max-w-[10rem] truncate text-sm font-semibold text-navy">
-            {displayName}
-          </span>
+        <div className="flex items-center gap-1.5">
+          <NotificationsBell />
+          <Avatar photoPath={profile.photoPath} name={displayName} size={32} />
           <LogoutButton compact />
         </div>
       </header>
