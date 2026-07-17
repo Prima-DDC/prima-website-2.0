@@ -3,7 +3,12 @@ import Link from "next/link";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { LoginForm } from "@/features/auth/LoginForm";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
       <AnimatedBackground />
@@ -23,6 +28,12 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-slate-body">
             For PRIMA administrators, employees, and registered clients.
           </p>
+          {error === "link-expired" ? (
+            <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="alert">
+              That link has expired or was already used. Sign in below, or ask
+              your administrator to send a fresh invitation or password reset.
+            </p>
+          ) : null}
           <div className="mt-8">
             <LoginForm />
           </div>

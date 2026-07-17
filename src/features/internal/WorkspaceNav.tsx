@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   MapPin,
   Search,
+  UserRound,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -29,6 +30,7 @@ const ICONS: Record<string, LucideIcon> = {
   ImageIcon,
   Inbox,
   ClipboardCheck,
+  UserRound,
   Users,
   FilePlus2,
   Award,

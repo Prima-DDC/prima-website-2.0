@@ -8,6 +8,7 @@ import { getSiteSettings } from "@/features/content/queries";
 import { JsonLd } from "@/features/seo/JsonLd";
 import { organizationSchema } from "@/features/seo/schemas";
 import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
+import { AuthHashHandler } from "@/features/auth/AuthHashHandler";
 import { Footer } from "@/features/site-layout/Footer";
 import { Header } from "@/features/site-layout/Header";
 import { Preloader } from "@/features/site-layout/Preloader";
@@ -63,6 +64,7 @@ export default async function LocaleLayout({
         <JsonLd data={organizationSchema(settings, locale as Locale)} />
         <NextIntlClientProvider>
           <RegisterServiceWorker />
+          <AuthHashHandler />
           <Preloader note={t("preloader")} />
           <Header />
           <main className="flex-1">{children}</main>

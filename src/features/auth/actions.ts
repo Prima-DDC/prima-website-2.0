@@ -31,10 +31,55 @@ export async function login(
     return { error: "Invalid email or password." };
   }
 
+  // Accounts with a verified authenticator must complete the code step.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+    redirect("/login/mfa");
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", data.user.id)
+    .maybeSingle();
+
+  redirect(profile?.role === "admin" ? "/admin" : "/portal");
+}
+
+export async function verifyMfa(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const code = String(formData.get("code") ?? "").replace(/\D/g, "");
+  if (code.length !== 6) return { error: "Enter the 6-digit code from your app." };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: factors } = await supabase.auth.mfa.listFactors();
+  const factor = factors?.totp.find((f) => f.status === "verified");
+  if (!factor) return { error: "No authenticator is enrolled for this account." };
+
+  const { data: challenge, error: challengeError } =
+    await supabase.auth.mfa.challenge({ factorId: factor.id });
+  if (challengeError || !challenge) {
+    return { error: challengeError?.message ?? "Could not start verification." };
+  }
+
+  const { error: verifyError } = await supabase.auth.mfa.verify({
+    factorId: factor.id,
+    challengeId: challenge.id,
+    code,
+  });
+  if (verifyError) {
+    return { error: "That code was not accepted. Please try again." };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user?.id ?? "")
     .maybeSingle();
 
   redirect(profile?.role === "admin" ? "/admin" : "/portal");

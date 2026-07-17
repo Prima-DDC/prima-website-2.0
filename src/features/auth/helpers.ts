@@ -37,6 +37,15 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 export async function requireRole(...roles: Role[]): Promise<SessionProfile> {
   const profile = await getSessionProfile();
   if (!profile) redirect("/login");
+
+  // MFA enforcement: a session that has not completed a required
+  // authenticator challenge may not use the workspace.
+  const supabase = await createSupabaseServerClient();
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+    redirect("/login/mfa");
+  }
+
   if (roles.length > 0 && !roles.includes(profile.role)) {
     redirect(profile.role === "admin" ? "/admin" : "/portal");
   }

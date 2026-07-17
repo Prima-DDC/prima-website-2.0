@@ -99,6 +99,14 @@ Verified: build + ESLint clean, em-dash gate 0 in repo and DB, all pages render 
 
 Verified: build + ESLint clean; user reset/delete e2e re-run green against the new markup; all admin pages 200.
 
+## Phase 4 (2026-07-17): Auth link flow fix, profile page, TOTP MFA (DONE)
+
+- Email links fixed end-to-end: all templates now link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=...` so verification happens server-side and the session lands in cookies (no more tokens stranded in the URL hash). The confirm route honors a sanitized `next` path and sends invite/recovery users to `/portal/profile`. A client-side `AuthHashHandler` also adopts legacy hash-token links as a safety net, and expired/invalid links land on `/login` with a friendly message.
+- `/portal/profile` (linked from both portal and admin navs): edit full name (synced to auth metadata + profiles), change email (confirmation sent to the new inbox via the email-change template), change password, and manage TOTP two-factor authentication (QR + manual key enrollment, code verification, animated-dialog-confirmed disable).
+- MFA enforced, not decorative: login detours to `/login/mfa` when a verified authenticator exists, `requireRole` blocks AAL1 sessions from the entire workspace, and the challenge page verifies codes server-side.
+
+Verified end-to-end with a scripted authenticator (RFC 6238 TOTP in the test): invite token_hash link -> session -> profile 200; password set + profile update through the real forms (DB checked); factor enrolled and verified with computed codes; login redirected to the MFA page; /portal blocked at AAL1; code verify -> AAL2 -> portal 200; bogus link -> friendly expired message. Build + ESLint clean.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

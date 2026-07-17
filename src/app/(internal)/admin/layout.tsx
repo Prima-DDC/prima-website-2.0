@@ -13,6 +13,7 @@ const NAV_ITEMS: WorkspaceNavItem[] = [
   { href: "/admin/inbox", label: "Inbox", icon: "Inbox" },
   { href: "/admin/ops", label: "Approvals", icon: "ClipboardCheck" },
   { href: "/admin/users", label: "Users", icon: "Users" },
+  { href: "/portal/profile", label: "My Profile", icon: "UserRound" },
 ];
 
 export default async function AdminLayout({
