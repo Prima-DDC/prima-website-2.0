@@ -3,26 +3,20 @@ import Link from "next/link";
 import {
   DOC_CONFIG,
   nextStage,
-  type ApprovalStage,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
-import { getApprovalStages } from "@/features/ops/stages";
+import {
+  chainFor,
+  getApprovalContext,
+  getSubmittableTypes,
+} from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { getSessionProfile } from "@/features/auth/helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-function stageProgress(
-  status: string,
-  approvals: Array<{ stage: string; status: string }>,
-  stages: ApprovalStage[],
-): string {
-  if (status !== "submitted") return "-";
-  const stage = nextStage(approvals, stages);
-  const done = approvals.filter((a) => a.status === "approved").length;
-  return stage ? `${done}/${stages.length}, awaiting ${stage.label}` : "-";
-}
+// stageProgress uses the chain configured for that request type.
 
 const TABS: Array<{ value: string; label: string }> = [
   { value: "submitted", label: "Pending" },
@@ -38,6 +32,8 @@ export default async function OpsQueuePage({
 }) {
   const { status = "submitted" } = await searchParams;
   const profile = await getSessionProfile();
+  const canSubmit =
+    !!profile && (await getSubmittableTypes(profile.role)).length > 0;
   const supabase = await createSupabaseServerClient();
 
   let query = supabase
@@ -47,10 +43,17 @@ export default async function OpsQueuePage({
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
   const { data: docs } = await query;
-  const [approvalsMap, stages] = await Promise.all([
+  const [approvalsMap, ctx] = await Promise.all([
     getApprovalsMap((docs ?? []).map((d) => d.id)),
-    getApprovalStages(),
+    getApprovalContext(),
   ]);
+  const stageProgress = (docType: DocType, status: string, approvals: Array<{ stage: string; status: string }>) => {
+    if (status !== "submitted") return "-";
+    const chain = chainFor(ctx, docType);
+    const stage = nextStage(approvals, chain);
+    const done = approvals.filter((a) => a.status === "approved").length;
+    return stage ? `${done}/${chain.length}, awaiting ${stage.label}` : "-";
+  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -62,7 +65,7 @@ export default async function OpsQueuePage({
             expenses, leave, and invoices.
           </p>
         </div>
-        {profile?.canSubmit ? (
+        {canSubmit ? (
           <Link
             href="/portal/new"
             className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
@@ -133,7 +136,7 @@ export default async function OpsQueuePage({
                         <StatusBadge status={doc.status as DocStatus} />
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-body">
-                        {stageProgress(doc.status, approvalsMap.get(doc.id) ?? [], stages)}
+                        {stageProgress(doc.doc_type as DocType, doc.status, approvalsMap.get(doc.id) ?? [])}
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-body">
                         {new Date(doc.created_at).toLocaleString("en-GB")}

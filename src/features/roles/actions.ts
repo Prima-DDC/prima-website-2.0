@@ -112,79 +112,58 @@ export async function deleteRole(
   return { error: null, success: `Role "${role.label}" deleted.` };
 }
 
-/** Toggles whether a role may submit requests/documents. */
-export async function toggleRoleSubmission(
-  _prev: RolesState,
-  formData: FormData,
-): Promise<RolesState> {
+const DOC_TYPE_KEYS = [
+  "honour_certificate",
+  "fund_request",
+  "expense_form",
+  "leave_form",
+  "invoice",
+] as const;
+
+/**
+ * Grants or revokes one request-type permission for a role. Approve
+ * permissions also keep the ordered approval chain in sync: a role joins
+ * the chain when it gains its first approve grant and leaves once it has
+ * none. This is a plain (void) form action so the matrix stays lightweight.
+ */
+export async function setPermission(formData: FormData): Promise<void> {
   await requireRole("admin");
-  const key = z.string().min(1).parse(formData.get("key"));
-  const allow = formData.get("allow") === "true";
+  const role = z.string().min(1).parse(formData.get("role"));
+  const docType = z.enum(DOC_TYPE_KEYS).parse(formData.get("docType"));
+  const field = z.enum(["can_submit", "can_approve"]).parse(formData.get("field"));
+  const value = formData.get("value") === "true";
 
   const db = createSupabaseAdminClient();
-  const { data: role, error } = await db
-    .from("roles")
-    .update({ can_submit: allow })
-    .eq("key", key)
-    .select("label")
-    .single();
-  if (error || !role) return { error: error?.message ?? "Role not found." };
+  await db
+    .from("role_permissions")
+    .upsert({ role, doc_type: docType, [field]: value }, { onConflict: "role,doc_type" });
+
+  if (field === "can_approve") {
+    const { count } = await db
+      .from("role_permissions")
+      .select("role", { count: "exact", head: true })
+      .eq("role", role)
+      .eq("can_approve", true);
+    const inChain = await db
+      .from("approval_stages")
+      .select("id")
+      .eq("role", role)
+      .maybeSingle();
+    if ((count ?? 0) > 0 && !inChain.data) {
+      const { data: max } = await db
+        .from("approval_stages")
+        .select("sort")
+        .order("sort", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      await db.from("approval_stages").insert({ role, sort: (max?.sort ?? 0) + 1 });
+    } else if ((count ?? 0) === 0 && inChain.data) {
+      await db.from("approval_stages").delete().eq("role", role);
+    }
+  }
 
   revalidateRoles();
   revalidatePath("/admin/ops");
-  return {
-    error: null,
-    success: `${role.label} ${allow ? "can now submit" : "can no longer submit"} requests.`,
-  };
-}
-
-export async function addStage(
-  _prev: RolesState,
-  formData: FormData,
-): Promise<RolesState> {
-  await requireRole("admin");
-  const role = z.string().min(1).parse(formData.get("role"));
-
-  const db = createSupabaseAdminClient();
-  const { data: max } = await db
-    .from("approval_stages")
-    .select("sort")
-    .order("sort", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const { error } = await db
-    .from("approval_stages")
-    .insert({ role, sort: (max?.sort ?? 0) + 1 });
-  if (error) {
-    return {
-      error: error.code === "23505" ? "This role is already in the chain." : error.message,
-    };
-  }
-
-  revalidateRoles();
-  return { error: null, success: "Stage added to the approval chain." };
-}
-
-export async function removeStage(
-  _prev: RolesState,
-  formData: FormData,
-): Promise<RolesState> {
-  await requireRole("admin");
-  const role = z.string().min(1).parse(formData.get("role"));
-
-  const db = createSupabaseAdminClient();
-  const { count } = await db
-    .from("approval_stages")
-    .select("id", { count: "exact", head: true });
-  if ((count ?? 0) <= 1) {
-    return { error: "At least one sign-off stage is required." };
-  }
-
-  const { error } = await db.from("approval_stages").delete().eq("role", role);
-  if (error) return { error: error.message };
-
-  revalidateRoles();
-  return { error: null, success: "Stage removed from the approval chain." };
 }
 
 export async function moveStage(

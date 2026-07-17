@@ -8,7 +8,7 @@ import {
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
-import { getApprovalStages } from "@/features/ops/stages";
+import { chainForType } from "@/features/ops/stages";
 import { DeleteDocButton } from "@/features/ops/DeleteDocButton";
 import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
@@ -43,7 +43,7 @@ export default async function AdminOpsDocumentPage({
 
   const [approvals, stages, { data: events }] = await Promise.all([
     getApprovals(id),
-    getApprovalStages(),
+    chainForType(doc.doc_type as DocType),
     supabase
       .from("ops_events")
       .select("id, action, comment, created_at, actor, profiles:actor (full_name, email)")

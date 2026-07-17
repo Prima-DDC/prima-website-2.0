@@ -1,5 +1,5 @@
 import { requireRole } from "@/features/auth/helpers";
-import { getApprovalStages } from "@/features/ops/stages";
+import { getApprovableTypes, getSubmittableTypes } from "@/features/ops/stages";
 import { WorkspaceShell } from "@/features/internal/WorkspaceShell";
 import type { WorkspaceNavItem } from "@/features/internal/WorkspaceNav";
 
@@ -9,13 +9,16 @@ export default async function PortalLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireRole();
-  const stages = await getApprovalStages();
-  const isApprover =
-    profile.role === "admin" || stages.some((s) => s.role === profile.role);
+  const [submittable, approvable] = await Promise.all([
+    getSubmittableTypes(profile.role),
+    getApprovableTypes(profile.role),
+  ]);
+  const canSubmit = submittable.length > 0;
+  const isApprover = approvable.length > 0;
 
   const items: WorkspaceNavItem[] = [
     { href: "/portal", label: "My Documents", icon: "LayoutDashboard" },
-    ...(profile.canSubmit
+    ...(canSubmit
       ? [{ href: "/portal/new", label: "New Request", icon: "FilePlus2" } as const]
       : []),
     ...(isApprover

@@ -1,13 +1,17 @@
 import { requireRole } from "@/features/auth/helpers";
-import { getApprovalStages } from "@/features/ops/stages";
+import { DOC_CONFIG, DOC_TYPES } from "@/features/ops/config";
+import { getApprovalContext } from "@/features/ops/stages";
 import { getRoles } from "@/features/roles/queries";
-import { RolesManager } from "@/features/roles/RolesManager";
+import {
+  RolesManager,
+  type PermissionMatrix,
+} from "@/features/roles/RolesManager";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function RolesPage() {
   await requireRole("admin");
 
-  const [roles, stages] = await Promise.all([getRoles(), getApprovalStages()]);
+  const [roles, ctx] = await Promise.all([getRoles(), getApprovalContext()]);
 
   const supabase = await createSupabaseServerClient();
   const { data: profiles } = await supabase.from("profiles").select("role");
@@ -16,15 +20,31 @@ export default async function RolesPage() {
     memberCounts[row.role] = (memberCounts[row.role] ?? 0) + 1;
   }
 
+  const matrix: PermissionMatrix = {};
+  for (const role of roles) matrix[role.key] = { submit: [], approve: [] };
+  for (const perm of ctx.perms) {
+    const entry = (matrix[perm.role] ??= { submit: [], approve: [] });
+    if (perm.can_submit) entry.submit.push(perm.doc_type);
+    if (perm.can_approve) entry.approve.push(perm.doc_type);
+  }
+
+  const docTypes = DOC_TYPES.map((key) => ({ key, label: DOC_CONFIG[key].title }));
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <h1 className="text-2xl font-bold text-navy">Roles & approval chain</h1>
+    <div className="mx-auto max-w-4xl">
+      <h1 className="text-2xl font-bold text-navy">Roles & permissions</h1>
       <p className="mt-1 text-sm text-slate-body">
-        Manage workspace roles and configure which roles must sign off on
-        requests, in sequence.
+        Manage workspace roles and configure, per request type, who may submit
+        and who must approve.
       </p>
       <div className="mt-8">
-        <RolesManager roles={roles} stages={stages} memberCounts={memberCounts} />
+        <RolesManager
+          roles={roles}
+          stages={ctx.order}
+          memberCounts={memberCounts}
+          docTypes={docTypes}
+          matrix={matrix}
+        />
       </div>
     </div>
   );

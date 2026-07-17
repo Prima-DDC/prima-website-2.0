@@ -161,6 +161,15 @@ Verified end-to-end: created a Finance role via the UI, inserted it after HR (hr
 
 Verified by a 10-check e2e suite through the real UI: defaults correct (admin excluded), employee submitted, admin revoked via the dashboard toggle, UI gates engaged, direct database insert blocked by RLS, re-allow restored submission, and a newly created role defaulted to allowed. Build + ESLint clean.
 
+## Phase 8 (2026-07-17): Per-request-type permissions (submit & approve) (DONE)
+
+- `role_permissions(role, doc_type, can_submit, can_approve)` replaces the single global submit flag. For every role, an admin sets which of the five request types it may submit and which it may approve, independently: one, several, or all. Seeded to preserve prior behavior (all roles except admin submit all types; hr/manager/ceo approve all types). New roles/types default sensibly.
+- Admin dashboard (/admin/roles) now shows a per-role permission matrix (Submit chips + Approve chips per request type). Granting an approve permission auto-adds the role to the ordered approval chain; removing the last one drops it. Chain order is still reorderable.
+- The sequential chain is now per request type: for a given document, only the roles that approve that type take part, in the configured order, and the last of them issues the PDF. So an admin can, e.g., make leave forms need HR + Manager while fund requests need HR + Manager + CEO.
+- Enforced at three levels: UI (new-request list, buttons, and pages hide/redirect per type; approval queues only show types you approve), server actions (submit and sign-off validate the type), and database RLS (can_submit_doc() blocks inserts of disallowed types).
+
+Verified by a 12-check e2e suite through the real UI: defaults, restricting a role to one submit type (UI + action + RLS all blocked the rest), a per-type chain that skipped CEO for leave forms while fund requests still required CEO, approval-queue filtering by type, and re-granting. Build + ESLint clean; em-dash gate 0; roles reset to baseline and test users removed.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

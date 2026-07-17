@@ -1,12 +1,14 @@
 import { FilePlus2 } from "lucide-react";
 import Link from "next/link";
 import { requireRole } from "@/features/auth/helpers";
+import { getSubmittableTypes } from "@/features/ops/stages";
 import { DOC_CONFIG, type DocStatus, type DocType } from "@/features/ops/config";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function PortalHome() {
   const profile = await requireRole();
+  const canSubmit = (await getSubmittableTypes(profile.role)).length > 0;
   const supabase = await createSupabaseServerClient();
   const { data: docs } = await supabase
     .from("ops_documents")
@@ -25,7 +27,7 @@ export default async function PortalHome() {
             Submit and track your requests and documents.
           </p>
         </div>
-        {profile.canSubmit ? (
+        {canSubmit ? (
           <Link
             href="/portal/new"
             className="inline-flex items-center gap-2 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:-translate-y-0.5 hover:bg-brand-dark"
@@ -41,7 +43,7 @@ export default async function PortalHome() {
           <FilePlus2 className="mx-auto h-10 w-10 text-brand" aria-hidden />
           <p className="mt-4 font-semibold text-navy">No documents yet</p>
           <p className="mt-1 text-sm text-slate-body">
-            {profile.canSubmit
+            {canSubmit
               ? "Start by creating your first request."
               : "Documents you are involved in will appear here."}
           </p>

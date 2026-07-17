@@ -1,23 +1,33 @@
 import Link from "next/link";
 import { DOC_CONFIG, nextStage, type DocType } from "@/features/ops/config";
-import { requireApprover } from "@/features/ops/stages";
+import { chainFor, getApprovalContext, requireApprover } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function PortalApprovalsPage() {
-  const { profile, stages } = await requireApprover();
+  const { profile, approvableTypes } = await requireApprover();
 
   const supabase = await createSupabaseServerClient();
-  const { data: docs } = await supabase
+  let query = supabase
     .from("ops_documents")
     .select("id, doc_type, doc_number, created_at, profiles:submitted_by (full_name, email)")
     .eq("status", "submitted")
     .order("created_at")
     .limit(200);
-  const approvalsMap = await getApprovalsMap((docs ?? []).map((d) => d.id));
+  // Approvers only see request types they are configured to review.
+  if (profile.role !== "admin") {
+    query = query.in("doc_type", approvableTypes);
+  }
+  const { data: docs } = await query;
+
+  const [approvalsMap, ctx] = await Promise.all([
+    getApprovalsMap((docs ?? []).map((d) => d.id)),
+    getApprovalContext(),
+  ]);
 
   const rows = (docs ?? []).map((doc) => {
-    const stage = nextStage(approvalsMap.get(doc.id) ?? [], stages);
+    const chain = chainFor(ctx, doc.doc_type as DocType);
+    const stage = nextStage(approvalsMap.get(doc.id) ?? [], chain);
     return {
       ...doc,
       stageLabel: stage?.label ?? "-",

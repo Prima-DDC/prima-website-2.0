@@ -13,13 +13,11 @@ import { useActionState } from "react";
 import { ConfirmButton } from "@/components/ConfirmDialog";
 import type { ApprovalStage } from "@/features/ops/config";
 import {
-  addStage,
   createRole,
   deleteRole,
   moveStage,
-  removeStage,
   renameRole,
-  toggleRoleSubmission,
+  setPermission,
   type RolesState,
 } from "./actions";
 import type { RoleRow } from "./queries";
@@ -27,6 +25,10 @@ import type { RoleRow } from "./queries";
 const initial: RolesState = { error: null };
 const inputClass =
   "rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition-all focus:border-brand focus:ring-2 focus:ring-brand/20";
+
+export interface PermissionMatrix {
+  [role: string]: { submit: string[]; approve: string[] };
+}
 
 function Feedback({ state }: { state: RolesState }) {
   if (state.error) {
@@ -49,10 +51,6 @@ function Feedback({ state }: { state: RolesState }) {
 function RoleLine({ role, members }: { role: RoleRow; members: number }) {
   const [renameState, renameAction, renamePending] = useActionState(renameRole, initial);
   const [deleteState, deleteAction] = useActionState(deleteRole, initial);
-  const [submitState, submitAction, submitPending] = useActionState(
-    toggleRoleSubmission,
-    initial,
-  );
   const protectedRole = role.builtIn || role.key === "admin";
 
   return (
@@ -96,7 +94,7 @@ function RoleLine({ role, members }: { role: RoleRow; members: number }) {
                 tone: "danger",
                 title: `Delete the ${role.label} role?`,
                 message:
-                  "The role is removed from the approval chain too. Deletion is only possible while no member holds it.",
+                  "The role, its request permissions, and its place in the approval chain are removed. Deletion is only possible while no member holds it.",
                 confirmLabel: "Delete role",
               }}
               className="inline-flex items-center gap-1.5 rounded border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
@@ -106,53 +104,49 @@ function RoleLine({ role, members }: { role: RoleRow; members: number }) {
           </form>
         )}
       </div>
-      <form action={submitAction} className="mt-3 flex items-center gap-2">
-        <input type="hidden" name="key" value={role.key} />
-        <input type="hidden" name="allow" value={String(!role.canSubmit)} />
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-            role.canSubmit ? "bg-brand/10 text-brand-dark" : "bg-line/50 text-slate-body"
-          }`}
-        >
-          {role.canSubmit ? "Can submit requests" : "Cannot submit requests"}
-        </span>
-        <button
-          type="submit"
-          disabled={submitPending}
-          className="rounded border border-line px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-brand hover:text-brand disabled:opacity-50"
-        >
-          {submitPending
-            ? "Saving..."
-            : role.canSubmit
-              ? "Revoke submission"
-              : "Allow submission"}
-        </button>
-      </form>
-      <Feedback
-        state={
-          renameState.error || renameState.success
-            ? renameState
-            : submitState.error || submitState.success
-              ? submitState
-              : deleteState
-        }
-      />
+      <Feedback state={renameState.error || renameState.success ? renameState : deleteState} />
     </li>
   );
 }
 
-function StageLine({
-  stage,
-  index,
-  total,
+function PermChip({
+  role,
+  docType,
+  field,
+  active,
 }: {
-  stage: ApprovalStage;
-  index: number;
-  total: number;
+  role: string;
+  docType: string;
+  field: "can_submit" | "can_approve";
+  active: boolean;
 }) {
-  const [moveState, moveAction] = useActionState(moveStage, initial);
-  const [removeState, removeAction] = useActionState(removeStage, initial);
+  return (
+    <form action={setPermission} className="inline">
+      <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="docType" value={docType} />
+      <input type="hidden" name="field" value={field} />
+      <input type="hidden" name="value" value={String(!active)} />
+      <button
+        type="submit"
+        aria-pressed={active}
+        className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+          active
+            ? "border-brand bg-brand text-white shadow-sm shadow-brand/25"
+            : "border-line bg-white text-slate-body hover:border-brand/50 hover:text-navy"
+        }`}
+      >
+        {active ? <Check className="h-3 w-3" aria-hidden /> : null}
+        {docType
+          .split("_")
+          .map((w) => w[0].toUpperCase() + w.slice(1))
+          .join(" ")}
+      </button>
+    </form>
+  );
+}
 
+function StageLine({ stage, index, total }: { stage: ApprovalStage; index: number; total: number }) {
+  const [, moveAction] = useActionState(moveStage, initial);
   return (
     <li className="flex items-center gap-3 rounded-md border border-line bg-white p-4">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand font-serif text-sm font-bold text-white">
@@ -182,23 +176,6 @@ function StageLine({
           <ArrowDown className="h-4 w-4" />
         </button>
       </form>
-      <form action={removeAction}>
-        <input type="hidden" name="role" value={stage.role} />
-        <ConfirmButton
-          dialog={{
-            tone: "danger",
-            title: `Remove ${stage.label} from the chain?`,
-            message:
-              "Documents currently waiting on this stage will move to the next configured stage. Recorded sign-offs are kept.",
-            confirmLabel: "Remove stage",
-          }}
-          className="rounded border border-red-200 p-1.5 text-red-600 transition-colors hover:bg-red-50"
-          aria-label={`Remove ${stage.label} stage`}
-        >
-          <Trash2 className="h-4 w-4" />
-        </ConfirmButton>
-      </form>
-      <Feedback state={moveState.error ? moveState : removeState} />
     </li>
   );
 }
@@ -207,20 +184,19 @@ export function RolesManager({
   roles,
   stages,
   memberCounts,
+  docTypes,
+  matrix,
 }: {
   roles: RoleRow[];
   stages: ApprovalStage[];
   memberCounts: Record<string, number>;
+  docTypes: Array<{ key: string; label: string }>;
+  matrix: PermissionMatrix;
 }) {
   const [createState, createAction, createPending] = useActionState(createRole, initial);
-  const [addState, addAction, addPending] = useActionState(addStage, initial);
-  const available = roles.filter(
-    (role) =>
-      role.key !== "client" && !stages.some((stage) => stage.role === role.key),
-  );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="space-y-6">
       {/* Roles CRUD */}
       <section className="rounded-lg border border-line bg-white p-6">
         <h2 className="font-semibold text-navy">Workspace roles</h2>
@@ -253,42 +229,79 @@ export function RolesManager({
         </ul>
       </section>
 
-      {/* Approval chain configuration */}
+      {/* Per-request-type permission matrix */}
+      <section className="rounded-lg border border-line bg-white p-6">
+        <h2 className="font-semibold text-navy">Request permissions</h2>
+        <p className="mt-1 text-xs text-slate-body">
+          For each role, choose which request types it can submit and which it
+          can approve. A role can be granted one, several, or all of them. A role
+          that can approve a type automatically joins that type&apos;s approval
+          chain (order is set below).
+        </p>
+        <div className="mt-5 space-y-4">
+          {roles.map((role) => {
+            const perms = matrix[role.key] ?? { submit: [], approve: [] };
+            return (
+              <div key={role.key} className="rounded-lg border border-line bg-mist/30 p-4">
+                <p className="text-sm font-bold text-navy">{role.label}</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-[5rem_1fr]">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-body sm:pt-1.5">
+                    Submit
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {docTypes.map((dt) => (
+                      <PermChip
+                        key={`s-${role.key}-${dt.key}`}
+                        role={role.key}
+                        docType={dt.key}
+                        field="can_submit"
+                        active={perms.submit.includes(dt.key)}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-body sm:pt-1.5">
+                    Approve
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {docTypes.map((dt) => (
+                      <PermChip
+                        key={`a-${role.key}-${dt.key}`}
+                        role={role.key}
+                        docType={dt.key}
+                        field="can_approve"
+                        active={perms.approve.includes(dt.key)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Approval chain order */}
       <section className="rounded-lg border border-line bg-white p-6">
         <h2 className="flex items-center gap-2 font-semibold text-navy">
           <Workflow className="h-4 w-4 text-brand" aria-hidden />
-          Request approval chain
+          Approval chain order
         </h2>
         <p className="mt-1 text-xs text-slate-body">
-          Every request must be signed off by these roles, in this order. The
-          final stage issues the official PDF. Changes apply immediately,
-          including to documents already in review.
+          Roles appear here once they can approve at least one request type.
+          Sign-off happens in this order; for any given request only the roles
+          that approve that type take part, and the last of them issues the PDF.
         </p>
-        <ol className="mt-4 space-y-3">
-          {stages.map((stage, index) => (
-            <StageLine key={stage.role} stage={stage} index={index} total={stages.length} />
-          ))}
-        </ol>
-        {available.length > 0 ? (
-          <form action={addAction} className="mt-4 flex gap-2">
-            <select name="role" className={`${inputClass} flex-1`} defaultValue={available[0]?.key}>
-              {available.map((role) => (
-                <option key={role.key} value={role.key}>
-                  {role.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              disabled={addPending}
-              className="inline-flex items-center gap-1.5 rounded bg-navy px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-navy-deep disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4" aria-hidden />
-              {addPending ? "Adding..." : "Add stage"}
-            </button>
-          </form>
-        ) : null}
-        <Feedback state={addState} />
+        {stages.length === 0 ? (
+          <p className="mt-4 rounded-md border border-dashed border-line bg-mist/40 px-4 py-6 text-center text-sm text-slate-body">
+            No approver roles yet. Grant an approve permission above to build the chain.
+          </p>
+        ) : (
+          <ol className="mt-4 space-y-3">
+            {stages.map((stage, index) => (
+              <StageLine key={stage.role} stage={stage} index={index} total={stages.length} />
+            ))}
+          </ol>
+        )}
       </section>
     </div>
   );

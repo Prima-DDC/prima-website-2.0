@@ -11,8 +11,6 @@ export interface SessionProfile {
   fullName: string | null;
   role: Role;
   photoPath: string | null;
-  /** Whether this profile's role may submit requests (admin-configurable). */
-  canSubmit: boolean;
 }
 
 export async function getSessionProfile(): Promise<SessionProfile | null> {
@@ -24,7 +22,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, photo_path, roles (can_submit)")
+    .select("id, email, full_name, role, photo_path")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) return null;
@@ -35,9 +33,6 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     fullName: profile.full_name,
     role: profile.role as Role,
     photoPath: profile.photo_path,
-    canSubmit: Boolean(
-      (profile.roles as unknown as { can_submit: boolean } | null)?.can_submit,
-    ),
   };
 }
 

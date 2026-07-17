@@ -8,7 +8,7 @@ import {
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
-import { requireApprover } from "@/features/ops/stages";
+import { chainForType, requireApprover } from "@/features/ops/stages";
 import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
 import { PdfDownloadButton } from "@/features/ops/PdfDownloadButton";
@@ -24,7 +24,7 @@ export default async function ApprovalDetailPage({
 }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const { profile, stages } = await requireApprover();
+  const { profile } = await requireApprover();
 
   const supabase = await createSupabaseServerClient();
   const { data: doc } = await supabase
@@ -41,6 +41,7 @@ export default async function ApprovalDetailPage({
     email: string;
   } | null;
 
+  const stages = await chainForType(doc.doc_type as DocType);
   const [approvals, { data: events }] = await Promise.all([
     getApprovals(id),
     supabase

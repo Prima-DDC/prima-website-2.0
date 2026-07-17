@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/helpers";
+import { getSubmittableTypes } from "@/features/ops/stages";
 import { DOC_CONFIG, DOC_TYPES, slugFromDocType } from "@/features/ops/config";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -21,7 +22,8 @@ const ICONS: Record<string, LucideIcon> = {
 
 export default async function NewRequestPage() {
   const profile = await requireRole();
-  if (!profile.canSubmit) redirect("/portal");
+  const submittable = await getSubmittableTypes(profile.role);
+  if (submittable.length === 0) redirect("/portal");
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -30,7 +32,7 @@ export default async function NewRequestPage() {
         Choose the type of document you want to submit.
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {DOC_TYPES.map((type) => {
+        {DOC_TYPES.filter((type) => submittable.includes(type)).map((type) => {
           const config = DOC_CONFIG[type];
           const Icon = ICONS[config.icon] ?? FileText;
           return (

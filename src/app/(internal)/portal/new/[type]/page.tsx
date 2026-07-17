@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/helpers";
+import { getSubmittableTypes } from "@/features/ops/stages";
 import { DOC_CONFIG, docTypeFromSlug } from "@/features/ops/config";
 import { OpsForm } from "@/features/ops/OpsForm";
 
@@ -9,11 +10,11 @@ export default async function NewDocumentPage({
   params: Promise<{ type: string }>;
 }) {
   const profile = await requireRole();
-  if (!profile.canSubmit) redirect("/portal");
-
   const { type } = await params;
   const docType = docTypeFromSlug(type);
   if (!docType) notFound();
+  const submittable = await getSubmittableTypes(profile.role);
+  if (!submittable.includes(docType)) redirect("/portal/new");
 
   const { title, description, fields, lineItems } = DOC_CONFIG[docType];
 

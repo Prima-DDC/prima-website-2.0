@@ -8,7 +8,7 @@ import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { DOC_CONFIG, nextStage, type DocType, DOC_TYPES } from "./config";
-import { getApprovalStages } from "./stages";
+import { chainForType, getApprovableTypes, getSubmittableTypes } from "./stages";
 import { generateDocumentPdf } from "./pdf/generate";
 
 export interface OpsState {
@@ -49,13 +49,18 @@ export async function submitOpsDocument(
   formData: FormData,
 ): Promise<OpsState> {
   const profile = await requireRole();
-  if (!profile.canSubmit) {
-    return { error: "Your role is not permitted to submit requests. Contact administration." };
-  }
 
   const docType = z
     .enum(DOC_TYPES as unknown as [DocType, ...DocType[]])
     .parse(formData.get("docType"));
+
+  const submittable = await getSubmittableTypes(profile.role);
+  if (!submittable.includes(docType)) {
+    return {
+      error: `Your role is not permitted to submit ${DOC_CONFIG[docType].title.toLowerCase()} requests. Contact administration.`,
+    };
+  }
+
   const parsed = parsePayload(docType, formData.get("data"));
   if (!parsed.ok) return { error: parsed.error };
 
@@ -79,9 +84,9 @@ export async function submitOpsDocument(
     action: "submitted",
   });
 
-  // First configured stage and administration are notified immediately.
-  const stages = await getApprovalStages();
-  const firstStage = stages[0];
+  // First configured stage for this request type, plus administration.
+  const chain = await chainForType(docType);
+  const firstStage = chain[0];
   const { data: created } = await supabase
     .from("ops_documents")
     .select("doc_number")
@@ -107,11 +112,6 @@ export async function signOffDocument(
   formData: FormData,
 ): Promise<OpsState> {
   const profile = await requireRole();
-  const stages = await getApprovalStages();
-  if (stages.length === 0) return { error: "No approval chain is configured." };
-  if (profile.role !== "admin" && !stages.some((s) => s.role === profile.role)) {
-    return { error: "You are not part of the approval chain." };
-  }
 
   const docId = z.string().uuid().parse(formData.get("docId"));
   const decision = z.enum(["approved", "rejected"]).parse(formData.get("decision"));
@@ -130,6 +130,11 @@ export async function signOffDocument(
   if (!doc) return { error: "Document not found." };
   if (doc.status !== "submitted") {
     return { error: "Only submitted documents can be reviewed." };
+  }
+
+  const stages = await chainForType(doc.doc_type);
+  if (stages.length === 0) {
+    return { error: "No approvers are configured for this request type." };
   }
 
   const { data: existing } = await db
@@ -357,13 +362,14 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   const { data: doc } = await supabase
     .from("ops_documents")
-    .select("pdf_path, submitted_by")
+    .select("doc_type, pdf_path, submitted_by")
     .eq("id", docId)
     .maybeSingle();
   if (!doc?.pdf_path) return null;
   if (doc.submitted_by !== profile.id && profile.role !== "admin") {
-    const stages = await getApprovalStages();
-    if (!stages.some((s) => s.role === profile.role)) return null;
+    // An approver of this request type may also download the issued PDF.
+    const approvable = await getApprovableTypes(profile.role);
+    if (!approvable.includes(doc.doc_type)) return null;
   }
 
   const admin = createSupabaseAdminClient();

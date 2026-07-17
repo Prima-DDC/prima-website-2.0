@@ -7,7 +7,7 @@ import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
 import { PdfDownloadButton } from "@/features/ops/PdfDownloadButton";
 import { getApprovals } from "@/features/ops/queries";
-import { getApprovalStages } from "@/features/ops/stages";
+import { chainForType } from "@/features/ops/stages";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -29,7 +29,7 @@ export default async function PortalDocumentPage({
 
   const [approvals, stages, { data: events }] = await Promise.all([
     getApprovals(id),
-    getApprovalStages(),
+    chainForType(doc.doc_type as DocType),
     supabase
       .from("ops_events")
       .select("id, action, comment, created_at, actor, profiles:actor (full_name, email)")
