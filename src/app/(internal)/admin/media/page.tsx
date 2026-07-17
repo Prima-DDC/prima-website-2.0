@@ -1,5 +1,6 @@
 import { FileIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { ConfirmButton } from "@/components/ConfirmDialog";
 import { deleteMedia } from "@/features/media/actions";
 import { CopyButton } from "@/features/media/CopyButton";
 import { MediaUploadForm } from "@/features/media/MediaUploadForm";
@@ -65,13 +66,18 @@ export default async function MediaAdminPage() {
                     <CopyButton text={url} />
                     <form action={deleteMedia}>
                       <input type="hidden" name="path" value={file.name} />
-                      <button
-                        type="submit"
+                      <ConfirmButton
+                        dialog={{
+                          tone: "danger",
+                          title: "Delete this file?",
+                          message: `${file.name} will be permanently removed from the media library. Any page still using it will lose the image.`,
+                          confirmLabel: "Delete file",
+                        }}
                         aria-label={`Delete ${file.name}`}
                         className="rounded p-1.5 text-slate-body/60 transition-colors hover:bg-red-50 hover:text-red-600"
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </ConfirmButton>
                     </form>
                   </div>
                 </div>

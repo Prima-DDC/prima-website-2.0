@@ -91,6 +91,14 @@ Verified end-to-end: all 5 document types submitted through the real forms as an
 
 Verified: build + ESLint clean, em-dash gate 0 in repo and DB, all pages render Supabase-hosted media in all locales, optimized image endpoint 200, sw.js + manifest served, user CRUD and CMS image editing tested through real form actions.
 
+## Phase 3 (2026-07-17): Animated confirmation dialogs (DONE)
+
+- `src/components/ConfirmDialog.tsx`: promise-based `ConfirmProvider` + `useConfirm()` with an animated glass panel (blurred navy backdrop, spring entrance, tone-colored accent bar, pulsing icon ring, hover-lift buttons), danger and brand tones, ESC/backdrop dismissal, focus on the confirm button; exit animation on close.
+- `ConfirmButton`: drop-in submit button for server-action forms; on confirm it re-submits the form with itself as submitter so name/value pairs (e.g. decision=approved) are preserved. Without JavaScript the form still submits natively.
+- Wired everywhere a decision deserves a pause: delete user, send password reset, change role, delete media file, archive enquiry, and ops approve (PDF generation is final) / reject (comment surfaced to submitter). Provider mounted in the internal layout.
+
+Verified: build + ESLint clean; user reset/delete e2e re-run green against the new markup; all admin pages 200.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

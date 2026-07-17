@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Public_Sans, Source_Serif_4 } from "next/font/google";
+import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import "../globals.css";
 
@@ -31,7 +32,7 @@ export default function InternalLayout({
     >
       <body className="min-h-full bg-mist/40">
         <RegisterServiceWorker />
-        {children}
+        <ConfirmProvider>{children}</ConfirmProvider>
       </body>
     </html>
   );

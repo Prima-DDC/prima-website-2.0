@@ -1,4 +1,5 @@
 import { Archive, MailOpen } from "lucide-react";
+import { ConfirmButton } from "@/components/ConfirmDialog";
 import { updateSubmissionStatus } from "@/features/contact/admin-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -74,12 +75,17 @@ export default async function InboxPage() {
                   <form action={updateSubmissionStatus}>
                     <input type="hidden" name="id" value={s.id} />
                     <input type="hidden" name="status" value="archived" />
-                    <button
-                      type="submit"
+                    <ConfirmButton
+                      dialog={{
+                        tone: "brand",
+                        title: "Archive this enquiry?",
+                        message: `The enquiry from ${s.name} will be hidden from the inbox. The record stays in the database.`,
+                        confirmLabel: "Archive",
+                      }}
                       className="inline-flex items-center gap-1.5 rounded border border-line px-3 py-1.5 text-xs font-semibold text-slate-body transition-colors hover:border-navy hover:text-navy"
                     >
                       <Archive className="h-3.5 w-3.5" /> Archive
-                    </button>
+                    </ConfirmButton>
                   </form>
                   <a
                     href={`mailto:${s.email}`}

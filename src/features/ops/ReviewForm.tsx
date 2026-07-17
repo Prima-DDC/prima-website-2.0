@@ -2,6 +2,7 @@
 
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useActionState } from "react";
+import { ConfirmButton } from "@/components/ConfirmDialog";
 import { reviewOpsDocument, type OpsState } from "./actions";
 
 export function ReviewForm({ docId }: { docId: string }) {
@@ -32,8 +33,14 @@ export function ReviewForm({ docId }: { docId: string }) {
         className="mt-1.5 w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-all focus:border-brand focus:ring-2 focus:ring-brand/20"
       />
       <div className="mt-5 flex flex-wrap gap-3">
-        <button
-          type="submit"
+        <ConfirmButton
+          dialog={{
+            tone: "brand",
+            title: "Approve this document?",
+            message:
+              "Approval is final: the official branded PDF is generated, and the submitter can download it immediately.",
+            confirmLabel: "Approve & generate PDF",
+          }}
           name="decision"
           value="approved"
           disabled={pending}
@@ -41,9 +48,15 @@ export function ReviewForm({ docId }: { docId: string }) {
         >
           <CheckCircle2 className="h-4 w-4" aria-hidden />
           {pending ? "Working..." : "Approve & generate PDF"}
-        </button>
-        <button
-          type="submit"
+        </ConfirmButton>
+        <ConfirmButton
+          dialog={{
+            tone: "danger",
+            title: "Reject this document?",
+            message:
+              "The submitter will see the rejection and your comment. Make sure the comment explains what needs to change.",
+            confirmLabel: "Reject document",
+          }}
           name="decision"
           value="rejected"
           disabled={pending}
@@ -51,7 +64,7 @@ export function ReviewForm({ docId }: { docId: string }) {
         >
           <XCircle className="h-4 w-4" aria-hidden />
           Reject
-        </button>
+        </ConfirmButton>
       </div>
     </form>
   );

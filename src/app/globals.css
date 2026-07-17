@@ -25,6 +25,7 @@
   --animate-grid-pan: grid-pan 40s linear infinite;
   --animate-draw: draw 2.2s ease-out forwards;
   --animate-kenburns: kenburns 24s ease-in-out infinite alternate;
+  --animate-dialog-in: dialog-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 body {
@@ -134,6 +135,17 @@ body {
   to {
     opacity: 0;
     visibility: hidden;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

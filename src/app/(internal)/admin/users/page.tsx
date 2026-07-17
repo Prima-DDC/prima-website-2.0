@@ -1,3 +1,4 @@
+import { ConfirmButton } from "@/components/ConfirmDialog";
 import { requireRole } from "@/features/auth/helpers";
 import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
@@ -62,12 +63,17 @@ export default async function UsersPage() {
                             <option value="employee">Employee</option>
                             <option value="client">Client</option>
                           </select>
-                          <button
-                            type="submit"
+                          <ConfirmButton
+                            dialog={{
+                              tone: "brand",
+                              title: "Change this user's role?",
+                              message: `The new role takes effect immediately for ${user.full_name || user.email}, changing what they can see and do across the workspace.`,
+                              confirmLabel: "Apply new role",
+                            }}
                             className="ml-2 rounded border border-line px-2.5 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-brand hover:text-brand"
                           >
                             Save
-                          </button>
+                          </ConfirmButton>
                         </form>
                       )}
                     </td>

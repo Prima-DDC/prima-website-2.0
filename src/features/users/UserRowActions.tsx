@@ -2,6 +2,7 @@
 
 import { KeyRound, Trash2 } from "lucide-react";
 import { useActionState } from "react";
+import { ConfirmButton } from "@/components/ConfirmDialog";
 import { deleteUser, sendPasswordReset, type UsersState } from "./actions";
 
 const initialState: UsersState = { error: null };
@@ -31,38 +32,38 @@ export function UserRowActions({
       <div className="flex items-center gap-2">
         <form action={resetAction}>
           <input type="hidden" name="email" value={email} />
-          <button
-            type="submit"
+          <ConfirmButton
+            dialog={{
+              tone: "brand",
+              title: "Send password reset?",
+              message: `${name} will receive an email at ${email} with a secure link to choose a new password.`,
+              confirmLabel: "Send reset email",
+            }}
             disabled={resetPending}
             title="Send a password reset email"
             className="inline-flex items-center gap-1.5 rounded border border-line px-2.5 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-brand hover:text-brand disabled:opacity-50"
           >
             <KeyRound className="h-3.5 w-3.5" aria-hidden />
             {resetPending ? "Sending..." : "Reset password"}
-          </button>
+          </ConfirmButton>
         </form>
-        <form
-          action={deleteAction}
-          onSubmit={(e) => {
-            if (
-              !window.confirm(
-                `Delete ${name}? This permanently removes their account and all documents they submitted. This cannot be undone.`,
-              )
-            ) {
-              e.preventDefault();
-            }
-          }}
-        >
+        <form action={deleteAction}>
           <input type="hidden" name="userId" value={userId} />
-          <button
-            type="submit"
+          <ConfirmButton
+            dialog={{
+              tone: "danger",
+              title: `Delete ${name}?`,
+              message:
+                "This permanently removes their account and every document they submitted. This cannot be undone.",
+              confirmLabel: "Delete user",
+            }}
             disabled={deletePending}
             title="Delete user"
             className="inline-flex items-center gap-1.5 rounded border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden />
             {deletePending ? "Deleting..." : "Delete"}
-          </button>
+          </ConfirmButton>
         </form>
       </div>
       {feedback ? (
