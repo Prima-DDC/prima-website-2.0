@@ -7,6 +7,7 @@ import {
   STAFF_PROFILE_COLUMNS,
   toStaffProfile,
 } from "@/features/profile/types";
+import { getRoles } from "@/features/roles/queries";
 import { AdminUserForm } from "@/features/users/AdminUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -27,6 +28,7 @@ export default async function AdminUserPage({
     .eq("id", id)
     .maybeSingle();
   if (!row) notFound();
+  const roles = await getRoles();
   const profile = toStaffProfile(row);
   const displayName =
     [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
@@ -56,7 +58,11 @@ export default async function AdminUserPage({
       </div>
 
       <div className="mt-8">
-        <AdminUserForm profile={profile} isSelf={profile.id === acting.id} />
+        <AdminUserForm
+          profile={profile}
+          isSelf={profile.id === acting.id}
+          roles={roles.map((r) => ({ key: r.key, label: r.label }))}
+        />
       </div>
     </div>
   );

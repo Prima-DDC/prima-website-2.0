@@ -5,11 +5,13 @@ import { requireRole } from "@/features/auth/helpers";
 import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
+import { getRoles } from "@/features/roles/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function UsersPage() {
   const acting = await requireRole("admin");
   const supabase = await createSupabaseServerClient();
+  const roles = await getRoles();
   const { data: users } = await supabase
     .from("profiles")
     .select("id, email, full_name, role, photo_path, created_at")
@@ -73,12 +75,11 @@ export default async function UsersPage() {
                             defaultValue={user.role}
                             className="rounded-md border border-line bg-white px-2.5 py-1.5 text-xs font-medium text-navy outline-none focus:border-brand"
                           >
-                            <option value="admin">Admin</option>
-                            <option value="hr">HR</option>
-                            <option value="manager">Manager</option>
-                            <option value="ceo">CEO</option>
-                            <option value="employee">Employee</option>
-                            <option value="client">Client</option>
+                            {roles.map((r) => (
+                              <option key={r.key} value={r.key}>
+                                {r.label}
+                              </option>
+                            ))}
                           </select>
                           <ConfirmButton
                             dialog={{
@@ -115,7 +116,7 @@ export default async function UsersPage() {
           </div>
         </div>
 
-        <InviteUserForm />
+        <InviteUserForm roles={roles.map((r) => ({ key: r.key, label: r.label }))} />
       </div>
     </div>
   );

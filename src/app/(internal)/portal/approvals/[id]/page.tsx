@@ -1,15 +1,14 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { APPROVER_ROLES, requireRole } from "@/features/auth/helpers";
 import { ApprovalTrail } from "@/features/ops/ApprovalTrail";
 import {
-  APPROVAL_STAGES,
   DOC_CONFIG,
   nextStage,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
+import { requireApprover } from "@/features/ops/stages";
 import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
 import { PdfDownloadButton } from "@/features/ops/PdfDownloadButton";
@@ -25,7 +24,7 @@ export default async function ApprovalDetailPage({
 }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const profile = await requireRole(...APPROVER_ROLES);
+  const { profile, stages } = await requireApprover();
 
   const supabase = await createSupabaseServerClient();
   const { data: doc } = await supabase
@@ -62,12 +61,11 @@ export default async function ApprovalDetailPage({
     };
   });
 
-  const stage = nextStage(approvals);
-  const stageMeta = APPROVAL_STAGES.find((s) => s.role === stage);
+  const stage = nextStage(approvals, stages);
   const canAct =
     doc.status === "submitted" &&
     stage !== null &&
-    (profile.role === "admin" || stage === profile.role);
+    (profile.role === "admin" || stage.role === profile.role);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -99,7 +97,7 @@ export default async function ApprovalDetailPage({
         <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-slate-body">
           Approval trail
         </h2>
-        <ApprovalTrail approvals={approvals} docStatus={doc.status} />
+        <ApprovalTrail approvals={approvals} docStatus={doc.status} stages={stages} />
       </div>
 
       <div className="mt-6 rounded-lg border border-line bg-white p-7">
@@ -109,17 +107,17 @@ export default async function ApprovalDetailPage({
         />
       </div>
 
-      {canAct && stageMeta ? (
+      {canAct && stage ? (
         <div className="mt-6">
           <ReviewForm
             docId={doc.id}
-            stageLabel={stageMeta.label}
-            isFinalStage={stage === APPROVAL_STAGES[APPROVAL_STAGES.length - 1].role}
+            stageLabel={stage.label}
+            isFinalStage={stage.role === stages[stages.length - 1]?.role}
           />
         </div>
-      ) : doc.status === "submitted" && stageMeta ? (
+      ) : doc.status === "submitted" && stage ? (
         <p className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
-          This document is awaiting the {stageMeta.label} sign-off.
+          This document is awaiting the {stage.label} sign-off.
         </p>
       ) : null}
 

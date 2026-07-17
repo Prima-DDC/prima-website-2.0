@@ -8,15 +8,15 @@ import { adminUpdateUser, type UsersState } from "./actions";
 const inputClass =
   "w-full rounded-md border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition-all focus:border-brand focus:ring-2 focus:ring-brand/20";
 
-const ROLES = ["admin", "hr", "manager", "ceo", "employee", "client"] as const;
-
 /** Admin-only staff record editor: identity, employment, contact, and role. */
 export function AdminUserForm({
   profile,
   isSelf,
+  roles,
 }: {
   profile: StaffProfile;
   isSelf: boolean;
+  roles: Array<{ key: string; label: string }>;
 }) {
   const [state, formAction, pending] = useActionState<UsersState, FormData>(
     adminUpdateUser,
@@ -66,9 +66,9 @@ export function AdminUserForm({
         <div>
           <label htmlFor="u-role" className="mb-1.5 block text-sm font-semibold text-navy">Workspace role</label>
           <select id="u-role" name="role" defaultValue={profile.role} disabled={isSelf} className={inputClass}>
-            {ROLES.map((role) => (
-              <option key={role} value={role}>
-                {role.toUpperCase()}
+            {roles.map((r) => (
+              <option key={r.key} value={r.key}>
+                {r.label}
               </option>
             ))}
           </select>

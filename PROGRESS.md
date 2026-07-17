@@ -136,6 +136,14 @@ Verified end-to-end with a scripted authenticator (RFC 6238 TOTP in the test): i
 
 Verified: 24-check e2e suite passed against the production build (full chain incl. PDF signatories, gating, rejection, CRUD, staff record, photo upload served from storage, ticket lifecycle, notification delivery, RLS). Build + ESLint clean; em-dash gate 0; test data cleaned up afterwards.
 
+## Phase 6 (2026-07-17): Dynamic roles, configurable approval chain, Supabase SMTP sender (DONE)
+
+- Notification emails now send through the same SMTP account configured in Supabase (noreply@primaddc.com); set SMTP_PASS in the environment to the password used in the Supabase dashboard. In-app notifications are unaffected either way.
+- Roles are database-driven (`roles` table, FK from profiles): admins create, rename, and delete roles at /admin/roles (built-in admin/employee/client protected; deletion blocked while members hold the role). Every role dropdown (invite, quick change, staff editor) is fed from the table, with server-side validation.
+- The sequential approval chain is admin-configurable on the same page: choose which roles must sign off and in what order (add, remove with a minimum of one stage, move up/down). The whole flow (queues, trails, gating, notifications, PDF signatories, is_approver RLS) follows the configured chain; historical sign-offs remain visible even after a stage is removed.
+
+Verified end-to-end: created a Finance role via the UI, inserted it after HR (hr, finance, manager, ceo), walked a document through all four stages through the real forms (PDF issued with four signatories), confirmed delete-guard and rename, then restored the canonical chain. Build + ESLint clean.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

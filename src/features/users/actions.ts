@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/features/auth/helpers";
 import { notify } from "@/features/notifications/notify";
+import { roleExists } from "@/features/roles/queries";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export interface UsersState {
@@ -11,12 +12,13 @@ export interface UsersState {
   success?: string;
 }
 
-const roleSchema = z.enum(["admin", "hr", "manager", "ceo", "employee", "client"]);
+const roleSchema = z.string().trim().min(1).max(60);
 
 export async function updateUserRole(formData: FormData): Promise<void> {
   const acting = await requireRole("admin");
   const userId = z.string().uuid().parse(formData.get("userId"));
   const role = roleSchema.parse(formData.get("role"));
+  if (!(await roleExists(role))) return;
 
   // An admin cannot demote themselves; prevents locking everyone out.
   if (userId === acting.id) return;
@@ -87,6 +89,7 @@ export async function inviteUser(
     role: formData.get("role"),
   });
   if (!parsed.success) return { error: "Enter a valid email and role." };
+  if (!(await roleExists(parsed.data.role))) return { error: "Unknown role." };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const admin = createSupabaseAdminClient();
@@ -153,6 +156,7 @@ export async function adminUpdateUser(
     return { error: `${issue.path.join(".")}: ${issue.message}` };
   }
   const d = parsed.data;
+  if (!(await roleExists(d.role))) return { error: "Unknown role." };
 
   if (d.userId === acting.id && d.role !== "admin") {
     return { error: "You cannot change your own role." };

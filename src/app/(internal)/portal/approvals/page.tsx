@@ -1,16 +1,11 @@
 import Link from "next/link";
-import { APPROVER_ROLES, requireRole } from "@/features/auth/helpers";
-import {
-  APPROVAL_STAGES,
-  DOC_CONFIG,
-  nextStage,
-  type DocType,
-} from "@/features/ops/config";
+import { DOC_CONFIG, nextStage, type DocType } from "@/features/ops/config";
+import { requireApprover } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function PortalApprovalsPage() {
-  const profile = await requireRole(...APPROVER_ROLES);
+  const { profile, stages } = await requireApprover();
 
   const supabase = await createSupabaseServerClient();
   const { data: docs } = await supabase
@@ -22,12 +17,11 @@ export default async function PortalApprovalsPage() {
   const approvalsMap = await getApprovalsMap((docs ?? []).map((d) => d.id));
 
   const rows = (docs ?? []).map((doc) => {
-    const stage = nextStage(approvalsMap.get(doc.id) ?? []);
+    const stage = nextStage(approvalsMap.get(doc.id) ?? [], stages);
     return {
       ...doc,
-      stage,
-      stageLabel: APPROVAL_STAGES.find((s) => s.role === stage)?.label ?? "-",
-      yourTurn: stage !== null && (profile.role === "admin" || stage === profile.role),
+      stageLabel: stage?.label ?? "-",
+      yourTurn: stage !== null && (profile.role === "admin" || stage.role === profile.role),
     };
   });
   const actionable = rows.filter((r) => r.yourTurn).length;

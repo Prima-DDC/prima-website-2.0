@@ -3,12 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApprovalTrail } from "@/features/ops/ApprovalTrail";
 import {
-  APPROVAL_STAGES,
   DOC_CONFIG,
   nextStage,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
+import { getApprovalStages } from "@/features/ops/stages";
 import { DeleteDocButton } from "@/features/ops/DeleteDocButton";
 import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
@@ -41,8 +41,9 @@ export default async function AdminOpsDocumentPage({
     email: string;
   } | null;
 
-  const [approvals, { data: events }] = await Promise.all([
+  const [approvals, stages, { data: events }] = await Promise.all([
     getApprovals(id),
+    getApprovalStages(),
     supabase
       .from("ops_events")
       .select("id, action, comment, created_at, actor, profiles:actor (full_name, email)")
@@ -61,8 +62,7 @@ export default async function AdminOpsDocumentPage({
     };
   });
 
-  const stage = nextStage(approvals);
-  const stageMeta = APPROVAL_STAGES.find((s) => s.role === stage);
+  const stage = nextStage(approvals, stages);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -103,7 +103,7 @@ export default async function AdminOpsDocumentPage({
         <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-slate-body">
           Approval trail
         </h2>
-        <ApprovalTrail approvals={approvals} docStatus={doc.status} />
+        <ApprovalTrail approvals={approvals} docStatus={doc.status} stages={stages} />
       </div>
 
       <div className="mt-6 rounded-lg border border-line bg-white p-7">
@@ -113,12 +113,12 @@ export default async function AdminOpsDocumentPage({
         />
       </div>
 
-      {doc.status === "submitted" && stageMeta ? (
+      {doc.status === "submitted" && stage ? (
         <div className="mt-6">
           <ReviewForm
             docId={doc.id}
-            stageLabel={stageMeta.label}
-            isFinalStage={stage === APPROVAL_STAGES[APPROVAL_STAGES.length - 1].role}
+            stageLabel={stage.label}
+            isFinalStage={stage.role === stages[stages.length - 1]?.role}
           />
         </div>
       ) : null}

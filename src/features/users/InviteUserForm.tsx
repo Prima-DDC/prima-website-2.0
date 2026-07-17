@@ -9,7 +9,11 @@ const initialState: UsersState = { error: null };
 const inputClass =
   "w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-all focus:border-brand focus:ring-2 focus:ring-brand/20";
 
-export function InviteUserForm() {
+export function InviteUserForm({
+  roles,
+}: {
+  roles: Array<{ key: string; label: string }>;
+}) {
   const [state, formAction, pending] = useActionState(inviteUser, initialState);
 
   return (
@@ -48,12 +52,11 @@ export function InviteUserForm() {
             Role
           </label>
           <select id="invite-role" name="role" defaultValue="employee" className={inputClass}>
-            <option value="employee">Employee</option>
-            <option value="hr">HR</option>
-            <option value="manager">Manager</option>
-            <option value="ceo">CEO</option>
-            <option value="client">Client</option>
-            <option value="admin">Admin</option>
+            {roles.map((r) => (
+              <option key={r.key} value={r.key}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>

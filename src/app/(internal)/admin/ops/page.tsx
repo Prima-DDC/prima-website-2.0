@@ -1,12 +1,13 @@
 import { FilePlus2 } from "lucide-react";
 import Link from "next/link";
 import {
-  APPROVAL_STAGES,
   DOC_CONFIG,
   nextStage,
+  type ApprovalStage,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
+import { getApprovalStages } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -14,12 +15,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 function stageProgress(
   status: string,
   approvals: Array<{ stage: string; status: string }>,
+  stages: ApprovalStage[],
 ): string {
   if (status !== "submitted") return "-";
-  const stage = nextStage(approvals);
+  const stage = nextStage(approvals, stages);
   const done = approvals.filter((a) => a.status === "approved").length;
-  const label = APPROVAL_STAGES.find((s) => s.role === stage)?.label;
-  return label ? `${done}/${APPROVAL_STAGES.length}, awaiting ${label}` : "-";
+  return stage ? `${done}/${stages.length}, awaiting ${stage.label}` : "-";
 }
 
 const TABS: Array<{ value: string; label: string }> = [
@@ -44,7 +45,10 @@ export default async function OpsQueuePage({
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
   const { data: docs } = await query;
-  const approvalsMap = await getApprovalsMap((docs ?? []).map((d) => d.id));
+  const [approvalsMap, stages] = await Promise.all([
+    getApprovalsMap((docs ?? []).map((d) => d.id)),
+    getApprovalStages(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -52,7 +56,7 @@ export default async function OpsQueuePage({
         <div>
           <h1 className="text-2xl font-bold text-navy">Approvals</h1>
           <p className="mt-1 text-sm text-slate-body">
-            Sequential HR, Manager, and CEO sign-off on certificates, funds,
+            Sequential role sign-off (configured in Roles) on certificates, funds,
             expenses, leave, and invoices.
           </p>
         </div>
@@ -125,7 +129,7 @@ export default async function OpsQueuePage({
                         <StatusBadge status={doc.status as DocStatus} />
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-body">
-                        {stageProgress(doc.status, approvalsMap.get(doc.id) ?? [])}
+                        {stageProgress(doc.status, approvalsMap.get(doc.id) ?? [], stages)}
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-body">
                         {new Date(doc.created_at).toLocaleString("en-GB")}

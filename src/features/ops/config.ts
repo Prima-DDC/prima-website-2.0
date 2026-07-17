@@ -11,30 +11,29 @@ export const DOC_TYPES = [
 export type DocType = (typeof DOC_TYPES)[number];
 export type DocStatus = "draft" | "submitted" | "approved" | "rejected";
 
-/** Sequential sign-off chain; every stage must approve before a document is final. */
-export const APPROVAL_STAGES = [
-  { role: "hr", label: "HR" },
-  { role: "manager", label: "Manager" },
-  { role: "ceo", label: "CEO" },
-] as const;
-
-export type ApprovalStage = (typeof APPROVAL_STAGES)[number]["role"];
+/** One step of the admin-configurable sequential sign-off chain. */
+export interface ApprovalStage {
+  role: string;
+  label: string;
+  sort: number;
+}
 
 export interface ApprovalRow {
-  stage: ApprovalStage;
+  stage: string;
   status: "approved" | "rejected";
   comment: string | null;
   created_at: string;
   approverName: string;
 }
 
-/** The first stage without an approval, or null when the chain is complete. */
+/** The first configured stage without an approval; null when complete. */
 export function nextStage(
   approvals: Array<{ stage: string; status: string }>,
+  stages: ApprovalStage[],
 ): ApprovalStage | null {
-  for (const { role } of APPROVAL_STAGES) {
-    if (!approvals.some((a) => a.stage === role && a.status === "approved")) {
-      return role;
+  for (const stage of stages) {
+    if (!approvals.some((a) => a.stage === stage.role && a.status === "approved")) {
+      return stage;
     }
   }
   return null;

@@ -2,10 +2,8 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type Role = "admin" | "hr" | "manager" | "ceo" | "employee" | "client";
-
-/** Roles that take part in the document approval chain (admin can cover any stage). */
-export const APPROVER_ROLES: Role[] = ["admin", "hr", "manager", "ceo"];
+/** Roles are database-driven (public.roles); admin/employee/client are built in. */
+export type Role = string;
 
 export interface SessionProfile {
   id: string;

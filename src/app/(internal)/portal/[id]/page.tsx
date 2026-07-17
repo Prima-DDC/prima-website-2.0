@@ -7,6 +7,7 @@ import { DocDetails } from "@/features/ops/DocDetails";
 import { EventTimeline, type OpsEvent } from "@/features/ops/EventTimeline";
 import { PdfDownloadButton } from "@/features/ops/PdfDownloadButton";
 import { getApprovals } from "@/features/ops/queries";
+import { getApprovalStages } from "@/features/ops/stages";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -26,8 +27,9 @@ export default async function PortalDocumentPage({
     .maybeSingle();
   if (!doc) notFound();
 
-  const [approvals, { data: events }] = await Promise.all([
+  const [approvals, stages, { data: events }] = await Promise.all([
     getApprovals(id),
+    getApprovalStages(),
     supabase
       .from("ops_events")
       .select("id, action, comment, created_at, actor, profiles:actor (full_name, email)")
@@ -81,7 +83,7 @@ export default async function PortalDocumentPage({
         <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-slate-body">
           Approval trail
         </h2>
-        <ApprovalTrail approvals={approvals} docStatus={doc.status} />
+        <ApprovalTrail approvals={approvals} docStatus={doc.status} stages={stages} />
       </div>
 
       <div className="mt-6 rounded-lg border border-line bg-white p-7">

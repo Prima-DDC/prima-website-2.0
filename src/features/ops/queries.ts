@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { ApprovalRow, ApprovalStage } from "./config";
+import type { ApprovalRow } from "./config";
 
 /** Approvals for one document, with approver names (RLS-scoped). */
 export async function getApprovals(docId: string): Promise<ApprovalRow[]> {
@@ -16,7 +16,7 @@ export async function getApprovals(docId: string): Promise<ApprovalRow[]> {
       email: string;
     } | null;
     return {
-      stage: row.stage as ApprovalStage,
+      stage: row.stage,
       status: row.status as "approved" | "rejected",
       comment: row.comment,
       created_at: row.created_at,

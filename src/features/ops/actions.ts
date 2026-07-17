@@ -3,17 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { APPROVER_ROLES, requireRole } from "@/features/auth/helpers";
+import { requireRole } from "@/features/auth/helpers";
 import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  APPROVAL_STAGES,
-  DOC_CONFIG,
-  nextStage,
-  type DocType,
-  DOC_TYPES,
-} from "./config";
+import { DOC_CONFIG, nextStage, type DocType, DOC_TYPES } from "./config";
+import { getApprovalStages } from "./stages";
 import { generateDocumentPdf } from "./pdf/generate";
 
 export interface OpsState {
@@ -81,15 +76,17 @@ export async function submitOpsDocument(
     action: "submitted",
   });
 
-  // First stage (HR) and administration are notified immediately.
+  // First configured stage and administration are notified immediately.
+  const stages = await getApprovalStages();
+  const firstStage = stages[0];
   const { data: created } = await supabase
     .from("ops_documents")
     .select("doc_number")
     .eq("id", doc.id)
     .single();
-  await notify(await userIdsByRole(["hr", "admin"]), {
+  await notify(await userIdsByRole(firstStage ? [firstStage.role, "admin"] : ["admin"]), {
     title: `New ${DOC_CONFIG[docType].title.toLowerCase()} for sign-off`,
-    body: `${created?.doc_number ?? "A new document"} was submitted by ${profile.fullName || profile.email} and awaits the HR sign-off.`,
+    body: `${created?.doc_number ?? "A new document"} was submitted by ${profile.fullName || profile.email} and awaits the ${firstStage?.label ?? "first"} sign-off.`,
     link: `/portal/approvals/${doc.id}`,
   });
 
@@ -106,7 +103,12 @@ export async function signOffDocument(
   _prev: OpsState,
   formData: FormData,
 ): Promise<OpsState> {
-  const profile = await requireRole(...APPROVER_ROLES);
+  const profile = await requireRole();
+  const stages = await getApprovalStages();
+  if (stages.length === 0) return { error: "No approval chain is configured." };
+  if (profile.role !== "admin" && !stages.some((s) => s.role === profile.role)) {
+    return { error: "You are not part of the approval chain." };
+  }
 
   const docId = z.string().uuid().parse(formData.get("docId"));
   const decision = z.enum(["approved", "rejected"]).parse(formData.get("decision"));
@@ -131,17 +133,17 @@ export async function signOffDocument(
     .from("ops_approvals")
     .select("stage, status")
     .eq("doc_id", docId);
-  const stage = nextStage(existing ?? []);
+  const stage = nextStage(existing ?? [], stages);
   if (!stage) return { error: "This document is already fully signed." };
 
-  const stageLabel = APPROVAL_STAGES.find((s) => s.role === stage)!.label;
-  if (profile.role !== "admin" && profile.role !== stage) {
+  const stageLabel = stage.label;
+  if (profile.role !== "admin" && profile.role !== stage.role) {
     return { error: `This document is awaiting the ${stageLabel} sign-off.` };
   }
 
   const { error: approvalError } = await db.from("ops_approvals").insert({
     doc_id: docId,
-    stage,
+    stage: stage.role,
     status: decision,
     approver: profile.id,
     comment: comment || null,
@@ -176,14 +178,14 @@ export async function signOffDocument(
       body: `Your ${docTitle.toLowerCase()} was rejected at the ${stageLabel} stage: ${comment}`,
       link: `/portal/${docId}`,
     });
-  } else if (stage === APPROVAL_STAGES[APPROVAL_STAGES.length - 1].role) {
+  } else if (stage.role === stages[stages.length - 1].role) {
     // Final stage approved: assemble the signatory list and issue the PDF.
     const { data: rows } = await db
       .from("ops_approvals")
       .select("stage, created_at, profiles:approver (full_name, email)")
       .eq("doc_id", docId)
       .eq("status", "approved");
-    const approvals = APPROVAL_STAGES.map((s) => {
+    const approvals = stages.map((s) => {
       const row = rows?.find((r) => r.stage === s.role);
       const approver = row?.profiles as unknown as {
         full_name: string | null;
@@ -213,7 +215,7 @@ export async function signOffDocument(
       });
     } catch (err) {
       // Roll back this sign-off so the CEO can retry cleanly.
-      await db.from("ops_approvals").delete().eq("doc_id", docId).eq("stage", stage);
+      await db.from("ops_approvals").delete().eq("doc_id", docId).eq("stage", stage.role);
       return {
         error: `PDF generation failed: ${err instanceof Error ? err.message : "unknown error"}`,
       };
@@ -233,14 +235,12 @@ export async function signOffDocument(
 
     await notify([doc.submitted_by], {
       title: `${doc.doc_number} is fully approved`,
-      body: `Your ${docTitle.toLowerCase()} completed all sign-offs (HR, Manager, CEO). The official PDF is ready to download.`,
+      body: `Your ${docTitle.toLowerCase()} completed all required sign-offs (${stages.map((s) => s.label).join(", ")}). The official PDF is ready to download.`,
       link: `/portal/${docId}`,
     });
   } else {
     // Intermediate approval: tell the submitter and wake the next stage.
-    const upcoming = APPROVAL_STAGES[
-      APPROVAL_STAGES.findIndex((s) => s.role === stage) + 1
-    ];
+    const upcoming = stages[stages.findIndex((s) => s.role === stage.role) + 1];
     await notify([doc.submitted_by], {
       title: `${doc.doc_number}: ${stageLabel} approved`,
       body: `The ${stageLabel} stage signed off. Next up: ${upcoming.label}.`,
@@ -358,8 +358,9 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
     .eq("id", docId)
     .maybeSingle();
   if (!doc?.pdf_path) return null;
-  if (doc.submitted_by !== profile.id && !APPROVER_ROLES.includes(profile.role)) {
-    return null;
+  if (doc.submitted_by !== profile.id && profile.role !== "admin") {
+    const stages = await getApprovalStages();
+    if (!stages.some((s) => s.role === profile.role)) return null;
   }
 
   const admin = createSupabaseAdminClient();

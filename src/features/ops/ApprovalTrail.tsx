@@ -1,24 +1,35 @@
 import { Check, Clock3, X } from "lucide-react";
-import { APPROVAL_STAGES, nextStage, type ApprovalRow } from "./config";
+import { nextStage, type ApprovalRow, type ApprovalStage } from "./config";
 
 /**
- * Sequential sign-off trail (HR -> Manager -> CEO) with the state of each
- * stage: who signed, when, or which stage the document is waiting on.
+ * Sequential sign-off trail with the state of each configured stage:
+ * who signed, when, or which stage the document is waiting on.
  */
 export function ApprovalTrail({
   approvals,
   docStatus,
+  stages,
 }: {
   approvals: ApprovalRow[];
   docStatus: string;
+  stages: ApprovalStage[];
 }) {
   const rejected = approvals.some((a) => a.status === "rejected");
   const current =
-    docStatus === "submitted" && !rejected ? nextStage(approvals) : null;
+    docStatus === "submitted" && !rejected
+      ? nextStage(approvals, stages)?.role ?? null
+      : null;
+  // Include historical stages no longer in the chain so old trails stay complete.
+  const displayStages = [
+    ...stages,
+    ...approvals
+      .filter((a) => !stages.some((s) => s.role === a.stage))
+      .map((a) => ({ role: a.stage, label: a.stage.toUpperCase(), sort: 999 })),
+  ];
 
   return (
     <ol className="grid gap-3 sm:grid-cols-3">
-      {APPROVAL_STAGES.map(({ role, label }) => {
+      {displayStages.map(({ role, label }) => {
         const row = approvals.find((a) => a.stage === role);
         const state = row?.status ?? (role === current ? "current" : "pending");
         const styles =
