@@ -2,7 +2,12 @@
 
 import { Plus, Send, Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
-import { submitOpsDocument, updateOpsDocument, type OpsState } from "./actions";
+import {
+  editOwnDocument,
+  submitOpsDocument,
+  updateOpsDocument,
+  type OpsState,
+} from "./actions";
 import {
   formatMoney,
   type DocType,
@@ -26,15 +31,18 @@ export function OpsForm({
   config,
   docId,
   initialData,
+  editor = "admin",
 }: {
   docType: DocType;
   config: Pick<DocTypeConfig, "fields" | "lineItems" | "title">;
-  /** When set, the form edits an existing document (admin correction). */
+  /** When set, the form edits an existing document. */
   docId?: string;
   initialData?: Values;
+  /** Who is editing: the submitter ("owner") or administration ("admin"). */
+  editor?: "owner" | "admin";
 }) {
   const [state, formAction, pending] = useActionState<OpsState, FormData>(
-    docId ? updateOpsDocument : submitOpsDocument,
+    docId ? (editor === "owner" ? editOwnDocument : updateOpsDocument) : submitOpsDocument,
     { error: null },
   );
   const [values, setValues] = useState<Values>(() => ({

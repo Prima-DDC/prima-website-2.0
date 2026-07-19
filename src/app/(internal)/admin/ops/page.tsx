@@ -99,7 +99,42 @@ export default async function OpsQueuePage({
           Nothing here.
         </p>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-lg border border-line bg-white">
+        <>
+          {/* Mobile card list */}
+          <ul className="mt-6 space-y-3 sm:hidden">
+            {docs.map((doc) => {
+              const submitter = doc.profiles as unknown as {
+                full_name: string | null;
+                email: string;
+              } | null;
+              return (
+                <li key={doc.id} className="rounded-lg border border-line bg-white p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <Link
+                      href={`/admin/ops/${doc.id}`}
+                      className="font-semibold text-brand hover:text-brand-dark"
+                    >
+                      {doc.doc_number}
+                    </Link>
+                    <StatusBadge status={doc.status as DocStatus} />
+                  </div>
+                  <p className="mt-1 text-sm text-navy">
+                    {DOC_CONFIG[doc.doc_type as DocType]?.title}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-body">
+                    {submitter?.full_name || submitter?.email}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-body">
+                    {stageProgress(doc.doc_type as DocType, doc.status, approvalsMap.get(doc.id) ?? [])}{" "}
+                    | {new Date(doc.created_at).toLocaleString("en-GB")}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop table */}
+          <div className="mt-6 hidden overflow-hidden rounded-lg border border-line bg-white sm:block">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line bg-mist/50 text-xs uppercase tracking-wider text-slate-body">
@@ -149,7 +184,8 @@ export default async function OpsQueuePage({
               </tbody>
             </table>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

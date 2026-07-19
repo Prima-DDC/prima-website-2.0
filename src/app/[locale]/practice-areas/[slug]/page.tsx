@@ -5,7 +5,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { MediaImage } from "@/components/MediaImage";
 import { Reveal } from "@/components/Reveal";
 import { ServiceIcon } from "@/components/ServiceIcon";
-import { getBlock, getIndustries, getService } from "@/features/content/queries";
+import { getBlock, getIndustries, getService, getServices } from "@/features/content/queries";
 import { pick, type CtaBlock } from "@/features/content/types";
 import { entityMetadata } from "@/features/seo/metadata";
 import { JsonLd } from "@/features/seo/JsonLd";
@@ -49,13 +49,16 @@ export default async function PracticeAreaPage({
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const [service, industries, cta, tCommon, tNav] = await Promise.all([
-    getService(slug),
-    getIndustries(),
-    getBlock<CtaBlock>("home", "cta"),
-    getTranslations({ locale, namespace: "common" }),
-    getTranslations({ locale, namespace: "nav" }),
-  ]);
+  const [service, services, industries, cta, tCommon, tNav, tService] =
+    await Promise.all([
+      getService(slug),
+      getServices(),
+      getIndustries(),
+      getBlock<CtaBlock>("home", "cta"),
+      getTranslations({ locale, namespace: "common" }),
+      getTranslations({ locale, namespace: "nav" }),
+      getTranslations({ locale, namespace: "service" }),
+    ]);
   if (!service) notFound();
 
   const s = pick(service.t, locale);
@@ -63,6 +66,7 @@ export default async function PracticeAreaPage({
   const related = industries.filter((i) =>
     i.relatedServiceSlugs.includes(service.slug),
   );
+  const otherServices = services.filter((o) => o.slug !== service.slug);
 
   return (
     <>
@@ -143,11 +147,46 @@ export default async function PracticeAreaPage({
             </div>
           </Reveal>
 
-          <div className="mt-14 grid gap-6 lg:grid-cols-2">
+          {s.challenges?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("challenges")}</h2>
+              <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+                {s.challenges.map((challenge) => (
+                  <li
+                    key={challenge}
+                    className="rounded-lg border border-line bg-mist/40 p-5 text-sm leading-relaxed text-slate-body transition-colors hover:border-brand/40"
+                  >
+                    {challenge}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          ) : null}
+
+          {s.whoWeServe?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("whoWeServe")}</h2>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {s.whoWeServe.map((client) => (
+                  <span
+                    key={client}
+                    className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-navy"
+                  >
+                    {client}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+          ) : null}
+
+          <Reveal className="mt-16">
+            <h2 className="text-2xl font-bold text-navy">{tService("services")}</h2>
+          </Reveal>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
             {s.groups.map((group, i) => (
               <Reveal key={group.heading} delay={(i % 2) * 120}>
                 <div className="h-full rounded-lg border border-line bg-white p-7 transition-all duration-300 hover:border-brand/40 hover:shadow-xl hover:shadow-brand/10">
-                  <h2 className="text-xl font-bold text-navy">{group.heading}</h2>
+                  <h3 className="text-xl font-bold text-navy">{group.heading}</h3>
                   {group.summary ? (
                     <p className="mt-3 text-sm leading-relaxed text-slate-body">
                       {group.summary}
@@ -166,6 +205,79 @@ export default async function PracticeAreaPage({
             ))}
           </div>
 
+          {s.methodology?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("methodology")}</h2>
+              <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {s.methodology.map((step, i) => (
+                  <li
+                    key={step}
+                    className="flex items-start gap-4 rounded-lg border border-line bg-white p-5"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm leading-relaxed text-slate-body">{step}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-4 text-sm text-slate-body">
+                {tService("methodologyNote")}{" "}
+                <Link
+                  href="/our-standards"
+                  className="font-semibold text-brand hover:text-brand-dark"
+                >
+                  {tNav("ourStandards")}
+                </Link>
+              </p>
+            </Reveal>
+          ) : null}
+
+          {s.deliverables?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("deliverables")}</h2>
+              <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {s.deliverables.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-slate-body">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          ) : null}
+
+          {s.caseExperience?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("caseExperience")}</h2>
+              <ul className="mt-6 grid gap-4 lg:grid-cols-3">
+                {s.caseExperience.map((example) => (
+                  <li
+                    key={example}
+                    className="rounded-lg border-l-2 border-brand bg-mist/40 p-5 text-sm leading-relaxed text-slate-body"
+                  >
+                    {example}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-slate-body/80">{tService("caseExperienceNote")}</p>
+            </Reveal>
+          ) : null}
+
+          {s.whyPrima?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("whyPrima")}</h2>
+              <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                {s.whyPrima.map((reason) => (
+                  <div key={reason.title} className="rounded-lg border border-line bg-white p-6">
+                    <h3 className="font-bold text-navy">{reason.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-body">{reason.body}</p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          ) : null}
+
           {related.length > 0 ? (
             <Reveal className="mt-14">
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
@@ -179,6 +291,25 @@ export default async function PracticeAreaPage({
                     className="rounded-full border border-line bg-mist/60 px-4 py-2 text-sm font-medium text-navy transition-colors hover:border-brand hover:bg-brand hover:text-white"
                   >
                     {pick(industry.t, locale).title}
+                  </Link>
+                ))}
+              </div>
+            </Reveal>
+          ) : null}
+
+          {otherServices.length > 0 ? (
+            <Reveal className="mt-14">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+                {tCommon("relatedServices")}
+              </h2>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {otherServices.map((other) => (
+                  <Link
+                    key={other.slug}
+                    href={`/practice-areas/${other.slug}`}
+                    className="rounded-full border border-line bg-mist/60 px-4 py-2 text-sm font-medium text-navy transition-colors hover:border-brand hover:bg-brand hover:text-white"
+                  >
+                    {pick(other.t, locale).shortTitle}
                   </Link>
                 ))}
               </div>

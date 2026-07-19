@@ -86,9 +86,7 @@ export default async function AdminOpsDocumentPage({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={doc.status as DocStatus} />
-          {doc.status === "approved" && doc.pdf_path ? (
-            <PdfDownloadButton docId={doc.id} />
-          ) : null}
+          <PdfDownloadButton docId={doc.id} />
           {doc.status === "submitted" ? (
             <Link
               href={`/admin/ops/${doc.id}/edit`}

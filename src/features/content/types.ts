@@ -103,6 +103,13 @@ export interface ServiceContent {
   tagline: string;
   opening: string[];
   groups: ServiceGroup[];
+  /** Optional practice-area template sections; rendered only when present. */
+  challenges?: string[];
+  whoWeServe?: string[];
+  methodology?: string[];
+  deliverables?: string[];
+  caseExperience?: string[];
+  whyPrima?: Array<{ title: string; body: string }>;
   seoTitle: string;
   seoDescription: string;
 }

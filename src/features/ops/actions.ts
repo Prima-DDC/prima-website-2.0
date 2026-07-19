@@ -266,6 +266,74 @@ export async function signOffDocument(
   return { error: null };
 }
 
+/**
+ * Owner edit of a submitted document. Allowed until final approval; any
+ * sign-offs already given are cleared so the chain restarts on the new
+ * content (logged in the trail, approvers re-notified).
+ */
+export async function editOwnDocument(
+  _prev: OpsState,
+  formData: FormData,
+): Promise<OpsState> {
+  const profile = await requireRole();
+
+  const docId = z.string().uuid().parse(formData.get("docId"));
+  const docType = z
+    .enum(DOC_TYPES as unknown as [DocType, ...DocType[]])
+    .parse(formData.get("docType"));
+  const parsed = parsePayload(docType, formData.get("data"));
+  if (!parsed.ok) return { error: parsed.error };
+
+  const db = createSupabaseAdminClient();
+  const { data: doc } = await db
+    .from("ops_documents")
+    .select("id, doc_type, doc_number, status, submitted_by")
+    .eq("id", docId)
+    .maybeSingle();
+  if (!doc || doc.doc_type !== docType) return { error: "Document not found." };
+  if (doc.submitted_by !== profile.id) {
+    return { error: "Only the submitter can edit this document." };
+  }
+  if (doc.status !== "submitted") {
+    return { error: "Documents can no longer be edited after a final decision." };
+  }
+
+  const { count: signOffs } = await db
+    .from("ops_approvals")
+    .select("id", { count: "exact", head: true })
+    .eq("doc_id", docId);
+  if ((signOffs ?? 0) > 0) {
+    await db.from("ops_approvals").delete().eq("doc_id", docId);
+  }
+
+  const { error } = await db
+    .from("ops_documents")
+    .update({ data: parsed.data, updated_at: new Date().toISOString() })
+    .eq("id", docId);
+  if (error) return { error: error.message };
+
+  await db.from("ops_events").insert({
+    doc_id: docId,
+    actor: profile.id,
+    action: "edited",
+    comment:
+      (signOffs ?? 0) > 0
+        ? "Details edited by the submitter; earlier sign-offs cleared"
+        : "Details edited by the submitter",
+  });
+
+  const chain = await chainForType(docType);
+  const firstStage = chain[0];
+  await notify(await userIdsByRole(firstStage ? [firstStage.role, "admin"] : ["admin"]), {
+    title: `${doc.doc_number} was edited and needs sign-off`,
+    body: `${profile.fullName || profile.email} updated this ${DOC_CONFIG[docType].title.toLowerCase()}${(signOffs ?? 0) > 0 ? "; earlier sign-offs were cleared" : ""}. It awaits the ${firstStage?.label ?? "first"} decision.`,
+    link: `/portal/approvals/${docId}`,
+  });
+
+  revalidateOps(docId);
+  redirect(`/portal/${docId}`);
+}
+
 /** Admin correction of a submitted document's details (logged in the trail). */
 export async function updateOpsDocument(
   _prev: OpsState,
@@ -332,14 +400,15 @@ export async function deleteOpsDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_number, pdf_path, submitted_by")
+    .select("id, doc_type, doc_number, pdf_path, submitted_by")
     .eq("id", docId)
     .maybeSingle();
   if (!doc) return { error: "Document not found." };
 
-  if (doc.pdf_path) {
-    await db.storage.from("ops-pdfs").remove([doc.pdf_path]);
-  }
+  // Remove the official PDF and any on-demand preview copy.
+  const paths = [`${doc.doc_type}/${doc.doc_number}-preview.pdf`];
+  if (doc.pdf_path) paths.push(doc.pdf_path);
+  await db.storage.from("ops-pdfs").remove(paths);
   const { error } = await db.from("ops_documents").delete().eq("id", docId);
   if (error) return { error: error.message };
 
@@ -355,7 +424,11 @@ export async function deleteOpsDocument(
   redirect("/admin/ops");
 }
 
-/** Creates a short-lived signed URL for an approved document's PDF. */
+/**
+ * Creates a short-lived signed URL for a document's PDF. Approved documents
+ * serve the stored official PDF; documents still in review are rendered on
+ * demand as a clearly marked preliminary copy with pending stages listed.
+ */
 export async function getPdfUrl(docId: string): Promise<string | null> {
   const profile = await requireRole();
 
@@ -363,19 +436,59 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   const { data: doc } = await supabase
     .from("ops_documents")
-    .select("doc_type, pdf_path, submitted_by")
+    .select("doc_type, doc_number, data, pdf_path, submitted_by")
     .eq("id", docId)
     .maybeSingle();
-  if (!doc?.pdf_path) return null;
+  if (!doc) return null;
   if (doc.submitted_by !== profile.id && profile.role !== "admin") {
-    // An approver of this request type may also download the issued PDF.
+    // An approver of this request type may also download the PDF.
     const approvable = await getApprovableTypes(profile.role);
     if (!approvable.includes(doc.doc_type)) return null;
   }
 
   const admin = createSupabaseAdminClient();
-  const { data } = await admin.storage
-    .from("ops-pdfs")
-    .createSignedUrl(doc.pdf_path, 60);
+  let path = doc.pdf_path;
+  if (!path) {
+    const stages = await chainForType(doc.doc_type);
+    const { data: rows } = await admin
+      .from("ops_approvals")
+      .select("stage, status, created_at, profiles:approver (full_name, email)")
+      .eq("doc_id", docId);
+    const approvals = stages.map((stage) => {
+      const row = rows?.find((r) => r.stage === stage.role);
+      const approver = row?.profiles as unknown as {
+        full_name: string | null;
+        email: string;
+      } | null;
+      return {
+        label: stage.label,
+        name: row
+          ? `${approver?.full_name || approver?.email || "Unknown"}${row.status === "rejected" ? " (rejected)" : ""}`
+          : "Pending",
+        date: row ? row.created_at.slice(0, 10) : "",
+      };
+    });
+
+    const { data: submitter } = await admin
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", doc.submitted_by)
+      .maybeSingle();
+
+    try {
+      path = await generateDocumentPdf({
+        docType: doc.doc_type,
+        docNumber: doc.doc_number,
+        data: doc.data,
+        submitterName: submitter?.full_name || submitter?.email || "Unknown",
+        approvals,
+        preliminary: true,
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  const { data } = await admin.storage.from("ops-pdfs").createSignedUrl(path, 60);
   return data?.signedUrl ?? null;
 }

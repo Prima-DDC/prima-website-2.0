@@ -15,20 +15,23 @@ export async function generateDocumentPdf({
   data,
   submitterName,
   approvals,
+  preliminary = false,
 }: {
   docType: DocType;
   docNumber: string;
   data: Record<string, unknown>;
   submitterName: string;
   approvals: Array<{ label: string; name: string; date: string }>;
+  /** Pre-approval export: marked on the page, stored as a separate preview file. */
+  preliminary?: boolean;
 }): Promise<string> {
   const logo = readFileSync(path.join(process.cwd(), "public", "logo.png"));
 
   const buffer = await renderToBuffer(
-    DocumentPdf({ docType, docNumber, data, submitterName, approvals, logo }),
+    DocumentPdf({ docType, docNumber, data, submitterName, approvals, logo, preliminary }),
   );
 
-  const storagePath = `${docType}/${docNumber}.pdf`;
+  const storagePath = `${docType}/${docNumber}${preliminary ? "-preview" : ""}.pdf`;
   const admin = createSupabaseAdminClient();
   const { error } = await admin.storage
     .from(PDF_BUCKET)

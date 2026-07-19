@@ -1,4 +1,5 @@
 import { requireRole } from "@/features/auth/helpers";
+import { getRoleCapabilities } from "@/features/capabilities/service";
 import { getApprovableTypes, getSubmittableTypes } from "@/features/ops/stages";
 import { WorkspaceShell } from "@/features/internal/WorkspaceShell";
 import type { WorkspaceNavItem } from "@/features/internal/WorkspaceNav";
@@ -9,9 +10,10 @@ export default async function PortalLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireRole();
-  const [submittable, approvable] = await Promise.all([
+  const [submittable, approvable, capabilities] = await Promise.all([
     getSubmittableTypes(profile.role),
     getApprovableTypes(profile.role),
+    getRoleCapabilities(profile.role),
   ]);
   const canSubmit = submittable.length > 0;
   const isApprover = approvable.length > 0;
@@ -26,6 +28,10 @@ export default async function PortalLayout({
       : []),
     { href: "/portal/support", label: "Support", icon: "LifeBuoy" },
     { href: "/portal/profile", label: "Profile", icon: "UserRound" },
+    // Capability holders can reach administration from any device.
+    ...(capabilities.length > 0
+      ? [{ href: "/admin", label: "Admin", icon: "Workflow" } as const]
+      : []),
   ];
 
   return (

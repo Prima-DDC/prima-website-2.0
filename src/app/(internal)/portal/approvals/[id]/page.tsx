@@ -88,9 +88,7 @@ export default async function ApprovalDetailPage({
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge status={doc.status as DocStatus} />
-          {doc.status === "approved" && doc.pdf_path ? (
-            <PdfDownloadButton docId={doc.id} />
-          ) : null}
+          <PdfDownloadButton docId={doc.id} />
         </div>
       </div>
 

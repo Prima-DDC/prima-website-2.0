@@ -32,6 +32,17 @@
     "relatedServices": "Domaines d'expertise associés",
     "backTo": "Retour à"
   },
+  "service": {
+    "challenges": "Les défis courants que nous aidons à résoudre",
+    "whoWeServe": "Qui nous accompagnons",
+    "services": "Nos services",
+    "methodology": "Notre méthodologie",
+    "methodologyNote": "Conforme aux standards de qualité appliqués dans tout le cabinet PRIMA.",
+    "deliverables": "Ce que reçoivent nos clients",
+    "caseExperience": "Expérience représentative",
+    "caseExperienceNote": "Les exemples sont anonymisés et partagés dans le respect de la confidentialité des clients.",
+    "whyPrima": "Pourquoi les organisations choisissent PRIMA"
+  },
   "contactForm": {
     "title": "Envoyez-nous une demande confidentielle",
     "name": "Nom complet",

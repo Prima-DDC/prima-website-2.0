@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Animates the numeric part of values like "4,300+", "95%", "3" when the
+ * Animates the numeric part of values like "3,120+", "95%", "3" when the
  * element scrolls into view, preserving prefix/suffix and thousands separator.
  */
 export function CountUp({

@@ -96,24 +96,24 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
   block<StatBarBlock>("home", "stat-bar", 3, {
     en: {
       items: [
-        { value: "5+", label: "Years in Operation" },
-        { value: "4,300+", label: "Cases Handled" },
+        { value: "7+", label: "Years in Operation" },
+        { value: "3,120+", label: "Cases Handled" },
         { value: "3", label: "Offices in Africa" },
         { value: "14+", label: "Dedicated Professionals" },
       ],
     },
     fr: {
       items: [
-        { value: "5+", label: "Années d'activité" },
-        { value: "4 300+", label: "Dossiers traités" },
+        { value: "7+", label: "Années d'activité" },
+        { value: "3 120+", label: "Dossiers traités" },
         { value: "3", label: "Bureaux en Afrique" },
         { value: "14+", label: "Professionnels dédiés" },
       ],
     },
     es: {
       items: [
-        { value: "5+", label: "Años de actividad" },
-        { value: "4.300+", label: "Casos gestionados" },
+        { value: "7+", label: "Años de actividad" },
+        { value: "3.120+", label: "Casos gestionados" },
         { value: "3", label: "Oficinas en África" },
         { value: "14+", label: "Profesionales dedicados" },
       ],
@@ -254,7 +254,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
         "We work with banks, insurers, law firms, government institutions, and multinationals operating across Africa:",
       items: [
         {
-          value: "4,300+",
+          value: "3,120+",
           connector: "cases completed",
           description: "for insurers, banks, law firms, and corporates",
         },
@@ -294,7 +294,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
         "Nous travaillons avec des banques, assureurs, cabinets d'avocats, institutions publiques et multinationales opérant à travers l'Afrique :",
       items: [
         {
-          value: "4 300+",
+          value: "3 120+",
           connector: "dossiers traités",
           description:
             "pour des assureurs, banques, cabinets d'avocats et entreprises",
@@ -335,7 +335,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
         "Trabajamos con bancos, aseguradoras, despachos de abogados, instituciones públicas y multinacionales que operan en toda África:",
       items: [
         {
-          value: "4.300+",
+          value: "3.120+",
           connector: "casos completados",
           description:
             "para aseguradoras, bancos, despachos de abogados y corporaciones",
@@ -996,10 +996,10 @@ const BLOCK_IMAGES: Record<string, string> = {
   "practice-areas/intro": IMG.corporateBuilding,
   "industries/intro": IMG.handshake,
   "regional-coverage/intro": IMG.citySkyline,
-  "regional-coverage/pillars": IMG.seminarAudience,
+  "regional-coverage/pillars": IMG.officeReception,
   "our-standards/intro": IMG.documentsReview,
   "our-standards/standards": IMG.cyberPolicy,
-  "training/intro": IMG.trainingSession,
+  "training/intro": IMG.seminarAudience,
   "contact/intro": IMG.officeReception,
 };
 

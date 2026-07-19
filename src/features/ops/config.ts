@@ -68,19 +68,37 @@ const CURRENCIES = ["GHS", "RWF", "USD", "EUR"];
 export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
   honour_certificate: {
     title: "Honour Certificate",
-    description: "Request a branded certificate of honour or recognition.",
+    description:
+      "Account for money spent without obtainable receipts by listing each expenditure.",
     icon: "Award",
     fields: [
-      { name: "recipientName", label: "Recipient full name", type: "text", required: true },
-      { name: "achievement", label: "Achievement or reason for recognition", type: "textarea", required: true },
-      { name: "eventDate", label: "Date of award", type: "date", required: true },
+      { name: "purpose", label: "Purpose / case", type: "text", required: true },
+      { name: "date", label: "Date of expenditure", type: "date", required: true },
+      { name: "currency", label: "Currency", type: "select", options: CURRENCIES, required: true },
       { name: "notes", label: "Additional notes (optional)", type: "textarea" },
     ],
+    lineItems: {
+      name: "items",
+      label: "Expenditure items (no receipt obtainable)",
+      columns: [
+        { name: "description", label: "Expenditure item", type: "text" },
+        { name: "amount", label: "Amount", type: "number" },
+      ],
+    },
     schema: z.object({
-      recipientName: z.string().trim().min(2).max(200),
-      achievement: z.string().trim().min(5).max(2000),
-      eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      purpose: z.string().trim().min(3).max(300),
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      currency: z.enum(CURRENCIES as [string, ...string[]]),
       notes: z.string().trim().max(2000).optional().or(z.literal("")),
+      items: z
+        .array(
+          z.object({
+            description: z.string().trim().min(1).max(300),
+            amount: money,
+          }),
+        )
+        .min(1)
+        .max(50),
     }),
   },
   fund_request: {
@@ -227,8 +245,8 @@ export function formatMoney(amount: number, currency: string): string {
 }
 
 export function documentTotal(docType: DocType, data: Record<string, unknown>): number | null {
-  if (docType === "expense_form") {
-    const items = data.items as Array<{ amount: number }>;
+  if (docType === "expense_form" || docType === "honour_certificate") {
+    const items = (data.items ?? []) as Array<{ amount: number }>;
     return items.reduce((sum, item) => sum + item.amount, 0);
   }
   if (docType === "invoice") {

@@ -32,6 +32,17 @@
     "relatedServices": "Áreas de práctica relacionadas",
     "backTo": "Volver a"
   },
+  "service": {
+    "challenges": "Retos comunes que ayudamos a resolver",
+    "whoWeServe": "A quién servimos",
+    "services": "Nuestros servicios",
+    "methodology": "Nuestra metodología",
+    "methodologyNote": "Coherente con los estándares de calidad de toda la firma PRIMA.",
+    "deliverables": "Qué reciben nuestros clientes",
+    "caseExperience": "Experiencia representativa",
+    "caseExperienceNote": "Los ejemplos están anonimizados y se comparten preservando la confidencialidad de los clientes.",
+    "whyPrima": "Por qué las organizaciones eligen PRIMA"
+  },
   "contactForm": {
     "title": "Envíenos una consulta confidencial",
     "name": "Nombre completo",

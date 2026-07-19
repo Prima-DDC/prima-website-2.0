@@ -103,6 +103,8 @@ export interface PdfInput {
   submitterName: string;
   approvals: Array<{ label: string; name: string; date: string }>;
   logo: Buffer;
+  /** True when exported before all sign-offs are complete. */
+  preliminary?: boolean;
 }
 
 const str = (v: unknown) => (v == null ? "" : String(v));
@@ -146,93 +148,45 @@ function ItemsTable({
   );
 }
 
-function CertificatePage({ input }: { input: PdfInput }) {
-  const d = input.data;
-  return (
-    <Page size="A4" orientation="landscape" style={{ padding: 36 }}>
-      <View
-        style={{
-          flex: 1,
-          borderWidth: 3,
-          borderColor: BRAND_DARK,
-          padding: 6,
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            borderWidth: 1,
-            borderColor: BRAND,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 36,
-          }}
-        >
-          <Image src={input.logo} style={{ width: 130, height: 130, objectFit: "contain" }} />
-          <Text
-            style={{
-              marginTop: 18,
-              fontSize: 10,
-              letterSpacing: 4,
-              textTransform: "uppercase",
-              color: SLATE,
-            }}
-          >
-            Certificate of Honour
-          </Text>
-          <Text
-            style={{
-              marginTop: 22,
-              fontSize: 30,
-              fontFamily: "Times-Bold",
-              color: NAVY,
-            }}
-          >
-            {str(d.recipientName)}
-          </Text>
-          <View style={{ width: 120, height: 2, backgroundColor: BRAND, marginTop: 12 }} />
-          <Text
-            style={{
-              marginTop: 18,
-              fontSize: 11,
-              color: SLATE,
-              textAlign: "center",
-              maxWidth: 480,
-              lineHeight: 1.6,
-            }}
-          >
-            {str(d.achievement)}
-          </Text>
-          <Text style={{ marginTop: 26, fontSize: 9, color: SLATE }}>
-            Awarded on {str(d.eventDate)} | {input.docNumber}
-          </Text>
-          <View
-            style={{
-              marginTop: 30,
-              flexDirection: "row",
-              gap: 90,
-              alignItems: "flex-end",
-            }}
-          >
-            <View style={{ alignItems: "center" }}>
-              <View style={{ width: 140, borderBottomWidth: 1, borderBottomColor: SLATE }} />
-              <Text style={{ marginTop: 4, fontSize: 8, color: SLATE }}>
-                {input.approvals[input.approvals.length - 1]?.name ?? "PRIMA Management"}
-              </Text>
-              <Text style={{ fontSize: 7, color: SLATE }}>
-                Authorized signatory, PRIMA Due Diligence Consult
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Page>
-  );
-}
-
 function BodyByType({ input }: { input: PdfInput }) {
   const d = input.data;
   switch (input.docType) {
+    case "honour_certificate": {
+      const items = (d.items ?? []) as Array<{ description: string; amount: number }>;
+      const total = documentTotal("honour_certificate", d) ?? 0;
+      return (
+        <>
+          <View style={styles.section}>
+            <Text style={styles.value}>
+              I, {input.submitterName}, certify that the following expenditure(s)
+              was (were) incurred by me for which no receipt(s) was (were)
+              obtainable.
+            </Text>
+          </View>
+          <Field label="Purpose / case" value={str(d.purpose)} />
+          <Field label="Date of expenditure" value={str(d.date)} />
+          <View style={styles.section}>
+            <Text style={styles.label}>Expenditure items</Text>
+            <ItemsTable
+              headers={["No.", "Expenditure item", `Amount (${str(d.currency)})`]}
+              rows={items.map((item, i) => [
+                String(i + 1),
+                item.description,
+                formatMoney(item.amount, str(d.currency)),
+              ])}
+            />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {formatMoney(total, str(d.currency))}
+              </Text>
+            </View>
+          </View>
+          <Field label="Notes" value={str(d.notes)} />
+          <Field label="Prepared by" value={input.submitterName} />
+        </>
+      );
+    }
     case "fund_request":
       return (
         <>
@@ -319,7 +273,7 @@ function BodyByType({ input }: { input: PdfInput }) {
 }
 
 const TYPE_TITLES: Record<DocType, string> = {
-  honour_certificate: "Certificate of Honour",
+  honour_certificate: "Honour Certificate",
   fund_request: "Fund Request",
   expense_form: "Expense Form",
   leave_form: "Leave Request",
@@ -327,14 +281,6 @@ const TYPE_TITLES: Record<DocType, string> = {
 };
 
 export function DocumentPdf(input: PdfInput) {
-  if (input.docType === "honour_certificate") {
-    return (
-      <Document title={`${TYPE_TITLES[input.docType]} ${input.docNumber}`}>
-        <CertificatePage input={input} />
-      </Document>
-    );
-  }
-
   return (
     <Document title={`${TYPE_TITLES[input.docType]} ${input.docNumber}`}>
       <Page size="A4" style={styles.page}>
@@ -352,6 +298,11 @@ export function DocumentPdf(input: PdfInput) {
           {input.docNumber} | Issued {new Date().toISOString().slice(0, 10)} |
           Submitted by {input.submitterName}
         </Text>
+        {input.preliminary ? (
+          <Text style={{ marginTop: 4, fontSize: 9, color: "#b45309" }}>
+            Preliminary copy: approvals are still in progress.
+          </Text>
+        ) : null}
 
         <BodyByType input={input} />
 

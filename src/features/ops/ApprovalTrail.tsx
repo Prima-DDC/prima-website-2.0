@@ -70,7 +70,7 @@ export function ApprovalTrail({
                 ? `${row.status === "approved" ? "Signed" : "Rejected"} by ${row.approverName} on ${new Date(row.created_at).toLocaleDateString("en-GB")}`
                 : state === "current"
                   ? "Awaiting sign-off"
-                  : "Pending earlier stages"}
+                  : "In queue: signs after the stages before it"}
             </p>
             {row?.comment ? (
               <p className="mt-1.5 rounded bg-white/70 px-2 py-1 text-xs text-slate-body">

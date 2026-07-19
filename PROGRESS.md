@@ -177,6 +177,23 @@ Verified by a 12-check e2e suite through the real UI: defaults, restricting a ro
 
 Verified by a 13-check e2e suite: a custom role with no capabilities is denied the whole admin area; granting manage_content via the real UI opened Content only (Users/Media stayed denied, nav filtered); RLS let that role edit content but not read enquiries; swapping capabilities flipped access accordingly; admin still reached every section. Build + ESLint clean; em-dash gate 0; test artifacts removed.
 
+## Phase 10 (2026-07-19): CEO feedback round (DONE)
+
+Nine issues from the CEO's review (WhatsApp screenshots + resource templates), fixed end-to-end in vertical slices:
+
+1. Public content: home stats corrected to 7+ Years and 3,120+ Cases (all 3 locales + clients grid); insurance practice area renamed "Insurance Sector Solutions" to "Insurance Claims Investigations" (en/fr/es titles, shortTitles, seo); seminar photo moved off Regional Coverage (now office reception) onto the Training hero. `blocks.ts`, `services.ts`, seeded live.
+2. Practice area pages: `ServiceContent` extended with optional template sections (challenges, whoWeServe, methodology, deliverables, caseExperience, whyPrima); the `practice-areas/[slug]` page renders them in the master-template order with a related-practice-areas strip. All six areas filled out trilingually from the PA2/PA4 templates, the PA3 chat hero ("Forensic Intelligence & Examination Services", "Transforming evidence into intelligence"), and the master template. Standardized 7-step methodology sitewide. New `service` message namespace for section headings.
+3. Honour Certificate reworked from a recognition-award form to the expenditure declaration it actually is (matching the example PDF): purpose/case, date, currency, itemized "no receipt obtainable" expenditure table + total. PDF is now the standard branded portrait page with the certifying declaration ("I, {name}, certify that the following expenditure(s) ... for which no receipt(s) was (were) obtainable") and a Prepared by / Approved by block. Landscape award certificate removed. `ops/config.ts`, `pdf/templates.tsx`.
+4. Approval flows: migration `0010_approval_flows.sql` adds Finance and Operations roles; default chains are Leave -> HR, Manager, CEO and money types (honour certificate, fund request, expense, invoice) -> Finance, Manager, CEO (no longer everything via HR). Operations stays out of the chain until granted approvals. The `ceo` role gains `manage_roles` + `manage_documents` so the CEO configures flows himself.
+5. Mobile admin access: the portal nav now appends an "Admin" entry for any user holding at least one capability, so administration (Roles included) is reachable from the phone bottom navbar, not only desktop. `portal/layout.tsx`.
+6. Owner editing: `editOwnDocument` server action lets a submitter edit a request until final approval; any sign-offs already given are cleared (chain restarts, logged in history, approvers re-notified). New owner-only `portal/[id]/edit` page and an Edit button on the document detail. `ops/actions.ts`, `OpsForm.tsx`.
+7. PDF export any time: `getPdfUrl` renders an on-demand, clearly marked "Preliminary copy" PDF (pending stages listed) when a document is not yet approved, stored as a `-preview.pdf`; approved documents still serve the official stored PDF. Download button surfaced on all document detail pages regardless of status. Deletion cleans up the preview copy too.
+8. Mobile polish: the approvals, my-documents, and admin ops queues now render responsive card lists below `sm` and the table above it (no more cut-off columns on phones). ApprovalTrail wording "Pending earlier stages" replaced with "In queue: signs after the stages before it".
+
+Verified: `npm run lint` + `npm run build` clean; em-dash release grep = 0; migration 0010 applied to live DB (chain hr/finance/manager/ceo, money-type approvers = finance/manager/ceo, leave approvers = hr/manager/ceo, ceo holds manage_roles + manage_documents); seed re-applied (all six services carry the new sections, stats 7+/3,120+, insurance renamed); TypeScript strict clean throughout.
+
+Note: honour-certificate documents submitted before this change hold the old recognition-award payload and will render empty fields; they are test data only and can be deleted from the admin queue.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

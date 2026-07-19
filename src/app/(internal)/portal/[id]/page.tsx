@@ -1,6 +1,7 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireRole } from "@/features/auth/helpers";
 import { ApprovalTrail } from "@/features/ops/ApprovalTrail";
 import { DOC_CONFIG, type DocStatus, type DocType } from "@/features/ops/config";
 import { DocDetails } from "@/features/ops/DocDetails";
@@ -19,13 +20,15 @@ export default async function PortalDocumentPage({
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 
+  const profile = await requireRole();
   const supabase = await createSupabaseServerClient();
   const { data: doc } = await supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, data, status, review_comment, pdf_path, created_at")
+    .select("id, doc_type, doc_number, data, status, review_comment, pdf_path, created_at, submitted_by")
     .eq("id", id)
     .maybeSingle();
   if (!doc) notFound();
+  const canEdit = doc.submitted_by === profile.id && doc.status === "submitted";
 
   const [approvals, stages, { data: events }] = await Promise.all([
     getApprovals(id),
@@ -67,9 +70,15 @@ export default async function PortalDocumentPage({
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge status={doc.status as DocStatus} />
-          {doc.status === "approved" && doc.pdf_path ? (
-            <PdfDownloadButton docId={doc.id} />
+          {canEdit ? (
+            <Link
+              href={`/portal/${doc.id}/edit`}
+              className="inline-flex items-center gap-1.5 rounded border border-line px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-brand hover:text-brand"
+            >
+              <Pencil className="h-4 w-4" aria-hidden /> Edit
+            </Link>
           ) : null}
+          <PdfDownloadButton docId={doc.id} />
         </div>
       </div>
 

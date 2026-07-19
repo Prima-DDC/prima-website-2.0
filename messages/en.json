@@ -32,6 +32,17 @@
     "relatedServices": "Related practice areas",
     "backTo": "Back to"
   },
+  "service": {
+    "challenges": "Common Challenges We Help Solve",
+    "whoWeServe": "Who We Serve",
+    "services": "Our Services",
+    "methodology": "Our Methodology",
+    "methodologyNote": "Consistent with PRIMA's firm-wide quality standards.",
+    "deliverables": "What Clients Receive",
+    "caseExperience": "Representative Experience",
+    "caseExperienceNote": "Examples are anonymized and shared with client confidentiality preserved.",
+    "whyPrima": "Why Organizations Choose PRIMA"
+  },
   "contactForm": {
     "title": "Send us a confidential enquiry",
     "name": "Full name",
