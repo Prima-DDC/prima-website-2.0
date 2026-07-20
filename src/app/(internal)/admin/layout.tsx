@@ -36,6 +36,8 @@ export default async function AdminLayout({
       items={items}
       rootHref="/admin"
       profile={profile}
+      // Everyone in administration also has a portal for their own requests.
+      switchTo={{ href: "/portal", label: "Employee Portal", short: "Portal" }}
     >
       {children}
     </WorkspaceShell>

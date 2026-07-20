@@ -28,10 +28,6 @@ export default async function PortalLayout({
       : []),
     { href: "/portal/support", label: "Support", icon: "LifeBuoy" },
     { href: "/portal/profile", label: "Profile", icon: "UserRound" },
-    // Capability holders can reach administration from any device.
-    ...(capabilities.length > 0
-      ? [{ href: "/admin", label: "Admin", icon: "Workflow" } as const]
-      : []),
   ];
 
   return (
@@ -40,6 +36,12 @@ export default async function PortalLayout({
       items={items}
       rootHref="/portal"
       profile={profile}
+      // Capability holders switch to administration from any device.
+      switchTo={
+        capabilities.length > 0
+          ? { href: "/admin", label: "Administration", short: "Admin" }
+          : undefined
+      }
     >
       {children}
     </WorkspaceShell>

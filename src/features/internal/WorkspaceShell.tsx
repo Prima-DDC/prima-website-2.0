@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { ArrowLeftRight, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
@@ -29,12 +29,15 @@ export function WorkspaceShell({
   items,
   rootHref,
   profile,
+  switchTo,
   children,
 }: {
   title: string;
   items: WorkspaceNavItem[];
   rootHref: string;
   profile: SessionProfile;
+  /** The other workspace this user may open, shown as a persistent switcher. */
+  switchTo?: { href: string; label: string; short: string };
   children: React.ReactNode;
 }) {
   const displayName = profile.fullName || profile.email;
@@ -55,9 +58,20 @@ export function WorkspaceShell({
           </Link>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-body/70">
-            {title}
-          </p>
+          <div className="mb-3 px-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-body/70">
+              {title}
+            </p>
+            {switchTo ? (
+              <Link
+                href={switchTo.href}
+                className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-brand transition-colors hover:text-brand-dark"
+              >
+                <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden />
+                Go to {switchTo.label}
+              </Link>
+            ) : null}
+          </div>
           <WorkspaceNav items={items} rootHref={rootHref} variant="sidebar" />
         </div>
         <div className="border-t border-line p-4">
@@ -87,6 +101,15 @@ export function WorkspaceShell({
           <Image src="/logo.png" alt="PRIMA" width={90} height={36} className="h-9 w-auto" />
         </Link>
         <div className="flex items-center gap-1.5">
+          {switchTo ? (
+            <Link
+              href={switchTo.href}
+              className="inline-flex items-center gap-1 rounded-full border border-line bg-white/70 px-2.5 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-brand hover:text-brand"
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden />
+              {switchTo.short}
+            </Link>
+          ) : null}
           <NotificationsBell />
           <Avatar photoPath={profile.photoPath} name={displayName} size={32} />
           <LogoutButton compact />
