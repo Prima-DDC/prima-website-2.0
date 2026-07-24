@@ -5,12 +5,13 @@ export const SERVICES: Service[] = [
     slug: "corporate-intelligence-due-diligence",
     sort: 1,
     icon: "SearchCheck",
-    imagePath: "site/documents-review.webp",
+    imagePath: "site/boardroom-meeting.webp",
     t: {
       en: {
         title: "Corporate Intelligence & Due Diligence",
         shortTitle: "Due Diligence",
         tagline: "Know who you are really dealing with before you commit.",
+        heroMessage: "We help organizations make informed decisions.",
         opening: [
           "Before you commit capital, sign a partner, or hire a key executive, you need to know who you are really dealing with. PRIMA's due diligence practice gives decision-makers a clear, evidenced picture of ownership, risk, and reputation, built to hold up under board, investor, or regulatory scrutiny.",
         ],
@@ -117,6 +118,14 @@ export const SERVICES: Service[] = [
             body: "This practice area is led by PRIMA's legal and regulatory and financial and forensic accounting specialists: Chartered Accountants, Chartered Tax Practitioners, and qualified lawyers applying regulatory and evidentiary rigor to every engagement.",
           },
         ],
+        gallery: [
+          { path: "site/prima-boardroom-1.webp", caption: "Boardroom review at PRIMA" },
+          { path: "site/partnership-handshake.webp", caption: "Partnership after due diligence" },
+          { path: "site/documents-review.webp", caption: "Analysts reviewing company records" },
+          { path: "site/boardroom-meeting.webp", caption: "Discussing acquisition documents" },
+          { path: "site/corporate-building.webp", caption: "African corporate headquarters" },
+          { path: "site/city-skyline.webp", caption: "Regional business districts" },
+        ],
         seoTitle: "Corporate Intelligence & Due Diligence Services in Africa",
         seoDescription:
           "Enhanced due diligence, beneficial ownership research, background screening, and third-party risk assessment across African markets. FATF-aligned methodology built for board and regulatory scrutiny.",
@@ -125,6 +134,7 @@ export const SERVICES: Service[] = [
         title: "Intelligence économique & Due Diligence",
         shortTitle: "Due Diligence",
         tagline: "Sachez avec qui vous traitez vraiment avant de vous engager.",
+        heroMessage: "Nous aidons les organisations à décider en connaissance de cause.",
         opening: [
           "Avant d'engager des capitaux, de signer avec un partenaire ou de recruter un dirigeant clé, vous devez savoir avec qui vous traitez vraiment. La pratique de due diligence de PRIMA offre aux décideurs une vision claire et documentée de l'actionnariat, des risques et de la réputation, conçue pour résister à l'examen d'un conseil d'administration, d'investisseurs ou de régulateurs.",
         ],
@@ -231,6 +241,14 @@ export const SERVICES: Service[] = [
             body: "Cette pratique est portée par nos spécialistes juridiques, réglementaires et de comptabilité forensique : experts-comptables, fiscalistes agréés et juristes qualifiés appliquant une rigueur réglementaire et probatoire à chaque mission.",
           },
         ],
+        gallery: [
+          { path: "site/prima-boardroom-1.webp", caption: "Réunion au conseil chez PRIMA" },
+          { path: "site/partnership-handshake.webp", caption: "Partenariat après due diligence" },
+          { path: "site/documents-review.webp", caption: "Analystes examinant les dossiers d'entreprise" },
+          { path: "site/boardroom-meeting.webp", caption: "Discussion des documents d'acquisition" },
+          { path: "site/corporate-building.webp", caption: "Siège d'entreprise en Afrique" },
+          { path: "site/city-skyline.webp", caption: "Quartiers d'affaires régionaux" },
+        ],
         seoTitle: "Intelligence économique et Due Diligence en Afrique",
         seoDescription:
           "Due diligence renforcée, recherche de bénéficiaires effectifs, vérification d'antécédents et évaluation des risques tiers sur les marchés africains. Méthodologie alignée GAFI.",
@@ -239,6 +257,7 @@ export const SERVICES: Service[] = [
         title: "Inteligencia corporativa y Due Diligence",
         shortTitle: "Due Diligence",
         tagline: "Sepa con quién está tratando realmente antes de comprometerse.",
+        heroMessage: "Ayudamos a las organizaciones a tomar decisiones informadas.",
         opening: [
           "Antes de comprometer capital, firmar con un socio o contratar a un ejecutivo clave, necesita saber con quién está tratando realmente. La práctica de due diligence de PRIMA ofrece a los responsables de decisión una imagen clara y documentada de la propiedad, el riesgo y la reputación, preparada para resistir el escrutinio de consejos, inversores y reguladores.",
         ],
@@ -345,6 +364,14 @@ export const SERVICES: Service[] = [
             body: "Esta práctica la lideran nuestros especialistas jurídicos, regulatorios y de contabilidad forense: contadores colegiados, asesores fiscales acreditados y abogados cualificados que aplican rigor regulatorio y probatorio a cada encargo.",
           },
         ],
+        gallery: [
+          { path: "site/prima-boardroom-1.webp", caption: "Reunión de directorio en PRIMA" },
+          { path: "site/partnership-handshake.webp", caption: "Alianza tras la debida diligencia" },
+          { path: "site/documents-review.webp", caption: "Analistas revisando registros de empresa" },
+          { path: "site/boardroom-meeting.webp", caption: "Análisis de documentos de adquisición" },
+          { path: "site/corporate-building.webp", caption: "Sede corporativa en África" },
+          { path: "site/city-skyline.webp", caption: "Distritos de negocios regionales" },
+        ],
         seoTitle: "Inteligencia corporativa y Due Diligence en África",
         seoDescription:
           "Due diligence reforzada, investigación de beneficiarios finales, verificación de antecedentes y evaluación de riesgos de terceros en mercados africanos. Metodología alineada con el GAFI.",
@@ -361,6 +388,7 @@ export const SERVICES: Service[] = [
         title: "Investigations & Fraud Risk Management",
         shortTitle: "Investigations",
         tagline: "Facts, not assumptions, established through defensible methodology.",
+        heroMessage: "We investigate professionally.",
         opening: [
           "When misconduct is suspected, organizations need facts, not assumptions, established through defensible methodology and documented evidence. PRIMA conducts confidential investigations that stand up in disciplinary proceedings, litigation, or regulatory review.",
         ],
@@ -483,6 +511,14 @@ export const SERVICES: Service[] = [
             body: "Direct access to document examination, digital forensics, and financial forensics within one firm.",
           },
         ],
+        gallery: [
+          { path: "site/field-forensic-2.webp", caption: "Field investigation team" },
+          { path: "site/documents-review.webp", caption: "Evidence and records review" },
+          { path: "site/analysts-working.webp", caption: "Examining financial records" },
+          { path: "site/boardroom-meeting.webp", caption: "Investigation team briefing" },
+          { path: "site/field-forensic-1.webp", caption: "On-site evidence collection" },
+          { path: "site/corporate-building.webp", caption: "Corporate audit environment" },
+        ],
         seoTitle: "Corporate & Fraud Investigations in Africa",
         seoDescription:
           "Confidential corporate investigations, fraud investigations, and asset tracing that stand up in disciplinary proceedings, litigation, and regulatory review across African markets.",
@@ -491,6 +527,7 @@ export const SERVICES: Service[] = [
         title: "Investigations & Gestion du risque de fraude",
         shortTitle: "Investigations",
         tagline: "Des faits, pas des suppositions, établis selon une méthodologie défendable.",
+        heroMessage: "Nous enquêtons avec professionnalisme.",
         opening: [
           "Lorsqu'une faute est soupçonnée, les organisations ont besoin de faits, pas de suppositions, établis selon une méthodologie défendable et des preuves documentées. PRIMA mène des investigations confidentielles qui résistent aux procédures disciplinaires, aux contentieux et aux examens réglementaires.",
         ],
@@ -613,6 +650,14 @@ export const SERVICES: Service[] = [
             body: "Un accès direct à l'examen de documents, à la forensique numérique et financière au sein d'un même cabinet.",
           },
         ],
+        gallery: [
+          { path: "site/field-forensic-2.webp", caption: "Équipe d'enquête sur le terrain" },
+          { path: "site/documents-review.webp", caption: "Examen des preuves et des dossiers" },
+          { path: "site/analysts-working.webp", caption: "Examen des écritures financières" },
+          { path: "site/boardroom-meeting.webp", caption: "Réunion de l'équipe d'enquête" },
+          { path: "site/field-forensic-1.webp", caption: "Collecte de preuves sur site" },
+          { path: "site/corporate-building.webp", caption: "Environnement d'audit d'entreprise" },
+        ],
         seoTitle: "Investigations d'entreprise et fraudes en Afrique",
         seoDescription:
           "Investigations confidentielles en entreprise, enquêtes sur les fraudes et traçage d'actifs, conçus pour résister aux procédures disciplinaires, contentieux et examens réglementaires.",
@@ -621,6 +666,7 @@ export const SERVICES: Service[] = [
         title: "Investigaciones y Gestión del riesgo de fraude",
         shortTitle: "Investigaciones",
         tagline: "Hechos, no suposiciones, establecidos con metodología defendible.",
+        heroMessage: "Investigamos con profesionalismo.",
         opening: [
           "Cuando se sospecha de una conducta indebida, las organizaciones necesitan hechos, no suposiciones, establecidos mediante una metodología defendible y pruebas documentadas. PRIMA realiza investigaciones confidenciales que resisten procedimientos disciplinarios, litigios y revisiones regulatorias.",
         ],
@@ -743,6 +789,14 @@ export const SERVICES: Service[] = [
             body: "Acceso directo a examen de documentos, forense digital y financiera dentro de una misma firma.",
           },
         ],
+        gallery: [
+          { path: "site/field-forensic-2.webp", caption: "Equipo de investigación de campo" },
+          { path: "site/documents-review.webp", caption: "Revisión de pruebas y registros" },
+          { path: "site/analysts-working.webp", caption: "Examen de registros financieros" },
+          { path: "site/boardroom-meeting.webp", caption: "Reunión del equipo de investigación" },
+          { path: "site/field-forensic-1.webp", caption: "Recolección de pruebas in situ" },
+          { path: "site/corporate-building.webp", caption: "Entorno de auditoría corporativa" },
+        ],
         seoTitle: "Investigaciones corporativas y de fraude en África",
         seoDescription:
           "Investigaciones corporativas confidenciales, investigaciones de fraude y rastreo de activos que resisten procedimientos disciplinarios, litigios y revisiones regulatorias.",
@@ -759,6 +813,7 @@ export const SERVICES: Service[] = [
         title: "Forensic Intelligence & Examination Services",
         shortTitle: "Forensic Services",
         tagline: "Transforming evidence into intelligence.",
+        heroMessage: "We apply science to establish facts.",
         opening: [
           "PRIMA's Forensic Intelligence & Examination Services combine scientific examination, digital forensic techniques, investigative expertise, and intelligence analysis to establish facts, detect fraud, preserve evidence, and support critical business, legal, and regulatory decisions.",
           "From questioned documents and fingerprint analysis to digital evidence and financial forensics, we deliver objective, evidence-based findings that clients can trust. This capability is one of PRIMA's most distinctive strengths in the region: laboratory-grade examination combined with investigative context, delivered under a documented chain of custody.",
@@ -856,6 +911,14 @@ export const SERVICES: Service[] = [
             body: "One of the few firms in the region combining document, digital, and financial forensics under one roof.",
           },
         ],
+        gallery: [
+          { path: "site/field-forensic-1.webp", caption: "Field examination in protective equipment" },
+          { path: "site/field-forensic-2.webp", caption: "On-site evidence collection" },
+          { path: "site/forensic-lab.webp", caption: "Laboratory document examination" },
+          { path: "site/documents-review.webp", caption: "Questioned document analysis" },
+          { path: "site/data-intelligence.webp", caption: "Digital forensic workstation" },
+          { path: "site/analysts-working.webp", caption: "Financial records examination" },
+        ],
         seoTitle: "Forensic Document, Digital & Financial Examination Services",
         seoDescription:
           "Forensic document examination, fingerprint analysis, digital forensics, and financial forensics delivered under documented chain of custody, admissible in court and arbitration.",
@@ -864,6 +927,7 @@ export const SERVICES: Service[] = [
         title: "Renseignement forensique & Services d'examen",
         shortTitle: "Services forensiques",
         tagline: "Transformer les preuves en renseignement.",
+        heroMessage: "Nous appliquons la science pour établir les faits.",
         opening: [
           "Les services de renseignement forensique et d'examen de PRIMA combinent l'examen scientifique, les techniques de forensique numérique, l'expertise d'investigation et l'analyse du renseignement pour établir les faits, détecter la fraude, préserver les preuves et éclairer des décisions critiques d'ordre commercial, juridique et réglementaire.",
           "Des documents contestés et de l'analyse d'empreintes digitales aux preuves numériques et à la forensique financière, nous livrons des conclusions objectives et fondées sur les preuves, dignes de confiance. Cette capacité est l'une des forces les plus distinctives de PRIMA dans la région : un examen de niveau laboratoire combiné au contexte d'investigation, avec une chaîne de conservation documentée.",
@@ -961,6 +1025,14 @@ export const SERVICES: Service[] = [
             body: "L'un des rares cabinets de la région à réunir forensique documentaire, numérique et financière sous un même toit.",
           },
         ],
+        gallery: [
+          { path: "site/field-forensic-1.webp", caption: "Examen de terrain en équipement de protection" },
+          { path: "site/field-forensic-2.webp", caption: "Collecte de preuves sur site" },
+          { path: "site/forensic-lab.webp", caption: "Examen documentaire en laboratoire" },
+          { path: "site/documents-review.webp", caption: "Analyse de documents contestés" },
+          { path: "site/data-intelligence.webp", caption: "Poste de forensique numérique" },
+          { path: "site/analysts-working.webp", caption: "Examen des écritures financières" },
+        ],
         seoTitle: "Services d'examen forensique documentaire, numérique et financier",
         seoDescription:
           "Examen forensique de documents, analyse d'empreintes, investigation numérique et forensique financière avec chaîne de conservation documentée, recevables en justice et en arbitrage.",
@@ -969,6 +1041,7 @@ export const SERVICES: Service[] = [
         title: "Inteligencia forense y servicios de examen",
         shortTitle: "Servicios forenses",
         tagline: "Transformar la evidencia en inteligencia.",
+        heroMessage: "Aplicamos la ciencia para establecer los hechos.",
         opening: [
           "Los servicios de inteligencia forense y examen de PRIMA combinan el examen científico, las técnicas de forense digital, la experiencia investigativa y el análisis de inteligencia para establecer hechos, detectar fraude, preservar evidencia y respaldar decisiones críticas de negocio, legales y regulatorias.",
           "Desde documentos cuestionados y análisis de huellas dactilares hasta evidencia digital y forense financiera, entregamos hallazgos objetivos y basados en evidencia en los que los clientes pueden confiar. Esta capacidad es una de las fortalezas más distintivas de PRIMA en la región: examen de nivel de laboratorio combinado con contexto investigativo, bajo una cadena de custodia documentada.",
@@ -1066,6 +1139,14 @@ export const SERVICES: Service[] = [
             body: "Una de las pocas firmas de la región que reúne forense documental, digital y financiera bajo un mismo techo.",
           },
         ],
+        gallery: [
+          { path: "site/field-forensic-1.webp", caption: "Examen de campo con equipo de protección" },
+          { path: "site/field-forensic-2.webp", caption: "Recolección de pruebas in situ" },
+          { path: "site/forensic-lab.webp", caption: "Examen documental en laboratorio" },
+          { path: "site/documents-review.webp", caption: "Análisis de documentos cuestionados" },
+          { path: "site/data-intelligence.webp", caption: "Estación de forense digital" },
+          { path: "site/analysts-working.webp", caption: "Examen de registros financieros" },
+        ],
         seoTitle: "Servicios de examen forense documental, digital y financiero",
         seoDescription:
           "Examen forense de documentos, análisis de huellas, forense digital y financiera bajo cadena de custodia documentada, válidos ante tribunales y arbitrajes.",
@@ -1082,6 +1163,7 @@ export const SERVICES: Service[] = [
         title: "Intelligence Analysis & Risk Advisory",
         shortTitle: "Risk Advisory",
         tagline: "Structured, verified intelligence for complex environments.",
+        heroMessage: "We help leaders understand risk.",
         opening: [
           "Information only becomes valuable once it is structured, verified, and connected. PRIMA's intelligence practice turns open-source data, networks, and relationships into actionable risk assessments for clients operating in complex or opaque environments.",
         ],
@@ -1196,6 +1278,14 @@ export const SERVICES: Service[] = [
             body: "Findings framed for decision-makers, with clear recommended actions.",
           },
         ],
+        gallery: [
+          { path: "site/data-intelligence.webp", caption: "Intelligence analysis dashboard" },
+          { path: "site/country-risk.webp", caption: "Country risk mapping" },
+          { path: "site/analysts-working.webp", caption: "Executive intelligence briefing" },
+          { path: "site/cargo-inspection.webp", caption: "Global trade and supply chains" },
+          { path: "site/city-skyline.webp", caption: "African economic hubs" },
+          { path: "site/corporate-building.webp", caption: "Market and competitor analysis" },
+        ],
         seoTitle: "Intelligence Analysis & Risk Advisory Services in Africa",
         seoDescription:
           "OSINT, link analysis, country and market risk assessments, and compliance intelligence for organizations operating in complex African markets.",
@@ -1204,6 +1294,7 @@ export const SERVICES: Service[] = [
         title: "Analyse du renseignement & Conseil en risques",
         shortTitle: "Conseil en risques",
         tagline: "Un renseignement structuré et vérifié pour les environnements complexes.",
+        heroMessage: "Nous aidons les dirigeants à comprendre le risque.",
         opening: [
           "L'information ne prend de la valeur que lorsqu'elle est structurée, vérifiée et mise en relation. La pratique de renseignement de PRIMA transforme les données en sources ouvertes, les réseaux et les relations en évaluations de risques exploitables pour les clients opérant dans des environnements complexes ou opaques.",
         ],
@@ -1318,6 +1409,14 @@ export const SERVICES: Service[] = [
             body: "Des conclusions formulées pour les décideurs, avec des actions clairement recommandées.",
           },
         ],
+        gallery: [
+          { path: "site/data-intelligence.webp", caption: "Tableau de bord d'analyse du renseignement" },
+          { path: "site/country-risk.webp", caption: "Cartographie des risques pays" },
+          { path: "site/analysts-working.webp", caption: "Briefing de renseignement pour dirigeants" },
+          { path: "site/cargo-inspection.webp", caption: "Commerce mondial et chaînes d'approvisionnement" },
+          { path: "site/city-skyline.webp", caption: "Pôles économiques africains" },
+          { path: "site/corporate-building.webp", caption: "Analyse marché et concurrence" },
+        ],
         seoTitle: "Analyse du renseignement et conseil en risques en Afrique",
         seoDescription:
           "OSINT, analyse de liens, évaluations des risques pays et marchés, et renseignement de conformité pour les organisations opérant sur les marchés africains complexes.",
@@ -1326,6 +1425,7 @@ export const SERVICES: Service[] = [
         title: "Análisis de inteligencia y asesoría de riesgos",
         shortTitle: "Asesoría de riesgos",
         tagline: "Inteligencia estructurada y verificada para entornos complejos.",
+        heroMessage: "Ayudamos a los líderes a comprender el riesgo.",
         opening: [
           "La información solo adquiere valor cuando está estructurada, verificada y conectada. La práctica de inteligencia de PRIMA convierte datos de fuentes abiertas, redes y relaciones en evaluaciones de riesgo accionables para clientes que operan en entornos complejos u opacos.",
         ],
@@ -1440,6 +1540,14 @@ export const SERVICES: Service[] = [
             body: "Hallazgos formulados para responsables de decisión, con acciones claramente recomendadas.",
           },
         ],
+        gallery: [
+          { path: "site/data-intelligence.webp", caption: "Panel de análisis de inteligencia" },
+          { path: "site/country-risk.webp", caption: "Mapeo de riesgo país" },
+          { path: "site/analysts-working.webp", caption: "Briefing de inteligencia ejecutiva" },
+          { path: "site/cargo-inspection.webp", caption: "Comercio global y cadenas de suministro" },
+          { path: "site/city-skyline.webp", caption: "Centros económicos africanos" },
+          { path: "site/corporate-building.webp", caption: "Análisis de mercado y competencia" },
+        ],
         seoTitle: "Análisis de inteligencia y asesoría de riesgos en África",
         seoDescription:
           "OSINT, análisis de vínculos, evaluaciones de riesgo país y de mercado, e inteligencia de cumplimiento para organizaciones en mercados africanos complejos.",
@@ -1456,6 +1564,7 @@ export const SERVICES: Service[] = [
         title: "Insurance Claims Investigations",
         shortTitle: "Insurance Claims",
         tagline: "A single specialist partner for claims investigation at speed and scale.",
+        heroMessage: "We resolve claims with evidence.",
         opening: [
           "Insurers face a distinct set of fraud and verification challenges that general investigative services are not built to handle at speed or scale. PRIMA's insurance practice applies our investigation, forensic, and intelligence capabilities specifically to claims, giving insurers a single specialist partner instead of piecing together general investigators case by case.",
         ],
@@ -1529,6 +1638,14 @@ export const SERVICES: Service[] = [
             body: "Findings that support fair settlement decisions and stand up in dispute proceedings.",
           },
         ],
+        gallery: [
+          { path: "site/vehicle-inspection.webp", caption: "Motor claim inspection" },
+          { path: "site/cargo-inspection.webp", caption: "Marine cargo inspection" },
+          { path: "site/corporate-building.webp", caption: "Commercial property assessment" },
+          { path: "site/insurance-claims.webp", caption: "Claims analysis" },
+          { path: "site/documents-review.webp", caption: "Claims documentation review" },
+          { path: "site/prima-boardroom-2.webp", caption: "Professional claims review meeting" },
+        ],
         seoTitle: "Insurance Claims Investigation & Fraud Detection Services",
         seoDescription:
           "Specialist insurance claims investigations across motor, property, life, and health lines: verification, fraud indicator detection, and loss assessment for insurers in Africa.",
@@ -1537,6 +1654,7 @@ export const SERVICES: Service[] = [
         title: "Enquêtes sinistres d'assurance",
         shortTitle: "Enquêtes sinistres",
         tagline: "Un partenaire spécialiste unique pour les enquêtes sinistres, rapide et à l'échelle.",
+        heroMessage: "Nous réglons les sinistres sur la base de preuves.",
         opening: [
           "Les assureurs font face à des défis de fraude et de vérification spécifiques que les services d'investigation généralistes ne peuvent pas traiter avec la rapidité ou l'échelle requises. La pratique assurance de PRIMA applique nos capacités d'investigation, de forensique et de renseignement spécifiquement aux sinistres, offrant aux assureurs un partenaire spécialiste unique plutôt qu'un assemblage d'enquêteurs généralistes au cas par cas.",
         ],
@@ -1610,6 +1728,14 @@ export const SERVICES: Service[] = [
             body: "Des conclusions qui soutiennent des décisions de règlement équitables et résistent aux procédures contentieuses.",
           },
         ],
+        gallery: [
+          { path: "site/vehicle-inspection.webp", caption: "Inspection de sinistre automobile" },
+          { path: "site/cargo-inspection.webp", caption: "Inspection de cargaison maritime" },
+          { path: "site/corporate-building.webp", caption: "Évaluation de biens commerciaux" },
+          { path: "site/insurance-claims.webp", caption: "Analyse des sinistres" },
+          { path: "site/documents-review.webp", caption: "Examen des documents de sinistre" },
+          { path: "site/prima-boardroom-2.webp", caption: "Réunion professionnelle d'examen des sinistres" },
+        ],
         seoTitle: "Enquêtes sinistres et détection de fraude à l'assurance",
         seoDescription:
           "Enquêtes sinistres spécialisées automobile, habitation, vie et santé : vérification, détection d'indicateurs de fraude et évaluation des pertes pour les assureurs en Afrique.",
@@ -1618,6 +1744,7 @@ export const SERVICES: Service[] = [
         title: "Investigación de siniestros de seguros",
         shortTitle: "Siniestros de seguros",
         tagline: "Un único socio especialista para investigar siniestros con rapidez y escala.",
+        heroMessage: "Resolvemos siniestros con base en evidencia.",
         opening: [
           "Las aseguradoras enfrentan retos de fraude y verificación específicos que los servicios de investigación generalistas no pueden atender con la rapidez o la escala necesarias. La práctica de seguros de PRIMA aplica nuestras capacidades de investigación, forense e inteligencia específicamente a los siniestros, dando a las aseguradoras un único socio especialista en lugar de reunir investigadores generalistas caso por caso.",
         ],
@@ -1691,6 +1818,14 @@ export const SERVICES: Service[] = [
             body: "Conclusiones que respaldan decisiones de liquidación justas y resisten procedimientos de disputa.",
           },
         ],
+        gallery: [
+          { path: "site/vehicle-inspection.webp", caption: "Inspección de siniestro de automóvil" },
+          { path: "site/cargo-inspection.webp", caption: "Inspección de carga marítima" },
+          { path: "site/corporate-building.webp", caption: "Evaluación de propiedad comercial" },
+          { path: "site/insurance-claims.webp", caption: "Análisis de siniestros" },
+          { path: "site/documents-review.webp", caption: "Revisión de documentación de siniestros" },
+          { path: "site/prima-boardroom-2.webp", caption: "Reunión profesional de revisión de siniestros" },
+        ],
         seoTitle: "Investigación de siniestros y detección de fraude en seguros",
         seoDescription:
           "Investigaciones especializadas de siniestros de automóvil, propiedad, vida y salud: verificación, detección de indicadores de fraude y evaluación de pérdidas para aseguradoras en África.",
@@ -1707,6 +1842,7 @@ export const SERVICES: Service[] = [
         title: "Training & Professional Development",
         shortTitle: "Training",
         tagline: "Building internal capability to global investigative standards.",
+        heroMessage: "We build investigative capability.",
         opening: [
           "Strong institutions build internal capability, not just external dependence. PRIMA trains investigators, compliance teams, and risk officers to global investigative and forensic standards.",
           "Training is delivered by the same practitioners who hold PRIMA's forensic science, security and intelligence, legal, and forensic accounting credentials, not by generalist trainers. It is a direct extension of the multidisciplinary expertise our clients engage us for.",
@@ -1778,6 +1914,14 @@ export const SERVICES: Service[] = [
             body: "Case-based exercises that build skills your teams apply the next working day.",
           },
         ],
+        gallery: [
+          { path: "site/seminar-audience.webp", caption: "Executive training workshop" },
+          { path: "site/training-session.webp", caption: "Classroom training session" },
+          { path: "site/field-forensic-1.webp", caption: "Hands-on forensic demonstration" },
+          { path: "site/data-intelligence.webp", caption: "OSINT and analysis workshop" },
+          { path: "site/cyber-policy-handover.webp", caption: "Certification and policy handover" },
+          { path: "site/boardroom-meeting.webp", caption: "Discussion groups and practical exercises" },
+        ],
         seoTitle: "Investigative, Compliance & Cyber Security Training",
         seoDescription:
           "Professional training for investigators, compliance teams, and risk officers: investigation methodology, insurance fraud, OSINT, forensic awareness, and cyber security, delivered by credentialed practitioners.",
@@ -1786,6 +1930,7 @@ export const SERVICES: Service[] = [
         title: "Formation & Développement professionnel",
         shortTitle: "Formation",
         tagline: "Renforcer les capacités internes selon les standards mondiaux d'investigation.",
+        heroMessage: "Nous renforçons les capacités d'enquête.",
         opening: [
           "Les institutions solides développent des capacités internes plutôt qu'une simple dépendance externe. PRIMA forme les enquêteurs, les équipes conformité et les responsables risques aux standards mondiaux d'investigation et de forensique.",
           "Les formations sont dispensées par les mêmes praticiens qui détiennent les qualifications de PRIMA en sciences forensiques, sécurité et renseignement, droit et comptabilité forensique, et non par des formateurs généralistes. C'est le prolongement direct de l'expertise pluridisciplinaire pour laquelle nos clients nous sollicitent.",
@@ -1857,6 +2002,14 @@ export const SERVICES: Service[] = [
             body: "Des exercices fondés sur des cas qui développent des compétences applicables dès le lendemain.",
           },
         ],
+        gallery: [
+          { path: "site/seminar-audience.webp", caption: "Atelier de formation pour dirigeants" },
+          { path: "site/training-session.webp", caption: "Session de formation en salle" },
+          { path: "site/field-forensic-1.webp", caption: "Démonstration forensique pratique" },
+          { path: "site/data-intelligence.webp", caption: "Atelier OSINT et analyse" },
+          { path: "site/cyber-policy-handover.webp", caption: "Remise de certification et de politique" },
+          { path: "site/boardroom-meeting.webp", caption: "Groupes de discussion et exercices pratiques" },
+        ],
         seoTitle: "Formation en investigation, conformité et cybersécurité",
         seoDescription:
           "Formation professionnelle pour enquêteurs, équipes conformité et responsables risques : méthodologie d'investigation, fraude à l'assurance, OSINT, forensique et cybersécurité.",
@@ -1865,6 +2018,7 @@ export const SERVICES: Service[] = [
         title: "Formación y desarrollo profesional",
         shortTitle: "Formación",
         tagline: "Capacidad interna construida según estándares globales de investigación.",
+        heroMessage: "Desarrollamos capacidad investigativa.",
         opening: [
           "Las instituciones fuertes construyen capacidad interna, no solo dependencia externa. PRIMA forma a investigadores, equipos de cumplimiento y responsables de riesgo según estándares globales de investigación y forense.",
           "La formación la imparten los mismos profesionales que poseen las credenciales de PRIMA en ciencia forense, seguridad e inteligencia, derecho y contabilidad forense, no formadores generalistas. Es una extensión directa de la experiencia multidisciplinar por la que nos contratan nuestros clientes.",
@@ -1935,6 +2089,14 @@ export const SERVICES: Service[] = [
             title: "Práctico por diseño",
             body: "Ejercicios basados en casos que desarrollan habilidades aplicables desde el día siguiente.",
           },
+        ],
+        gallery: [
+          { path: "site/seminar-audience.webp", caption: "Taller de formación ejecutiva" },
+          { path: "site/training-session.webp", caption: "Sesión de formación en aula" },
+          { path: "site/field-forensic-1.webp", caption: "Demostración forense práctica" },
+          { path: "site/data-intelligence.webp", caption: "Taller de OSINT y análisis" },
+          { path: "site/cyber-policy-handover.webp", caption: "Entrega de certificación y política" },
+          { path: "site/boardroom-meeting.webp", caption: "Grupos de discusión y ejercicios prácticos" },
         ],
         seoTitle: "Formación en investigación, cumplimiento y ciberseguridad",
         seoDescription:

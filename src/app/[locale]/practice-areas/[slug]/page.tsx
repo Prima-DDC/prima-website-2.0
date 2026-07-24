@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { ImageCarousel } from "@/components/ImageCarousel";
 import { MediaImage } from "@/components/MediaImage";
 import { Reveal } from "@/components/Reveal";
 import { ServiceIcon } from "@/components/ServiceIcon";
@@ -130,8 +131,18 @@ export default async function PracticeAreaPage({
             }`}
             style={{ animationDelay: "0.25s" }}
           >
-            {s.tagline}
+            {s.heroMessage ?? s.tagline}
           </p>
+          {s.heroMessage ? (
+            <p
+              className={`animate-fade-up mt-2 max-w-3xl text-base ${
+                service.imagePath ? "text-white/80" : "text-slate-body"
+              }`}
+              style={{ animationDelay: "0.35s" }}
+            >
+              {s.tagline}
+            </p>
+          ) : null}
         </div>
       </section>
 
@@ -204,6 +215,15 @@ export default async function PracticeAreaPage({
               </Reveal>
             ))}
           </div>
+
+          {s.gallery?.length ? (
+            <Reveal className="mt-16">
+              <h2 className="text-2xl font-bold text-navy">{tService("gallery")}</h2>
+              <div className="mt-6">
+                <ImageCarousel images={s.gallery} label={tService("gallery")} />
+              </div>
+            </Reveal>
+          ) : null}
 
           {s.methodology?.length ? (
             <Reveal className="mt-16">

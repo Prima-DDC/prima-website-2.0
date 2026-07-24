@@ -194,6 +194,18 @@ Verified: `npm run lint` + `npm run build` clean; em-dash release grep = 0; migr
 
 Note: honour-certificate documents submitted before this change hold the old recognition-award payload and will render empty fields; they are test data only and can be deleted from the admin queue.
 
+## Phase 11 (2026-07-20): Practice-area imagery + carousels (DONE)
+
+Each practice-area page now carries a short hero message and a supporting-image carousel, using authentic PRIMA photos plus curated stock.
+
+1. Data model: `ServiceContent` gains optional, localized `heroMessage` and `gallery` (`{path, caption}[]`), both living in the existing `t` jsonb, so no migration, query, or seed-shape change was needed. `src/features/content/types.ts`.
+2. Carousel: new `src/components/ImageCarousel.tsx` (client). Native scroll-snap track (touch and trackpad drag), prev/next arrows, dot indicators synced to scroll, keyboard arrows, auto-advance that pauses on hover/focus and is disabled under `prefers-reduced-motion`. Accessible (`aria-roledescription="carousel"`, labelled controls, `aria-live` status). Reuses `MediaImage`; styled off the brand tokens.
+3. Page render: `practice-areas/[slug]` shows `heroMessage` as the prominent hero line with the existing tagline beneath and the long copy still in the body; a new "Our work in focus" section renders the carousel when a gallery is present. New `service.gallery` message key (en/fr/es).
+4. Images: `scripts/upload-media.ts` extended to upload the 6 real PRIMA photos from `files/Media/` (field-forensic x2, prima-boardroom x2, prima-hallway, prima-sign) and 3 curated stock gaps (vehicle-inspection, cargo-inspection, country-risk), all as `site/*.webp`. Existing local-source reads are guarded with `existsSync`. A 4th stock candidate (property-inspection) was fetched, visually rejected as a mismatch (architect drawing, not an inspection), and deleted; the commercial-property slot uses the vetted `corporate-building` instead.
+5. Content: all six practice areas get a trilingual `heroMessage` (PA1 to PA4 from the brief; PA5/PA6 concise on-brand lines) and a 6-image `gallery` with localized captions drawn from the brief's categories. Insurance imagery centers on inspection, not incidents (no burning buildings, accidents, or blood); OSINT/forensic avoid the hoodie/matrix/mask cliches. PA1 hero swapped to `boardroom-meeting` to match its brief. Site-wide authentic swaps: who-we-are -> prima-boardroom-1, home who-we-are -> prima-sign, contact -> prima-hallway. `services.ts`, `blocks.ts`.
+
+Verified: `npm run lint` + `npm run build` (73/73 pages) clean; TypeScript strict clean; em-dash grep = 0. Every referenced image (heroes + galleries + blocks) confirmed present in the `public-media` bucket (0 missing). Dev-server curl of all 6 practice pages x 3 locales showed the hero message, the carousel (role + 6 dots), all 6 gallery image URLs, and captions (in both the visible band and the img alt). The 3 new stock images were visually reviewed before use; all 6 real PRIMA photos confirmed referenced and rendering (who-we-are, home, contact, forensic, investigations, insurance).
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

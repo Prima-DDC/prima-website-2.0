@@ -97,6 +97,11 @@ export interface ServiceGroup {
   items: string[];
 }
 
+export interface GalleryImage {
+  path: string;
+  caption: string;
+}
+
 export interface ServiceContent {
   title: string;
   shortTitle: string;
@@ -104,12 +109,14 @@ export interface ServiceContent {
   opening: string[];
   groups: ServiceGroup[];
   /** Optional practice-area template sections; rendered only when present. */
+  heroMessage?: string;
   challenges?: string[];
   whoWeServe?: string[];
   methodology?: string[];
   deliverables?: string[];
   caseExperience?: string[];
   whyPrima?: Array<{ title: string; body: string }>;
+  gallery?: GalleryImage[];
   seoTitle: string;
   seoDescription: string;
 }

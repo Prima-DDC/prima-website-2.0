@@ -31,6 +31,9 @@ const IMG = {
   seminarAudience: "site/seminar-audience.webp",
   cyberPolicy: "site/cyber-policy-handover.webp",
   boardroom: "site/boardroom-meeting.webp",
+  primaBoardroom: "site/prima-boardroom-1.webp",
+  primaHallway: "site/prima-hallway.webp",
+  primaSign: "site/prima-sign.webp",
   corporateBuilding: "site/corporate-building.webp",
   citySkyline: "site/city-skyline.webp",
   documentsReview: "site/documents-review.webp",
@@ -989,9 +992,9 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
 // the mapping is auditable at a glance; editable later via the admin CMS.
 const BLOCK_IMAGES: Record<string, string> = {
   "home/hero": IMG.heroCorporate,
-  "home/who-we-are": IMG.officeSign,
+  "home/who-we-are": IMG.primaSign,
   "home/regional-teaser": IMG.citySkyline,
-  "who-we-are/intro": IMG.boardroom,
+  "who-we-are/intro": IMG.primaBoardroom,
   "who-we-are/mission-vision": IMG.officeSign,
   "practice-areas/intro": IMG.corporateBuilding,
   "industries/intro": IMG.handshake,
@@ -1000,7 +1003,7 @@ const BLOCK_IMAGES: Record<string, string> = {
   "our-standards/intro": IMG.documentsReview,
   "our-standards/standards": IMG.cyberPolicy,
   "training/intro": IMG.seminarAudience,
-  "contact/intro": IMG.officeReception,
+  "contact/intro": IMG.primaHallway,
 };
 
 for (const b of CONTENT_BLOCKS) {
