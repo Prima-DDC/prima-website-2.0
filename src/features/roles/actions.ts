@@ -115,6 +115,7 @@ export async function deleteRole(
 const DOC_TYPE_KEYS = [
   "honour_certificate",
   "fund_request",
+  "petty_cash",
   "expense_form",
   "leave_form",
   "invoice",

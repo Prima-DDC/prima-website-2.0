@@ -206,6 +206,19 @@ Each practice-area page now carries a short hero message and a supporting-image 
 
 Verified: `npm run lint` + `npm run build` (73/73 pages) clean; TypeScript strict clean; em-dash grep = 0. Every referenced image (heroes + galleries + blocks) confirmed present in the `public-media` bucket (0 missing). Dev-server curl of all 6 practice pages x 3 locales showed the hero message, the carousel (role + 6 dots), all 6 gallery image URLs, and captions (in both the visible band and the img alt). The 3 new stock images were visually reviewed before use; all 6 real PRIMA photos confirmed referenced and rendering (who-we-are, home, contact, forensic, investigations, insurance).
 
+## Phase 12 (2026-07-20): Petty Cash Request document type (DONE)
+
+Added a sixth internal request type, "Petty Cash Request", wired end to end. The ops system is config-driven, so the change was small and surgical:
+
+- Config (`ops/config.ts`): added `petty_cash` to `DOC_TYPES`, a `DOC_CONFIG.petty_cash` entry (itemized: purpose, currency, optional notes, items of description + amount with an auto-total, icon Coins), and extended `documentTotal` to sum its items.
+- Migration `0012_petty_cash.sql`: extended the `ops_documents` and `role_permissions` doc_type CHECK constraints; added the `PC` code to `next_doc_number` (PRIMA-PC-YYYY-NNNN); seeded `role_permissions` so every internal role may submit (external client stays invoice-only) and Finance, Manager, and CEO approve. Those three already sit in `approval_stages`, so the chain resolves to Finance -> Manager -> CEO.
+- Enum (`roles/actions.ts`): added `petty_cash` to `DOC_TYPE_KEYS` so the admin Roles matrix can toggle its submit/approve permissions.
+- PDF (`pdf/templates.tsx`): added the "Petty Cash Request" title and an itemized body (items table + total + notes), modeled on the expense/honour bodies.
+- Icon (`portal/new/page.tsx`): added `Coins` to the local icon map so the new tile shows a proper icon.
+- Everything else (submission form, detail view, admin queue, approvals, doc numbering) is picked up automatically from `DOC_CONFIG`/`DOC_TYPES`/`role_permissions`.
+
+Verified: migration applied to the live DB; `next_doc_number('petty_cash')` returns PRIMA-PC-2026-0001; permissions matrix correct (submit for all internal roles, approve for finance/manager/ceo); chain resolves finance -> manager -> ceo. TypeScript strict, ESLint, and `npm run build` (73/73) clean; em-dash grep 0. RLS write path exercised with a throwaway authenticated user: an employee submitted a real PRIMA-PC-2026-0001 document, a client was correctly denied by `can_submit_doc`, and the test data was removed. The branded PDF renders (valid 86 KB PDF). The doc-number counter was reset after tests so the first real petty cash is 0001.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

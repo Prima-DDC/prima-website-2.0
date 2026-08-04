@@ -3,6 +3,7 @@ import { z } from "zod";
 export const DOC_TYPES = [
   "honour_certificate",
   "fund_request",
+  "petty_cash",
   "expense_form",
   "leave_form",
   "invoice",
@@ -118,6 +119,38 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
       currency: z.enum(CURRENCIES as [string, ...string[]]),
       neededBy: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       details: z.string().trim().min(5).max(5000),
+    }),
+  },
+  petty_cash: {
+    title: "Petty Cash Request",
+    description: "Request petty cash for minor day-to-day expenses.",
+    icon: "Coins",
+    fields: [
+      { name: "purpose", label: "Purpose", type: "text", required: true },
+      { name: "currency", label: "Currency", type: "select", options: CURRENCIES, required: true },
+      { name: "notes", label: "Notes (optional)", type: "textarea" },
+    ],
+    lineItems: {
+      name: "items",
+      label: "Petty cash items",
+      columns: [
+        { name: "description", label: "Description", type: "text" },
+        { name: "amount", label: "Amount", type: "number" },
+      ],
+    },
+    schema: z.object({
+      purpose: z.string().trim().min(3).max(300),
+      currency: z.enum(CURRENCIES as [string, ...string[]]),
+      notes: z.string().trim().max(2000).optional().or(z.literal("")),
+      items: z
+        .array(
+          z.object({
+            description: z.string().trim().min(1).max(300),
+            amount: money,
+          }),
+        )
+        .min(1)
+        .max(50),
     }),
   },
   expense_form: {
@@ -245,7 +278,11 @@ export function formatMoney(amount: number, currency: string): string {
 }
 
 export function documentTotal(docType: DocType, data: Record<string, unknown>): number | null {
-  if (docType === "expense_form" || docType === "honour_certificate") {
+  if (
+    docType === "expense_form" ||
+    docType === "honour_certificate" ||
+    docType === "petty_cash"
+  ) {
     const items = (data.items ?? []) as Array<{ amount: number }>;
     return items.reduce((sum, item) => sum + item.amount, 0);
   }

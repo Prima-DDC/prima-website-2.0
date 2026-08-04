@@ -199,6 +199,32 @@ function BodyByType({ input }: { input: PdfInput }) {
           <Field label="Details" value={str(d.details)} />
         </>
       );
+    case "petty_cash": {
+      const items = (d.items ?? []) as Array<{ description: string; amount: number }>;
+      const total = documentTotal("petty_cash", d) ?? 0;
+      return (
+        <>
+          <Field label="Purpose" value={str(d.purpose)} />
+          <View style={styles.section}>
+            <Text style={styles.label}>Petty cash items</Text>
+            <ItemsTable
+              headers={["Description", `Amount (${str(d.currency)})`]}
+              rows={items.map((item) => [
+                item.description,
+                formatMoney(item.amount, str(d.currency)),
+              ])}
+            />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {formatMoney(total, str(d.currency))}
+              </Text>
+            </View>
+          </View>
+          <Field label="Notes" value={str(d.notes)} />
+        </>
+      );
+    }
     case "expense_form": {
       const items = d.items as Array<{ description: string; amount: number }>;
       const total = documentTotal("expense_form", d) ?? 0;
@@ -275,6 +301,7 @@ function BodyByType({ input }: { input: PdfInput }) {
 const TYPE_TITLES: Record<DocType, string> = {
   honour_certificate: "Honour Certificate",
   fund_request: "Fund Request",
+  petty_cash: "Petty Cash Request",
   expense_form: "Expense Form",
   leave_form: "Leave Request",
   invoice: "Invoice",

@@ -1,6 +1,7 @@
 import {
   Award,
   CalendarDays,
+  Coins,
   FileText,
   Receipt,
   Wallet,
@@ -15,6 +16,7 @@ import { DOC_CONFIG, DOC_TYPES, slugFromDocType } from "@/features/ops/config";
 const ICONS: Record<string, LucideIcon> = {
   Award,
   Wallet,
+  Coins,
   Receipt,
   CalendarDays,
   FileText,
