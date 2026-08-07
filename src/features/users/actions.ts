@@ -57,6 +57,34 @@ export async function sendPasswordReset(
   return { error: null, success: `Password reset email sent to ${email}.` };
 }
 
+/**
+ * Resends the invitation email to a user who has not accepted it yet.
+ * Re-inviting a still-pending user issues a fresh link and email; a user who
+ * has already accepted is reported back so the admin uses a reset instead.
+ */
+export async function resendInvite(
+  _prev: UsersState,
+  formData: FormData,
+): Promise<UsersState> {
+  await requireCapability("manage_users");
+  const email = z.string().trim().email().parse(formData.get("email"));
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${siteUrl}/auth/confirm`,
+  });
+  if (error) {
+    const alreadyActive = /registered|already/i.test(error.message);
+    return {
+      error: alreadyActive
+        ? "This user has already accepted their invitation. Use Reset password instead."
+        : error.message,
+    };
+  }
+  return { error: null, success: `Invitation resent to ${email}.` };
+}
+
 export async function deleteUser(
   _prev: UsersState,
   formData: FormData,

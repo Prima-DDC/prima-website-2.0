@@ -219,6 +219,12 @@ Added a sixth internal request type, "Petty Cash Request", wired end to end. The
 
 Verified: migration applied to the live DB; `next_doc_number('petty_cash')` returns PRIMA-PC-2026-0001; permissions matrix correct (submit for all internal roles, approve for finance/manager/ceo); chain resolves finance -> manager -> ceo. TypeScript strict, ESLint, and `npm run build` (73/73) clean; em-dash grep 0. RLS write path exercised with a throwaway authenticated user: an employee submitted a real PRIMA-PC-2026-0001 document, a client was correctly denied by `can_submit_doc`, and the test data was removed. The branded PDF renders (valid 86 KB PDF). The doc-number counter was reset after tests so the first real petty cash is 0001.
 
+## Phase 13 (2026-08-07): Resend invitation (DONE)
+
+Admins can now resend a pending invitation from /admin/users. The users page marks anyone whose email is not yet confirmed with a "pending" badge and, for those rows, shows a "Resend invite" action in place of "Reset password". The `resendInvite` server action (gated by `manage_users`) re-calls `inviteUserByEmail`, which issues a fresh link and email for a still-pending user through the configured SMTP and branded template; an already-accepted user is reported back with a hint to use Reset password instead. Pending status comes from `auth.admin.listUsers()` (`email_confirmed_at` null). `users/actions.ts`, `users/UserRowActions.tsx`, `admin/users/page.tsx`.
+
+Verified: tsc, ESLint, and build (73/73) clean; em-dash grep 0. Runtime-tested against the live project with throwaway users: resend to a pending user issues a fresh invite; resend to a confirmed user returns the friendly "already accepted" message with nothing sent; test users removed.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

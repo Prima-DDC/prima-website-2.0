@@ -6,6 +6,7 @@ import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
 import { getRoles } from "@/features/roles/queries";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function UsersPage() {
@@ -16,6 +17,16 @@ export default async function UsersPage() {
     .from("profiles")
     .select("id, email, full_name, role, photo_path, created_at")
     .order("created_at");
+
+  // Users who were invited but have not confirmed their email yet are pending;
+  // they get a "Resend invite" action instead of a password reset.
+  const admin = createSupabaseAdminClient();
+  const { data: authList } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  const pendingIds = new Set(
+    (authList?.users ?? [])
+      .filter((u) => !u.email_confirmed_at)
+      .map((u) => u.id),
+  );
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -56,6 +67,10 @@ export default async function UsersPage() {
                           {user.id === acting.id ? (
                             <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-body">
                               you
+                            </span>
+                          ) : pendingIds.has(user.id) ? (
+                            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
+                              pending
                             </span>
                           ) : null}
                           <p className="text-xs text-slate-body">{user.email}</p>
@@ -106,6 +121,7 @@ export default async function UsersPage() {
                           userId={user.id}
                           email={user.email}
                           name={user.full_name || user.email}
+                          pending={pendingIds.has(user.id)}
                         />
                       )}
                     </td>
