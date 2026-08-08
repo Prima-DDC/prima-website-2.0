@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Public_Sans, Source_Serif_4 } from "next/font/google";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
+import { AuthHashHandler } from "@/features/auth/AuthHashHandler";
 import "../globals.css";
 
 const publicSans = Public_Sans({
@@ -32,6 +33,10 @@ export default function InternalLayout({
     >
       <body className="min-h-full bg-mist/40">
         <RegisterServiceWorker />
+        {/* Adopts a session from hash-token links (implicit-flow fallback) so
+            invite/recovery links still work if a template ever reverts to the
+            Supabase default. No-op unless the URL hash carries a token. */}
+        <AuthHashHandler />
         <ConfirmProvider>{children}</ConfirmProvider>
       </body>
     </html>

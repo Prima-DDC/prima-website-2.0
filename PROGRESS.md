@@ -225,6 +225,15 @@ Admins can now resend a pending invitation from /admin/users. The users page mar
 
 Verified: tsc, ESLint, and build (73/73) clean; em-dash grep 0. Runtime-tested against the live project with throwaway users: resend to a pending user issues a fresh invite; resend to a confirmed user returns the friendly "already accepted" message with nothing sent; test users removed.
 
+## Phase 14 (2026-08-08): Restore branded email templates + fix broken invite (DONE)
+
+Invites were failing with `link-expired` (landing on `/login?error=link-expired#access_token=...`) and all Supabase email templates had reverted to defaults. One root cause: the default invite template uses `{{ .ConfirmationURL }}` (implicit hash flow), but `src/app/(internal)/auth/confirm/route.ts` only handles the custom `?token_hash=...&type=...` flow, so the link dead-ended.
+
+- New `scripts/apply-email-templates.mjs` + `npm run email:templates`: uploads the six branded templates in `supabase/email-templates/` (invite, confirmation, recovery, magic-link, email-change, reauthentication) with branded subjects to the live project via the Management API `config/auth`, then re-reads and asserts the invite links to `/auth/confirm?token_hash=...`. Idempotent, so a future reset is a one-command fix; the repo templates stay the source of truth. Ran it: all six now `custom=true`.
+- Resilience: mounted the existing `<AuthHashHandler />` in `src/app/(internal)/layout.tsx`. It is a no-op unless the URL hash carries `access_token`, so if a default implicit-flow link is ever used again, the tokens landing on `/login` are adopted into a session and the user is forwarded to `/portal/profile` instead of dead-ending.
+
+Verified: `npm run email:templates` confirms all six templates custom with branded subjects and the invite pointing at `/auth/confirm?token_hash=...`; a throwaway `generateLink({type:'invite'})` + `verifyOtp({token_hash, type:'invite'})` returns a session (exactly what `/auth/confirm` does); tsc, ESLint, build (73/73) clean; em-dash grep 0. The previously-sent invite used the default template and is dead; resend it from /admin/users after this deploy.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.
