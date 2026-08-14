@@ -14,9 +14,10 @@ export default async function PortalApprovalsPage() {
     .eq("status", "submitted")
     .order("created_at")
     .limit(200);
-  // Approvers only see request types they are configured to review.
+  // Approvers only see request types they review, and only their own branch;
+  // administration sees every branch.
   if (profile.role !== "admin") {
-    query = query.in("doc_type", approvableTypes);
+    query = query.in("doc_type", approvableTypes).eq("branch", profile.branch);
   }
   const { data: docs } = await query;
 

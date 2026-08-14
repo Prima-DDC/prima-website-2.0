@@ -118,6 +118,7 @@ const DOC_TYPE_KEYS = [
   "petty_cash",
   "expense_form",
   "leave_form",
+  "excuse_duty",
   "invoice",
 ] as const;
 

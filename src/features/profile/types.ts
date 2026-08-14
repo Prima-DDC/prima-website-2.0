@@ -3,6 +3,8 @@ export interface StaffProfile {
   email: string;
   fullName: string | null;
   role: string;
+  branch: string;
+  leaveEntitlement: number;
   firstName: string | null;
   lastName: string | null;
   jobTitle: string | null;
@@ -23,6 +25,8 @@ export function toStaffProfile(row: any): StaffProfile {
     email: row.email,
     fullName: row.full_name,
     role: row.role,
+    branch: row.branch ?? "ghana",
+    leaveEntitlement: row.leave_entitlement ?? 15,
     firstName: row.first_name,
     lastName: row.last_name,
     jobTitle: row.job_title,
@@ -38,4 +42,4 @@ export function toStaffProfile(row: any): StaffProfile {
 }
 
 export const STAFF_PROFILE_COLUMNS =
-  "id, email, full_name, role, first_name, last_name, job_title, photo_path, division, start_date, contract_staff, business_line, direct_line, whatsapp_number, alt_email";
+  "id, email, full_name, role, branch, leave_entitlement, first_name, last_name, job_title, photo_path, division, start_date, contract_staff, business_line, direct_line, whatsapp_number, alt_email";

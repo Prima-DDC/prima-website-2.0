@@ -101,6 +101,7 @@ export interface PdfInput {
   docNumber: string;
   data: Record<string, unknown>;
   submitterName: string;
+  submitterTitle?: string;
   approvals: Array<{ label: string; name: string; date: string }>;
   logo: Buffer;
   /** True when exported before all sign-offs are complete. */
@@ -115,6 +116,27 @@ function Field({ label, value }: { label: string; value: string }) {
     <View style={styles.section}>
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>{value}</Text>
+    </View>
+  );
+}
+
+/** Annual-leave balance summary for leave and excuse-duty documents. */
+function LeaveBalance({ d }: { d: Record<string, unknown> }) {
+  if (d.daysApplied == null) return null;
+  const cells: Array<[string, string]> = [
+    ["Days applied", str(d.daysApplied)],
+    ["Days entitled", str(d.entitlement)],
+    ["Used this year", str(d.daysUsed)],
+    ["Days left in year", String(Math.max(0, Number(d.daysLeft) || 0))],
+  ];
+  return (
+    <View style={{ ...styles.section, flexDirection: "row", gap: 24 }}>
+      {cells.map(([label, value]) => (
+        <View key={label}>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={{ ...styles.value, fontFamily: "Helvetica-Bold" }}>{value}</Text>
+        </View>
+      ))}
     </View>
   );
 }
@@ -257,7 +279,10 @@ function BodyByType({ input }: { input: PdfInput }) {
           <Field label="Type of leave" value={str(d.leaveType)} />
           <Field label="First day" value={str(d.startDate)} />
           <Field label="Last day" value={str(d.endDate)} />
+          <Field label="Resumption date" value={str(d.resumptionDate)} />
+          <Field label="Emergency contact" value={str(d.emergencyContact)} />
           <Field label="Reason / handover notes" value={str(d.reason)} />
+          <LeaveBalance d={d} />
         </>
       );
     case "invoice": {
@@ -293,6 +318,18 @@ function BodyByType({ input }: { input: PdfInput }) {
         </>
       );
     }
+    case "excuse_duty":
+      return (
+        <>
+          <Field label="First day of absence" value={str(d.dateOfAbsence)} />
+          <Field label="Last day of absence" value={str(d.endDate)} />
+          <Field label="Resumption date" value={str(d.resumptionDate)} />
+          <Field label="Reason for absence" value={str(d.reason)} />
+          <Field label="Work coverage plan" value={str(d.workCoverage)} />
+          <Field label="Contact during absence" value={str(d.contactDuringAbsence)} />
+          <LeaveBalance d={d} />
+        </>
+      );
     default:
       return null;
   }
@@ -304,6 +341,7 @@ const TYPE_TITLES: Record<DocType, string> = {
   petty_cash: "Petty Cash Request",
   expense_form: "Expense Form",
   leave_form: "Leave Request",
+  excuse_duty: "Excuse Duty Form",
   invoice: "Invoice",
 };
 
@@ -324,6 +362,7 @@ export function DocumentPdf(input: PdfInput) {
         <Text style={styles.docMeta}>
           {input.docNumber} | Issued {new Date().toISOString().slice(0, 10)} |
           Submitted by {input.submitterName}
+          {input.submitterTitle ? ` (${input.submitterTitle})` : ""}
         </Text>
         {input.preliminary ? (
           <Text style={{ marginTop: 4, fontSize: 9, color: "#b45309" }}>

@@ -38,6 +38,22 @@ export function DocDetails({
         })}
       </dl>
 
+      {config.leaveBalance && data.daysApplied != null ? (
+        <div className="mt-6 grid grid-cols-2 gap-4 rounded-md border border-line bg-mist/40 p-5 sm:grid-cols-4">
+          {[
+            ["Days applied", String(data.daysApplied)],
+            ["Days entitled", String(data.entitlement ?? "")],
+            ["Used this year", String(data.daysUsed ?? "")],
+            ["Days left in year", String(Math.max(0, Number(data.daysLeft) || 0))],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-slate-body">{label}</dt>
+              <dd className="mt-1 text-lg font-bold text-navy">{value}</dd>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {config.lineItems ? (
         <div className="mt-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-body">

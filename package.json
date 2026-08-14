@@ -11,7 +11,8 @@
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
     "create-admin": "tsx --env-file=.env.local scripts/create-admin.ts",
     "media:upload": "tsx --env-file=.env.local scripts/upload-media.ts",
-    "email:templates": "node --env-file=.env.local scripts/apply-email-templates.mjs"
+    "email:templates": "node --env-file=.env.local scripts/apply-email-templates.mjs",
+    "staff:update": "node --env-file=.env.local scripts/update-staff.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",

@@ -234,6 +234,22 @@ Invites were failing with `link-expired` (landing on `/login?error=link-expired#
 
 Verified: `npm run email:templates` confirms all six templates custom with branded subjects and the invite pointing at `/auth/confirm?token_hash=...`; a throwaway `generateLink({type:'invite'})` + `verifyOtp({token_hash, type:'invite'})` returns a session (exactly what `/auth/confirm` does); tsc, ESLint, build (73/73) clean; em-dash grep 0. The previously-sent invite used the default template and is dead; resend it from /admin/users after this deploy.
 
+## Phase 15 (2026-08-08): Leave/Excuse Duty overhaul + Ghana/Rwanda branches + staff data (DONE)
+
+A large HR upgrade to the ops portal, in five slices.
+
+1. Staff branch + entitlement: migration `0013` adds `profiles.branch` (ghana/rwanda) and `leave_entitlement` (15/18/21/30, default 15). `StaffProfile`/`SessionProfile` carry them; `AdminUserForm` + `adminUpdateUser` let admins set Branch and Annual leave days; `ProfileForm` shows both read-only. `scripts/update-staff.mjs` (`npm run staff:update`) corrected the 9 Ghana staff from the sheet (accurate names + job titles, fixing "Bejamin Adrah" and "Willibald Director"); all matched by email, roles untouched.
+
+2. Leave Request rework: added the three leave types (Vacation, Bereavement, Study Leave) to the existing six, plus Emergency contact and Resumption date fields. A config-driven `leaveBalance` marker drives a live "Leave summary" card (Days entitled / Used this year / This request / Remaining) in `OpsForm`, computed from the date range; `submitOpsDocument`/`editOwnDocument` compute and store the authoritative `daysApplied/entitlement/daysUsed/daysLeft` via `withLeaveBalance` + a new `getLeaveUsage(userId, year)` aggregation. `DocDetails` and the PDF render the summary.
+
+3. Excuse Duty: new `excuse_duty` doc type (date of absence, last day, resumption, reason, work coverage plan, contact during absence) in New Request and My Documents, with the shared leave balance, HR -> Manager -> CEO approval, and a branded "Excuse Duty Form" PDF that shows the submitter's Position (job_title). Both leave and excuse duty deduct from one annual balance.
+
+4. Rwanda parallel (migration `0014`): every document carries a `branch` derived from the submitter's profile; `ops_counters` is per branch; `next_doc_number(type, branch)` gives Rwanda its own series (PRIMA-RW-...). Money forms default to RWF for Rwanda staff. Approvals are branch-scoped: `signOffDocument` requires a non-admin approver's branch to match the document (admin exempt); notifications target same-branch approvers plus administration (`userIdsByRoleAndBranch`); the approvals list filters non-admins to their branch; the admin queue shows a Branch column. One admin manages both branches.
+
+Verified: tsc, ESLint, build (73/73) clean; em-dash grep 0; migrations applied to the live DB. Throwaway-user e2e (created then removed): Ghana leave numbers PRIMA-LV-..., Rwanda leave PRIMA-RW-LV-..., excuse duty PRIMA-ED-...; RLS submit allowed for both branches; leave balance summed 5 leave + 1 excuse = 6 days used and excluded a prior-year doc; the branch-scoped approval guard allowed same-branch and admin and blocked cross-branch; leave and excuse-duty PDFs render valid. Doc-number counters realigned to actual counts after tests.
+
+Note: all 18 existing staff default to the Ghana branch. Set branch to Rwanda for Rwandan staff (e.g. Cynthia Teta, Jovaneh Mukunzi) in Admin > Users; the field is on the staff record.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

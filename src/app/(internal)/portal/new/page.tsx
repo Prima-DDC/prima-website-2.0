@@ -1,6 +1,7 @@
 import {
   Award,
   CalendarDays,
+  CalendarX2,
   Coins,
   FileText,
   Receipt,
@@ -19,6 +20,7 @@ const ICONS: Record<string, LucideIcon> = {
   Coins,
   Receipt,
   CalendarDays,
+  CalendarX2,
   FileText,
 };
 

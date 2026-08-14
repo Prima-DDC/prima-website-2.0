@@ -74,6 +74,11 @@ export function ProfileForm({ profile }: { profile: StaffProfile }) {
           />
           <ReadOnlyField label="Business line" value={profile.businessLine ?? ""} />
           <ReadOnlyField label="Role" value={profile.role} />
+          <ReadOnlyField label="Branch" value={profile.branch === "rwanda" ? "Rwanda" : "Ghana"} />
+          <ReadOnlyField
+            label="Annual leave entitlement"
+            value={`${profile.leaveEntitlement} days`}
+          />
         </div>
         <p className="mt-5 text-xs text-slate-body">
           Something incorrect?{" "}

@@ -6,6 +6,7 @@ export const DOC_TYPES = [
   "petty_cash",
   "expense_form",
   "leave_form",
+  "excuse_duty",
   "invoice",
 ] as const;
 
@@ -54,17 +55,49 @@ export interface LineItemsConfig {
   columns: Array<{ name: string; label: string; type: "text" | "number" }>;
 }
 
+/**
+ * Marks a doc type as counting against a staff member's annual leave balance.
+ * `startField`/`endField` are the two date fields whose inclusive span is the
+ * number of days applied for (leave and excuse duty both use this).
+ */
+export interface LeaveBalanceConfig {
+  startField: string;
+  endField: string;
+}
+
 export interface DocTypeConfig {
   title: string;
   description: string;
   icon: string;
   fields: FieldConfig[];
   lineItems?: LineItemsConfig;
+  leaveBalance?: LeaveBalanceConfig;
   schema: z.ZodType;
 }
 
 const money = z.coerce.number().positive().max(1_000_000_000);
 const CURRENCIES = ["GHS", "RWF", "USD", "EUR"];
+
+/** Leave types (the original six plus vacation, bereavement, study leave). */
+export const LEAVE_TYPES = [
+  "Annual",
+  "Sick",
+  "Maternity/Paternity",
+  "Compassionate",
+  "Unpaid",
+  "Other",
+  "Vacation",
+  "Bereavement",
+  "Study Leave",
+] as const;
+
+/** Inclusive whole-day span between two YYYY-MM-DD dates (0 if invalid). */
+export function daysInclusive(start: string, end: string): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return 0;
+  const ms = Date.parse(end) - Date.parse(start);
+  if (Number.isNaN(ms) || ms < 0) return 0;
+  return Math.floor(ms / 86_400_000) + 1;
+}
 
 export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
   honour_certificate: {
@@ -189,35 +222,68 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     title: "Leave Form",
     description: "Request annual, sick, or other leave.",
     icon: "CalendarDays",
+    leaveBalance: { startField: "startDate", endField: "endDate" },
     fields: [
       {
         name: "leaveType",
         label: "Type of leave",
         type: "select",
-        options: ["Annual", "Sick", "Maternity/Paternity", "Compassionate", "Unpaid", "Other"],
+        options: [...LEAVE_TYPES],
         required: true,
       },
       { name: "startDate", label: "First day of leave", type: "date", required: true },
       { name: "endDate", label: "Last day of leave", type: "date", required: true },
+      { name: "resumptionDate", label: "Resumption date", type: "date", required: true },
+      { name: "emergencyContact", label: "Emergency contact", type: "text", required: true },
       { name: "reason", label: "Reason / handover notes", type: "textarea", required: true },
     ],
     schema: z
       .object({
-        leaveType: z.enum([
-          "Annual",
-          "Sick",
-          "Maternity/Paternity",
-          "Compassionate",
-          "Unpaid",
-          "Other",
-        ]),
+        leaveType: z.enum(LEAVE_TYPES),
         startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        resumptionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        emergencyContact: z.string().trim().min(3).max(200),
         reason: z.string().trim().min(3).max(2000),
       })
       .refine((v) => v.endDate >= v.startDate, {
         message: "End date must be on or after the start date",
         path: ["endDate"],
+      })
+      .refine((v) => v.resumptionDate > v.endDate, {
+        message: "Resumption date must be after the last day of leave",
+        path: ["resumptionDate"],
+      }),
+  },
+  excuse_duty: {
+    title: "Excuse Duty Form",
+    description: "Account for an absence from duty and its coverage.",
+    icon: "CalendarX2",
+    leaveBalance: { startField: "dateOfAbsence", endField: "endDate" },
+    fields: [
+      { name: "dateOfAbsence", label: "First day of absence", type: "date", required: true },
+      { name: "endDate", label: "Last day of absence", type: "date", required: true },
+      { name: "resumptionDate", label: "Resumption date", type: "date", required: true },
+      { name: "reason", label: "Reason for absence", type: "textarea", required: true },
+      { name: "workCoverage", label: "Work coverage plan", type: "textarea", required: true },
+      { name: "contactDuringAbsence", label: "Contact during absence", type: "text", required: true },
+    ],
+    schema: z
+      .object({
+        dateOfAbsence: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        resumptionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        reason: z.string().trim().min(3).max(2000),
+        workCoverage: z.string().trim().min(3).max(2000),
+        contactDuringAbsence: z.string().trim().min(3).max(200),
+      })
+      .refine((v) => v.endDate >= v.dateOfAbsence, {
+        message: "Last day must be on or after the first day of absence",
+        path: ["endDate"],
+      })
+      .refine((v) => v.resumptionDate > v.endDate, {
+        message: "Resumption date must be after the last day of absence",
+        path: ["resumptionDate"],
       }),
   },
   invoice: {

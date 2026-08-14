@@ -14,6 +14,7 @@ export async function generateDocumentPdf({
   docNumber,
   data,
   submitterName,
+  submitterTitle,
   approvals,
   preliminary = false,
 }: {
@@ -21,6 +22,7 @@ export async function generateDocumentPdf({
   docNumber: string;
   data: Record<string, unknown>;
   submitterName: string;
+  submitterTitle?: string;
   approvals: Array<{ label: string; name: string; date: string }>;
   /** Pre-approval export: marked on the page, stored as a separate preview file. */
   preliminary?: boolean;
@@ -28,7 +30,7 @@ export async function generateDocumentPdf({
   const logo = readFileSync(path.join(process.cwd(), "public", "logo.png"));
 
   const buffer = await renderToBuffer(
-    DocumentPdf({ docType, docNumber, data, submitterName, approvals, logo, preliminary }),
+    DocumentPdf({ docType, docNumber, data, submitterName, submitterTitle, approvals, logo, preliminary }),
   );
 
   const storagePath = `${docType}/${docNumber}${preliminary ? "-preview" : ""}.pdf`;

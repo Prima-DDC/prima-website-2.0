@@ -40,7 +40,7 @@ export default async function OpsQueuePage({
 
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, created_at, profiles:submitted_by (full_name, email)")
+    .select("id, doc_type, doc_number, status, branch, created_at, profiles:submitted_by (full_name, email)")
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
@@ -120,6 +120,9 @@ export default async function OpsQueuePage({
                   </div>
                   <p className="mt-1 text-sm text-navy">
                     {DOC_CONFIG[doc.doc_type as DocType]?.title}
+                    <span className="ml-2 rounded bg-mist px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-body">
+                      {doc.branch === "rwanda" ? "Rwanda" : "Ghana"}
+                    </span>
                   </p>
                   <p className="mt-1 text-xs text-slate-body">
                     {submitter?.full_name || submitter?.email}
@@ -141,6 +144,7 @@ export default async function OpsQueuePage({
                 <tr>
                   <th className="px-5 py-3 font-semibold">Document</th>
                   <th className="px-5 py-3 font-semibold">Type</th>
+                  <th className="px-5 py-3 font-semibold">Branch</th>
                   <th className="px-5 py-3 font-semibold">Submitted by</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3 font-semibold">Sign-offs</th>
@@ -165,6 +169,9 @@ export default async function OpsQueuePage({
                       </td>
                       <td className="px-5 py-3.5 text-navy">
                         {DOC_CONFIG[doc.doc_type as DocType]?.title}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-body">
+                        {doc.branch === "rwanda" ? "Rwanda" : "Ghana"}
                       </td>
                       <td className="px-5 py-3.5 text-slate-body">
                         {submitter?.full_name || submitter?.email}

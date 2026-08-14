@@ -10,6 +10,7 @@ export interface SessionProfile {
   email: string;
   fullName: string | null;
   role: Role;
+  branch: string;
   photoPath: string | null;
 }
 
@@ -22,7 +23,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, photo_path")
+    .select("id, email, full_name, role, branch, photo_path")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) return null;
@@ -32,6 +33,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     email: profile.email,
     fullName: profile.full_name,
     role: profile.role as Role,
+    branch: profile.branch ?? "ghana",
     photoPath: profile.photo_path,
   };
 }

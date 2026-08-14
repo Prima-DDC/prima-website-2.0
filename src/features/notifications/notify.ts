@@ -117,3 +117,17 @@ export async function userIdsByRole(roles: Role[]): Promise<string[]> {
   const { data } = await db.from("profiles").select("id").in("role", roles);
   return (data ?? []).map((row) => row.id);
 }
+
+/** User ids holding any of the given roles within one branch (ghana/rwanda). */
+export async function userIdsByRoleAndBranch(
+  roles: Role[],
+  branch: string,
+): Promise<string[]> {
+  const db = createSupabaseAdminClient();
+  const { data } = await db
+    .from("profiles")
+    .select("id")
+    .in("role", roles)
+    .eq("branch", branch);
+  return (data ?? []).map((row) => row.id);
+}

@@ -5,15 +5,51 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/features/auth/helpers";
 import { requireCapability } from "@/features/capabilities/service";
-import { notify, userIdsByRole } from "@/features/notifications/notify";
+import {
+  notify,
+  userIdsByRole,
+  userIdsByRoleAndBranch,
+} from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { DOC_CONFIG, nextStage, type DocType, DOC_TYPES } from "./config";
-import { chainForType, getApprovableTypes, getSubmittableTypes } from "./stages";
+import { DOC_CONFIG, daysInclusive, nextStage, type DocType, DOC_TYPES } from "./config";
+import {
+  chainForType,
+  getApprovableTypes,
+  getLeaveUsage,
+  getSubmittableTypes,
+} from "./stages";
 import { generateDocumentPdf } from "./pdf/generate";
 
 export interface OpsState {
   error: string | null;
+}
+
+/**
+ * For leave and excuse duty, computes and stores the authoritative day count
+ * and annual-balance snapshot so the detail view and PDF do not depend on the
+ * client. `daysUsed` counts only prior approved absences, so `daysLeft` is the
+ * balance the request would leave.
+ */
+async function withLeaveBalance(
+  docType: DocType,
+  data: Record<string, unknown>,
+  userId: string,
+): Promise<Record<string, unknown>> {
+  const cfg = DOC_CONFIG[docType].leaveBalance;
+  if (!cfg) return data;
+  const start = String(data[cfg.startField] ?? "");
+  const daysApplied = daysInclusive(start, String(data[cfg.endField] ?? ""));
+  const db = createSupabaseAdminClient();
+  const { data: p } = await db
+    .from("profiles")
+    .select("leave_entitlement")
+    .eq("id", userId)
+    .maybeSingle();
+  const entitlement = p?.leave_entitlement ?? 15;
+  const year = Number(start.slice(0, 4)) || new Date().getFullYear();
+  const daysUsed = await getLeaveUsage(userId, year);
+  return { ...data, daysApplied, entitlement, daysUsed, daysLeft: entitlement - daysUsed - daysApplied };
 }
 
 function revalidateOps(docId?: string) {
@@ -26,6 +62,17 @@ function revalidateOps(docId?: string) {
     revalidatePath(`/portal/approvals/${docId}`);
     revalidatePath(`/admin/ops/${docId}`);
   }
+}
+
+/** Recipients for an approval notification: the stage's approvers in the
+ * document's branch, plus administration (who oversees every branch). */
+async function approverRecipients(
+  role: string | undefined,
+  branch: string,
+): Promise<string[]> {
+  const admins = await userIdsByRole(["admin"]);
+  if (!role) return admins;
+  return [...(await userIdsByRoleAndBranch([role], branch)), ...admins];
 }
 
 function parsePayload(docType: DocType, raw: unknown):
@@ -64,6 +111,7 @@ export async function submitOpsDocument(
 
   const parsed = parsePayload(docType, formData.get("data"));
   if (!parsed.ok) return { error: parsed.error };
+  const data = await withLeaveBalance(docType, parsed.data, profile.id);
 
   // Inserted with the user's own session so RLS owner checks apply.
   const supabase = await createSupabaseServerClient();
@@ -71,7 +119,7 @@ export async function submitOpsDocument(
     .from("ops_documents")
     .insert({
       doc_type: docType,
-      data: parsed.data,
+      data,
       status: "submitted",
       submitted_by: profile.id,
     })
@@ -93,7 +141,7 @@ export async function submitOpsDocument(
     .select("doc_number")
     .eq("id", doc.id)
     .single();
-  await notify(await userIdsByRole(firstStage ? [firstStage.role, "admin"] : ["admin"]), {
+  await notify(await approverRecipients(firstStage?.role, profile.branch), {
     title: `New ${DOC_CONFIG[docType].title.toLowerCase()} for sign-off`,
     body: `${created?.doc_number ?? "A new document"} was submitted by ${profile.fullName || profile.email} and awaits the ${firstStage?.label ?? "first"} sign-off.`,
     link: `/portal/approvals/${doc.id}`,
@@ -125,7 +173,7 @@ export async function signOffDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_type, doc_number, data, status, submitted_by")
+    .select("id, doc_type, doc_number, data, status, submitted_by, branch")
     .eq("id", docId)
     .maybeSingle();
   if (!doc) return { error: "Document not found." };
@@ -146,7 +194,11 @@ export async function signOffDocument(
   if (!stage) return { error: "This document is already fully signed." };
 
   const stageLabel = stage.label;
-  if (profile.role !== "admin" && profile.role !== stage.role) {
+  // Approvers act only within their own branch; administration may act on any.
+  if (
+    profile.role !== "admin" &&
+    (profile.role !== stage.role || profile.branch !== doc.branch)
+  ) {
     return { error: `This document is awaiting the ${stageLabel} sign-off.` };
   }
 
@@ -209,7 +261,7 @@ export async function signOffDocument(
 
     const { data: submitter } = await db
       .from("profiles")
-      .select("full_name, email")
+      .select("full_name, email, job_title")
       .eq("id", doc.submitted_by)
       .maybeSingle();
 
@@ -220,6 +272,7 @@ export async function signOffDocument(
         docNumber: doc.doc_number,
         data: doc.data,
         submitterName: submitter?.full_name || submitter?.email || "Unknown",
+        submitterTitle: submitter?.job_title || undefined,
         approvals,
       });
     } catch (err) {
@@ -255,7 +308,7 @@ export async function signOffDocument(
       body: `The ${stageLabel} stage signed off. Next up: ${upcoming.label}.`,
       link: `/portal/${docId}`,
     });
-    await notify(await userIdsByRole([upcoming.role]), {
+    await notify(await approverRecipients(upcoming.role, doc.branch), {
       title: `${doc.doc_number} awaits your ${upcoming.label} sign-off`,
       body: `The ${stageLabel} stage approved this ${docTitle.toLowerCase()}; it now needs the ${upcoming.label} decision.`,
       link: `/portal/approvals/${docId}`,
@@ -308,7 +361,10 @@ export async function editOwnDocument(
 
   const { error } = await db
     .from("ops_documents")
-    .update({ data: parsed.data, updated_at: new Date().toISOString() })
+    .update({
+      data: await withLeaveBalance(docType, parsed.data, profile.id),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", docId);
   if (error) return { error: error.message };
 
@@ -324,7 +380,7 @@ export async function editOwnDocument(
 
   const chain = await chainForType(docType);
   const firstStage = chain[0];
-  await notify(await userIdsByRole(firstStage ? [firstStage.role, "admin"] : ["admin"]), {
+  await notify(await approverRecipients(firstStage?.role, profile.branch), {
     title: `${doc.doc_number} was edited and needs sign-off`,
     body: `${profile.fullName || profile.email} updated this ${DOC_CONFIG[docType].title.toLowerCase()}${(signOffs ?? 0) > 0 ? "; earlier sign-offs were cleared" : ""}. It awaits the ${firstStage?.label ?? "first"} decision.`,
     link: `/portal/approvals/${docId}`,
@@ -351,7 +407,7 @@ export async function updateOpsDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_type, status")
+    .select("id, doc_type, status, submitted_by")
     .eq("id", docId)
     .maybeSingle();
   if (!doc || doc.doc_type !== docType) return { error: "Document not found." };
@@ -361,7 +417,10 @@ export async function updateOpsDocument(
 
   const { error } = await db
     .from("ops_documents")
-    .update({ data: parsed.data, updated_at: new Date().toISOString() })
+    .update({
+      data: await withLeaveBalance(docType, parsed.data, doc.submitted_by),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", docId);
   if (error) return { error: error.message };
 
@@ -471,7 +530,7 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
 
     const { data: submitter } = await admin
       .from("profiles")
-      .select("full_name, email")
+      .select("full_name, email, job_title")
       .eq("id", doc.submitted_by)
       .maybeSingle();
 
@@ -481,6 +540,7 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
         docNumber: doc.doc_number,
         data: doc.data,
         submitterName: submitter?.full_name || submitter?.email || "Unknown",
+        submitterTitle: submitter?.job_title || undefined,
         approvals,
         preliminary: true,
       });

@@ -144,6 +144,10 @@ export async function inviteUser(
 const staffSchema = z.object({
   userId: z.string().uuid(),
   role: roleSchema,
+  branch: z.enum(["ghana", "rwanda"]),
+  leaveEntitlement: z.coerce.number().int().refine((n) => [15, 18, 21, 30].includes(n), {
+    message: "Leave entitlement must be 15, 18, 21, or 30",
+  }),
   firstName: z.string().trim().max(100).optional().or(z.literal("")),
   lastName: z.string().trim().max(100).optional().or(z.literal("")),
   jobTitle: z.string().trim().max(150).optional().or(z.literal("")),
@@ -169,6 +173,8 @@ export async function adminUpdateUser(
   const parsed = staffSchema.safeParse({
     userId: formData.get("userId"),
     role: formData.get("role"),
+    branch: formData.get("branch"),
+    leaveEntitlement: formData.get("leaveEntitlement"),
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     jobTitle: formData.get("jobTitle"),
@@ -196,6 +202,8 @@ export async function adminUpdateUser(
     .from("profiles")
     .update({
       role: d.role,
+      branch: d.branch,
+      leave_entitlement: d.leaveEntitlement,
       first_name: d.firstName || null,
       last_name: d.lastName || null,
       full_name: fullName || null,

@@ -9,11 +9,19 @@ import {
   type OpsState,
 } from "./actions";
 import {
+  daysInclusive,
   formatMoney,
   type DocType,
   type DocTypeConfig,
   type FieldConfig,
 } from "./config";
+
+export interface LeaveBalanceProps {
+  entitlement: number;
+  usedThisYear: number;
+  startField: string;
+  endField: string;
+}
 
 const inputClass =
   "w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-all focus:border-brand focus:ring-2 focus:ring-brand/20";
@@ -32,6 +40,8 @@ export function OpsForm({
   docId,
   initialData,
   editor = "admin",
+  balance = null,
+  defaultCurrency = "GHS",
 }: {
   docType: DocType;
   config: Pick<DocTypeConfig, "fields" | "lineItems" | "title">;
@@ -40,13 +50,19 @@ export function OpsForm({
   initialData?: Values;
   /** Who is editing: the submitter ("owner") or administration ("admin"). */
   editor?: "owner" | "admin";
+  /** Live annual-leave balance summary (leave and excuse duty only). */
+  balance?: LeaveBalanceProps | null;
+  /** Currency preselected for money forms (RWF for Rwanda staff). */
+  defaultCurrency?: string;
 }) {
   const [state, formAction, pending] = useActionState<OpsState, FormData>(
     docId ? (editor === "owner" ? editOwnDocument : updateOpsDocument) : submitOpsDocument,
     { error: null },
   );
   const [values, setValues] = useState<Values>(() => ({
-    ...Object.fromEntries(config.fields.map((f) => [f.name, ""])),
+    ...Object.fromEntries(
+      config.fields.map((f) => [f.name, f.name === "currency" ? defaultCurrency : ""]),
+    ),
     ...(config.lineItems
       ? { [config.lineItems.name]: [emptyItem(config as DocTypeConfig)] }
       : {}),
@@ -60,7 +76,16 @@ export function OpsForm({
     Record<string, string>
   >;
 
-  const currency = String(values.currency || "GHS");
+  const currency = String(values.currency || defaultCurrency);
+  const leaveDays = balance
+    ? daysInclusive(
+        String(values[balance.startField] ?? ""),
+        String(values[balance.endField] ?? ""),
+      )
+    : 0;
+  const remaining = balance
+    ? balance.entitlement - balance.usedThisYear - leaveDays
+    : 0;
   const runningTotal = config.lineItems
     ? items.reduce((sum, item) => {
         if ("amount" in item) return sum + (Number(item.amount) || 0);
@@ -135,6 +160,24 @@ export function OpsForm({
           </div>
         ))}
       </div>
+
+      {balance ? (
+        <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-line bg-mist/40 p-5 sm:grid-cols-4">
+          <Stat label="Days entitled" value={String(balance.entitlement)} />
+          <Stat label="Used this year" value={String(balance.usedThisYear)} />
+          <Stat label="This request" value={`${leaveDays} day${leaveDays === 1 ? "" : "s"}`} />
+          <Stat
+            label="Remaining"
+            value={String(Math.max(0, remaining))}
+            warn={remaining < 0}
+          />
+          {remaining < 0 ? (
+            <p className="col-span-2 text-xs text-red-600 sm:col-span-4">
+              This request exceeds the remaining annual leave balance.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {config.lineItems ? (
         <div className="mt-7">
@@ -217,5 +260,14 @@ export function OpsForm({
             : `Submit ${config.title.toLowerCase()}`}
       </button>
     </form>
+  );
+}
+
+function Stat({ label, value, warn = false }: { label: string; value: string; warn?: boolean }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-body">{label}</p>
+      <p className={`mt-1 text-lg font-bold ${warn ? "text-red-600" : "text-navy"}`}>{value}</p>
+    </div>
   );
 }
