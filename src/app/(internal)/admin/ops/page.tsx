@@ -26,13 +26,19 @@ const TABS: Array<{ value: string; label: string }> = [
   { value: "all", label: "All" },
 ];
 
+const BRANCH_TABS: Array<{ value: string; label: string }> = [
+  { value: "", label: "All branches" },
+  { value: "ghana", label: "Ghana" },
+  { value: "rwanda", label: "Rwanda" },
+];
+
 export default async function OpsQueuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; branch?: string }>;
 }) {
   await requireCapability("manage_documents");
-  const { status = "submitted" } = await searchParams;
+  const { status = "submitted", branch = "" } = await searchParams;
   const profile = await getSessionProfile();
   const canSubmit =
     !!profile && (await getSubmittableTypes(profile.role)).length > 0;
@@ -44,6 +50,7 @@ export default async function OpsQueuePage({
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
+  if (branch) query = query.eq("branch", branch);
   const { data: docs } = await query;
   const [approvalsMap, ctx] = await Promise.all([
     getApprovalsMap((docs ?? []).map((d) => d.id)),
@@ -78,11 +85,28 @@ export default async function OpsQueuePage({
         ) : null}
       </div>
 
-      <div className="mt-6 flex gap-1 border-b border-line">
+      {/* Branch tabs keep Ghana and Rwanda separate for auditing. */}
+      <div className="mt-6 flex flex-wrap gap-2">
+        {BRANCH_TABS.map((tab) => (
+          <Link
+            key={tab.value || "all"}
+            href={`/admin/ops?status=${status}${tab.value ? `&branch=${tab.value}` : ""}`}
+            className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              branch === tab.value
+                ? "border-brand bg-brand text-white"
+                : "border-line text-slate-body hover:border-brand hover:text-brand"
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-4 flex gap-1 border-b border-line">
         {TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={`/admin/ops?status=${tab.value}`}
+            href={`/admin/ops?status=${tab.value}${branch ? `&branch=${branch}` : ""}`}
             className={`rounded-t-md px-4 py-2 text-sm font-semibold transition-colors ${
               status === tab.value
                 ? "border border-b-0 border-line bg-white text-brand"

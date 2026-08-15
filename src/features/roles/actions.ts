@@ -176,6 +176,7 @@ const CAPABILITY_ENUM = [
   "manage_support",
   "manage_users",
   "manage_roles",
+  "manage_accounting",
 ] as const;
 
 /** Grants or revokes a management capability for a role (admin holds all). */

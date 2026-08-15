@@ -359,3 +359,16 @@ export function documentTotal(docType: DocType, data: Record<string, unknown>): 
   if (docType === "fund_request") return data.amount as number;
   return null;
 }
+
+/** Document types that carry a monetary amount (used by accounting). */
+export const MONEY_DOC_TYPES = DOC_TYPES.filter((t) =>
+  DOC_CONFIG[t].fields.some((f) => f.name === "currency"),
+);
+
+/**
+ * Accounting direction of a money document: invoices are receivable (money in),
+ * every other money document is a payable disbursement (money out).
+ */
+export function moneyCategory(docType: DocType): "receivable" | "payable" {
+  return docType === "invoice" ? "receivable" : "payable";
+}

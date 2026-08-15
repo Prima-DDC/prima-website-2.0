@@ -35,6 +35,11 @@ export const CAPABILITIES = [
     label: "Roles & permissions",
     description: "Configure roles, request permissions, and capabilities.",
   },
+  {
+    key: "manage_accounting",
+    label: "Accounting",
+    description: "View financial reporting and record payments on money requests and invoices.",
+  },
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number]["key"];

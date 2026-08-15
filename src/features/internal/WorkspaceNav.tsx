@@ -4,6 +4,7 @@ import {
   Award,
   Briefcase,
   Building2,
+  Calculator,
   ClipboardCheck,
   FilePlus2,
   FileText,
@@ -39,6 +40,7 @@ const ICONS: Record<string, LucideIcon> = {
   FilePlus2,
   Award,
   Building2,
+  Calculator,
 };
 
 export interface WorkspaceNavItem {

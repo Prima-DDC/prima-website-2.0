@@ -250,6 +250,18 @@ Verified: tsc, ESLint, build (73/73) clean; em-dash grep 0; migrations applied t
 
 Note: all 18 existing staff default to the Ghana branch. Set branch to Rwanda for Rwandan staff (e.g. Cynthia Teta, Jovaneh Mukunzi) in Admin > Users; the field is on the staff record.
 
+## Phase 16 (2026-08-15): Accounting for Finance + deeper Ghana/Rwanda audit separation (DONE)
+
+Added a Finance accounting section and reinforced the branch separation so Ghana and Rwanda never merge in reporting.
+
+- New `manage_accounting` capability (migration `0015`, `capabilities/config.ts`, `CAPABILITY_ENUM`), granted to the Finance role by default (admin holds it implicitly). Adds an "Accounting" item to the admin nav.
+- Payment tracking: `ops_documents` gains `payment_status` (unpaid/paid), `paid_at`, `payment_ref`. `recordPayment`/`reversePayment` server actions (gated by `manage_accounting`) mark approved money documents paid/collected with a reference; inline control in the register.
+- `/admin/accounting`: reads every money document (the five types with a currency) and reports **per branch and per currency**, split into Disbursements (payable: fund requests, petty cash, expenses, honour certificates) and Invoices (receivable), each showing Approved / Paid or Collected / Outstanding. Currencies and branches are never combined. A filterable register (branch, status, type, currency, date range) lists all money documents; a CSV export route (`/admin/accounting/export`) honours the same filters for audit.
+- Audit separation: the admin Approvals queue (`/admin/ops`) gains Ghana / Rwanda / All branch tabs (preserving the status tab), and already carried a Branch column. Approvals remain branch-scoped from Phase 15.
+- Config helpers `MONEY_DOC_TYPES` and `moneyCategory` drive the accounting logic generically.
+
+Verified: tsc, ESLint, build (75/75, incl. the two new accounting routes) clean; em-dash grep 0; migration applied to the live DB (Finance holds `manage_accounting`; payment columns + check present). Throwaway-user e2e (created then removed): a Rwanda invoice numbered PRIMA-RW-INV-...; the summary computed Ghana GHS 5,300 payable and Rwanda RWF 200,000 receivable with no cross-branch or cross-currency merging; recording a payment split paid 5,000 vs outstanding 300 correctly.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

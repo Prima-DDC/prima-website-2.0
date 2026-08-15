@@ -14,6 +14,7 @@ const NAV_ITEMS: Array<WorkspaceNavItem & { capability?: Capability }> = [
   { href: "/admin/media", label: "Media", icon: "ImageIcon", capability: "manage_media" },
   { href: "/admin/inbox", label: "Inbox", icon: "Inbox", capability: "manage_inbox" },
   { href: "/admin/ops", label: "Approvals", icon: "ClipboardCheck", capability: "manage_documents" },
+  { href: "/admin/accounting", label: "Accounting", icon: "Calculator", capability: "manage_accounting" },
   { href: "/admin/support", label: "Support", icon: "LifeBuoy", capability: "manage_support" },
   { href: "/admin/roles", label: "Roles", icon: "Workflow", capability: "manage_roles" },
   { href: "/admin/users", label: "Users", icon: "Users", capability: "manage_users" },
