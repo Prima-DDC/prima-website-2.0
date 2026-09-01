@@ -262,6 +262,20 @@ Added a Finance accounting section and reinforced the branch separation so Ghana
 
 Verified: tsc, ESLint, build (75/75, incl. the two new accounting routes) clean; em-dash grep 0; migration applied to the live DB (Finance holds `manage_accounting`; payment columns + check present). Throwaway-user e2e (created then removed): a Rwanda invoice numbered PRIMA-RW-INV-...; the summary computed Ghana GHS 5,300 payable and Rwanda RWF 200,000 receivable with no cross-branch or cross-currency merging; recording a payment split paid 5,000 vs outstanding 300 correctly.
 
+## Phase 17 (2026-09-01): Fix doc-number collision + remove the Rwanda branch system (DONE)
+
+Two fixes.
+
+1. Document entry failed with `duplicate key value violates unique constraint "ops_documents_doc_number_key"`. Cause: an earlier counter realignment set each `ops_counters.seq` to the COUNT of documents, which is lower than the MAX number used when there are gaps (honour certificate counter was 5 while PRIMA-HC-2026-0007 already existed, so the trigger regenerated 0006). Migration `0016` rebuilds every counter to `max(trailing number)` parsed from existing `doc_number`s, so the next number always exceeds every existing one. Verified: the next honour certificate is now PRIMA-HC-2026-0008 and a real RLS submit succeeds.
+
+2. Removed the Ghana/Rwanda branch system so the app is Ghana-only. Migration `0016` reverts `next_doc_number` to a single series per `(doc_type, year)`, restores the non-branch `set_doc_number` trigger, drops the two-arg generator, and drops `ops_documents.branch`, `ops_counters.branch`, and `profiles.branch`. Code reverted across `profile/types.ts`, `auth/helpers.ts` (SessionProfile), `users/actions.ts` + `AdminUserForm.tsx` (branch select), `ProfileForm.tsx`, `ops/actions.ts` (branch-scoped approval + notifications), `notify.ts` (`userIdsByRoleAndBranch` removed), `portal/approvals/page.tsx`, `admin/ops/page.tsx` (branch tabs/column), and the accounting module (`queries.ts`/`page.tsx`/`export` now group by currency only). Kept: excuse duty, the leave-balance system, admin-set `leave_entitlement`, accounting + payment tracking, and the corrected staff data.
+
+Multicurrency is retained: the currency selector still offers GHS/RWF/USD/EUR and accounting reports per currency (currencies never combine). Money forms simply default to GHS instead of a branch-derived currency.
+
+Verified: tsc, ESLint, build (75/75) clean; em-dash grep 0; migration applied to the live DB (counters rebuilt to true max, branch columns dropped). Rolled-back number generation is collision-free for every type; a real honour-certificate submit produced PRIMA-HC-2026-0008; the accounting query and a leave submit work with no branch. Test data removed and counters realigned.
+
+Note: the public marketing site still describes the firm's Kigali (Rwanda) office in `content/fallback/offices.ts`, `services.ts`, `blocks.ts`, `seo.ts`. That is the company's real public presence, not an internal feature, so it was left as-is. Say the word if you also want the Rwanda office removed from the public website.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

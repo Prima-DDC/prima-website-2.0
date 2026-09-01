@@ -14,7 +14,6 @@ export interface MoneyRow {
   docType: DocType;
   typeLabel: string;
   category: "receivable" | "payable";
-  branch: string;
   currency: string;
   amount: number;
   status: string;
@@ -26,7 +25,6 @@ export interface MoneyRow {
 }
 
 export interface AccountingFilters {
-  branch?: string;
   status?: string;
   type?: string;
   currency?: string;
@@ -41,12 +39,11 @@ export async function getMoneyRows(f: AccountingFilters): Promise<MoneyRow[]> {
   let q = db
     .from("ops_documents")
     .select(
-      "id, doc_type, doc_number, data, status, branch, payment_status, paid_at, payment_ref, created_at, profiles:submitted_by (full_name, email)",
+      "id, doc_type, doc_number, data, status, payment_status, paid_at, payment_ref, created_at, profiles:submitted_by (full_name, email)",
     )
     .in("doc_type", MONEY_DOC_TYPES)
     .order("created_at", { ascending: false })
     .limit(1000);
-  if (f.branch) q = q.eq("branch", f.branch);
   if (f.status) q = q.eq("status", f.status);
   if (f.type) q = q.eq("doc_type", f.type);
   if (f.from) q = q.gte("created_at", f.from);
@@ -69,7 +66,6 @@ export async function getMoneyRows(f: AccountingFilters): Promise<MoneyRow[]> {
       docType: dt,
       typeLabel: DOC_CONFIG[dt].title,
       category: moneyCategory(dt),
-      branch: d.branch,
       currency,
       amount: documentTotal(dt, docData) ?? 0,
       status: d.status,
@@ -84,7 +80,6 @@ export async function getMoneyRows(f: AccountingFilters): Promise<MoneyRow[]> {
 }
 
 export interface Bucket {
-  branch: string;
   currency: string;
   approved: number;
   paid: number;
@@ -94,8 +89,7 @@ export interface Bucket {
 
 /**
  * Approved money totals grouped by category (payable vs receivable), then by
- * branch and currency. Currencies and branches are never combined, so Ghana
- * GHS and Rwanda RWF stay separate for auditing.
+ * currency. Currencies are never combined, so GHS and any USD/EUR stay separate.
  */
 export function summarize(
   rows: MoneyRow[],
@@ -106,9 +100,7 @@ export function summarize(
   };
   for (const r of rows) {
     if (r.status !== "approved") continue;
-    const key = `${r.branch}|${r.currency}`;
-    const g = (groups[r.category][key] ??= {
-      branch: r.branch,
+    const g = (groups[r.category][r.currency] ??= {
       currency: r.currency,
       approved: 0,
       paid: 0,
@@ -121,7 +113,7 @@ export function summarize(
     else g.outstanding += r.amount;
   }
   const sort = (b: Record<string, Bucket>) =>
-    Object.values(b).sort((a, z) => a.branch.localeCompare(z.branch) || a.currency.localeCompare(z.currency));
+    Object.values(b).sort((a, z) => a.currency.localeCompare(z.currency));
   return { payable: sort(groups.payable), receivable: sort(groups.receivable) };
 }
 
@@ -131,7 +123,6 @@ export function rowsToCsv(rows: MoneyRow[]): string {
     "Document",
     "Type",
     "Category",
-    "Branch",
     "Submitter",
     "Currency",
     "Amount",
@@ -147,7 +138,6 @@ export function rowsToCsv(rows: MoneyRow[]): string {
       r.docNumber,
       r.typeLabel,
       r.category,
-      r.branch,
       r.submitter,
       r.currency,
       r.amount.toFixed(2),

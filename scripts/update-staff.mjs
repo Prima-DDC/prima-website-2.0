@@ -32,7 +32,6 @@ for (const s of STAFF) {
     last_name: s.last,
     full_name: `${s.first} ${s.last}`,
     job_title: s.title,
-    branch: "ghana",
   };
   if (s.contract) update.contract_staff = true;
   const { data, error } = await db

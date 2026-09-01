@@ -32,7 +32,6 @@ export default async function NewDocumentPage({
     const usedThisYear = await getLeaveUsage(profile.id, new Date().getFullYear());
     balance = { entitlement, usedThisYear, ...leaveBalance };
   }
-  const defaultCurrency = profile.branch === "rwanda" ? "RWF" : "GHS";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -44,7 +43,6 @@ export default async function NewDocumentPage({
           docType={docType}
           config={{ title, fields, lineItems }}
           balance={balance}
-          defaultCurrency={defaultCurrency}
         />
       </div>
     </div>

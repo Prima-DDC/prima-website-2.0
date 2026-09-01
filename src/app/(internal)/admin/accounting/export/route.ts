@@ -7,7 +7,6 @@ export async function GET(request: NextRequest) {
   await requireCapability("manage_accounting");
   const sp = request.nextUrl.searchParams;
   const rows = await getMoneyRows({
-    branch: sp.get("branch") || undefined,
     status: sp.get("status") || undefined,
     type: sp.get("type") || undefined,
     currency: sp.get("currency") || undefined,

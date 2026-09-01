@@ -26,19 +26,13 @@ const TABS: Array<{ value: string; label: string }> = [
   { value: "all", label: "All" },
 ];
 
-const BRANCH_TABS: Array<{ value: string; label: string }> = [
-  { value: "", label: "All branches" },
-  { value: "ghana", label: "Ghana" },
-  { value: "rwanda", label: "Rwanda" },
-];
-
 export default async function OpsQueuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; branch?: string }>;
+  searchParams: Promise<{ status?: string }>;
 }) {
   await requireCapability("manage_documents");
-  const { status = "submitted", branch = "" } = await searchParams;
+  const { status = "submitted" } = await searchParams;
   const profile = await getSessionProfile();
   const canSubmit =
     !!profile && (await getSubmittableTypes(profile.role)).length > 0;
@@ -46,11 +40,10 @@ export default async function OpsQueuePage({
 
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, branch, created_at, profiles:submitted_by (full_name, email)")
+    .select("id, doc_type, doc_number, status, created_at, profiles:submitted_by (full_name, email)")
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
-  if (branch) query = query.eq("branch", branch);
   const { data: docs } = await query;
   const [approvalsMap, ctx] = await Promise.all([
     getApprovalsMap((docs ?? []).map((d) => d.id)),
@@ -85,28 +78,11 @@ export default async function OpsQueuePage({
         ) : null}
       </div>
 
-      {/* Branch tabs keep Ghana and Rwanda separate for auditing. */}
-      <div className="mt-6 flex flex-wrap gap-2">
-        {BRANCH_TABS.map((tab) => (
-          <Link
-            key={tab.value || "all"}
-            href={`/admin/ops?status=${status}${tab.value ? `&branch=${tab.value}` : ""}`}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-              branch === tab.value
-                ? "border-brand bg-brand text-white"
-                : "border-line text-slate-body hover:border-brand hover:text-brand"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-4 flex gap-1 border-b border-line">
+      <div className="mt-6 flex gap-1 border-b border-line">
         {TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={`/admin/ops?status=${tab.value}${branch ? `&branch=${branch}` : ""}`}
+            href={`/admin/ops?status=${tab.value}`}
             className={`rounded-t-md px-4 py-2 text-sm font-semibold transition-colors ${
               status === tab.value
                 ? "border border-b-0 border-line bg-white text-brand"
@@ -144,9 +120,6 @@ export default async function OpsQueuePage({
                   </div>
                   <p className="mt-1 text-sm text-navy">
                     {DOC_CONFIG[doc.doc_type as DocType]?.title}
-                    <span className="ml-2 rounded bg-mist px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-body">
-                      {doc.branch === "rwanda" ? "Rwanda" : "Ghana"}
-                    </span>
                   </p>
                   <p className="mt-1 text-xs text-slate-body">
                     {submitter?.full_name || submitter?.email}
@@ -168,7 +141,6 @@ export default async function OpsQueuePage({
                 <tr>
                   <th className="px-5 py-3 font-semibold">Document</th>
                   <th className="px-5 py-3 font-semibold">Type</th>
-                  <th className="px-5 py-3 font-semibold">Branch</th>
                   <th className="px-5 py-3 font-semibold">Submitted by</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3 font-semibold">Sign-offs</th>
@@ -193,9 +165,6 @@ export default async function OpsQueuePage({
                       </td>
                       <td className="px-5 py-3.5 text-navy">
                         {DOC_CONFIG[doc.doc_type as DocType]?.title}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-body">
-                        {doc.branch === "rwanda" ? "Rwanda" : "Ghana"}
                       </td>
                       <td className="px-5 py-3.5 text-slate-body">
                         {submitter?.full_name || submitter?.email}

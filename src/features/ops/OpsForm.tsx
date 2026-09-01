@@ -41,7 +41,6 @@ export function OpsForm({
   initialData,
   editor = "admin",
   balance = null,
-  defaultCurrency = "GHS",
 }: {
   docType: DocType;
   config: Pick<DocTypeConfig, "fields" | "lineItems" | "title">;
@@ -52,8 +51,6 @@ export function OpsForm({
   editor?: "owner" | "admin";
   /** Live annual-leave balance summary (leave and excuse duty only). */
   balance?: LeaveBalanceProps | null;
-  /** Currency preselected for money forms (RWF for Rwanda staff). */
-  defaultCurrency?: string;
 }) {
   const [state, formAction, pending] = useActionState<OpsState, FormData>(
     docId ? (editor === "owner" ? editOwnDocument : updateOpsDocument) : submitOpsDocument,
@@ -61,7 +58,7 @@ export function OpsForm({
   );
   const [values, setValues] = useState<Values>(() => ({
     ...Object.fromEntries(
-      config.fields.map((f) => [f.name, f.name === "currency" ? defaultCurrency : ""]),
+      config.fields.map((f) => [f.name, f.name === "currency" ? "GHS" : ""]),
     ),
     ...(config.lineItems
       ? { [config.lineItems.name]: [emptyItem(config as DocTypeConfig)] }
@@ -76,7 +73,7 @@ export function OpsForm({
     Record<string, string>
   >;
 
-  const currency = String(values.currency || defaultCurrency);
+  const currency = String(values.currency || "GHS");
   const leaveDays = balance
     ? daysInclusive(
         String(values[balance.startField] ?? ""),

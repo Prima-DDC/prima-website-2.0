@@ -28,7 +28,6 @@ export default async function AccountingPage({
   await requireCapability("manage_accounting");
   const sp = await searchParams;
   const filters = {
-    branch: sp.branch,
     status: sp.status,
     type: sp.type,
     currency: sp.currency,
@@ -47,8 +46,8 @@ export default async function AccountingPage({
         <div>
           <h1 className="text-2xl font-bold text-navy">Accounting</h1>
           <p className="mt-1 text-sm text-slate-body">
-            Approved money is reported per branch and per currency; Ghana and
-            Rwanda never combine. Mark disbursements and invoice collections as paid.
+            Approved money is reported per currency (currencies never combine).
+            Mark disbursements and invoice collections as paid.
           </p>
         </div>
         <Link
@@ -68,13 +67,6 @@ export default async function AccountingPage({
 
       {/* Filters */}
       <form method="get" className="mt-8 flex flex-wrap items-end gap-3">
-        <Field label="Branch">
-          <select name="branch" defaultValue={filters.branch ?? ""} className={inputClass}>
-            <option value="">All branches</option>
-            <option value="ghana">Ghana</option>
-            <option value="rwanda">Rwanda</option>
-          </select>
-        </Field>
         <Field label="Status">
           <select name="status" defaultValue={filters.status ?? ""} className={inputClass}>
             <option value="">All</option>
@@ -126,7 +118,6 @@ export default async function AccountingPage({
                 <tr>
                   <th className="px-4 py-3 font-semibold">Document</th>
                   <th className="px-4 py-3 font-semibold">Type</th>
-                  <th className="px-4 py-3 font-semibold">Branch</th>
                   <th className="px-4 py-3 font-semibold">Submitter</th>
                   <th className="px-4 py-3 text-right font-semibold">Amount</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
@@ -142,7 +133,6 @@ export default async function AccountingPage({
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-navy">{r.typeLabel}</td>
-                    <td className="px-4 py-3 text-slate-body">{r.branch === "rwanda" ? "Rwanda" : "Ghana"}</td>
                     <td className="px-4 py-3 text-slate-body">{r.submitter}</td>
                     <td className="px-4 py-3 text-right font-semibold text-navy">
                       {formatMoney(r.amount, r.currency || "GHS")}
@@ -202,11 +192,9 @@ function SummaryCard({
       ) : (
         <div className="mt-4 space-y-4">
           {buckets.map((b) => (
-            <div key={`${b.branch}-${b.currency}`} className="rounded-md border border-line bg-mist/30 p-4">
+            <div key={b.currency} className="rounded-md border border-line bg-mist/30 p-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-navy">
-                  {b.branch === "rwanda" ? "Rwanda" : "Ghana"} | {b.currency || "n/a"}
-                </p>
+                <p className="text-sm font-bold text-navy">{b.currency || "n/a"}</p>
                 <p className="text-xs text-slate-body">{b.count} approved</p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">

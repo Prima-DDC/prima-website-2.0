@@ -5,11 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/features/auth/helpers";
 import { requireCapability } from "@/features/capabilities/service";
-import {
-  notify,
-  userIdsByRole,
-  userIdsByRoleAndBranch,
-} from "@/features/notifications/notify";
+import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { DOC_CONFIG, daysInclusive, nextStage, type DocType, DOC_TYPES } from "./config";
@@ -64,15 +60,10 @@ function revalidateOps(docId?: string) {
   }
 }
 
-/** Recipients for an approval notification: the stage's approvers in the
- * document's branch, plus administration (who oversees every branch). */
-async function approverRecipients(
-  role: string | undefined,
-  branch: string,
-): Promise<string[]> {
-  const admins = await userIdsByRole(["admin"]);
-  if (!role) return admins;
-  return [...(await userIdsByRoleAndBranch([role], branch)), ...admins];
+/** Recipients for an approval notification: the stage's approvers plus
+ * administration. */
+async function approverRecipients(role: string | undefined): Promise<string[]> {
+  return userIdsByRole(role ? [role, "admin"] : ["admin"]);
 }
 
 function parsePayload(docType: DocType, raw: unknown):
@@ -141,7 +132,7 @@ export async function submitOpsDocument(
     .select("doc_number")
     .eq("id", doc.id)
     .single();
-  await notify(await approverRecipients(firstStage?.role, profile.branch), {
+  await notify(await approverRecipients(firstStage?.role), {
     title: `New ${DOC_CONFIG[docType].title.toLowerCase()} for sign-off`,
     body: `${created?.doc_number ?? "A new document"} was submitted by ${profile.fullName || profile.email} and awaits the ${firstStage?.label ?? "first"} sign-off.`,
     link: `/portal/approvals/${doc.id}`,
@@ -173,7 +164,7 @@ export async function signOffDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_type, doc_number, data, status, submitted_by, branch")
+    .select("id, doc_type, doc_number, data, status, submitted_by")
     .eq("id", docId)
     .maybeSingle();
   if (!doc) return { error: "Document not found." };
@@ -194,11 +185,7 @@ export async function signOffDocument(
   if (!stage) return { error: "This document is already fully signed." };
 
   const stageLabel = stage.label;
-  // Approvers act only within their own branch; administration may act on any.
-  if (
-    profile.role !== "admin" &&
-    (profile.role !== stage.role || profile.branch !== doc.branch)
-  ) {
+  if (profile.role !== "admin" && profile.role !== stage.role) {
     return { error: `This document is awaiting the ${stageLabel} sign-off.` };
   }
 
@@ -308,7 +295,7 @@ export async function signOffDocument(
       body: `The ${stageLabel} stage signed off. Next up: ${upcoming.label}.`,
       link: `/portal/${docId}`,
     });
-    await notify(await approverRecipients(upcoming.role, doc.branch), {
+    await notify(await approverRecipients(upcoming.role), {
       title: `${doc.doc_number} awaits your ${upcoming.label} sign-off`,
       body: `The ${stageLabel} stage approved this ${docTitle.toLowerCase()}; it now needs the ${upcoming.label} decision.`,
       link: `/portal/approvals/${docId}`,
@@ -380,7 +367,7 @@ export async function editOwnDocument(
 
   const chain = await chainForType(docType);
   const firstStage = chain[0];
-  await notify(await approverRecipients(firstStage?.role, profile.branch), {
+  await notify(await approverRecipients(firstStage?.role), {
     title: `${doc.doc_number} was edited and needs sign-off`,
     body: `${profile.fullName || profile.email} updated this ${DOC_CONFIG[docType].title.toLowerCase()}${(signOffs ?? 0) > 0 ? "; earlier sign-offs were cleared" : ""}. It awaits the ${firstStage?.label ?? "first"} decision.`,
     link: `/portal/approvals/${docId}`,

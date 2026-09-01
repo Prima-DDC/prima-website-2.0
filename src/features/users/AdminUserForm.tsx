@@ -77,13 +77,6 @@ export function AdminUserForm({
           ) : null}
         </div>
         <div>
-          <label htmlFor="u-branch" className="mb-1.5 block text-sm font-semibold text-navy">Branch</label>
-          <select id="u-branch" name="branch" defaultValue={profile.branch} className={inputClass}>
-            <option value="ghana">Ghana</option>
-            <option value="rwanda">Rwanda</option>
-          </select>
-        </div>
-        <div>
           <label htmlFor="u-entitlement" className="mb-1.5 block text-sm font-semibold text-navy">Annual leave days entitled</label>
           <select id="u-entitlement" name="leaveEntitlement" defaultValue={String(profile.leaveEntitlement)} className={inputClass}>
             {[15, 18, 21, 30].map((n) => (
