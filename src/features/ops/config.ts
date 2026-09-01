@@ -187,7 +187,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     }),
   },
   expense_form: {
-    title: "Expense Form",
+    title: "Field Expenses Form",
     description: "Submit expenses for reimbursement with line items.",
     icon: "Receipt",
     fields: [

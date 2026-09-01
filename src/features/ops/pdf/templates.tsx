@@ -339,7 +339,7 @@ const TYPE_TITLES: Record<DocType, string> = {
   honour_certificate: "Honour Certificate",
   fund_request: "Fund Request",
   petty_cash: "Petty Cash Request",
-  expense_form: "Expense Form",
+  expense_form: "Field Expenses Form",
   leave_form: "Leave Request",
   excuse_duty: "Excuse Duty Form",
   invoice: "Invoice",
