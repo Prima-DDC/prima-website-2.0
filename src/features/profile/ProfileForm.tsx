@@ -73,7 +73,10 @@ export function ProfileForm({ profile }: { profile: StaffProfile }) {
             value={profile.contractStaff ? "Contract / temporary staff" : "Permanent staff"}
           />
           <ReadOnlyField label="Business line" value={profile.businessLine ?? ""} />
-          <ReadOnlyField label="Role" value={profile.role} />
+          <ReadOnlyField
+            label={profile.roles.length > 1 ? "Roles" : "Role"}
+            value={profile.roles.join(", ")}
+          />
           <ReadOnlyField
             label="Annual leave entitlement"
             value={`${profile.leaveEntitlement} days`}

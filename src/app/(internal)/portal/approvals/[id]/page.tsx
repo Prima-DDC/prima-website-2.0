@@ -66,7 +66,7 @@ export default async function ApprovalDetailPage({
   const canAct =
     doc.status === "submitted" &&
     stage !== null &&
-    (profile.role === "admin" || stage.role === profile.role);
+    (profile.roles.includes("admin") || profile.roles.includes(stage.role));
 
   return (
     <div className="mx-auto max-w-4xl">

@@ -292,6 +292,18 @@ Note: the public marketing site still describes the firm's Kigali (Rwanda) offic
 
 Verified: tsc, ESLint, build clean; em-dash grep 0.
 
+## Phase 19 (2026-09-01): Multiple workspace roles per user (DONE)
+
+A user can now hold more than one workspace role, and their access is the union of every role they hold.
+
+1. Schema (`0017_multi_role.sql`): new `public.profile_roles (profile_id, role)` junction table is the source of truth for role membership; `profiles.role` is kept as the "primary" (most-privileged) role for display and default routing. Backfilled from every existing profile. A `sync_primary_role` trigger mirrors `profiles.role` into `profile_roles` on insert and on any role change, so the primary is always part of the set. RLS: a user reads their own memberships, `manage_users` holders read and write all.
+
+2. Authorization now reads the full set. The SECURITY DEFINER functions `is_admin()`, `is_approver()`, `has_capability()`, and `can_submit_doc()` were rewritten to join `profile_roles` instead of `profiles.role`, so a role held as a secondary role grants the same access as a primary one. App helpers made union-aware: `SessionProfile`/`StaffProfile` carry a `roles: string[]`, and `getRoleCapabilities`, `hasCapability`, `getSubmittableTypes`, `getApprovableTypes`, `requireRole`, `requireApprover`, and the approval sign-off/authorization checks all operate on the role set. `userIdsByRole` (notifications) now resolves recipients through `profile_roles`.
+
+3. Admin UX: the staff record editor (`AdminUserForm`) assigns roles with a checkbox group; `adminUpdateUser` reconciles the set and recomputes the primary (most privileged) role, refusing to let an admin strip their own admin role. The Users list shows each member's roles as badges with an Edit link (the old inline single-role select and `updateUserRole` were removed). Invitations set the invited role as the new user's sole role. Role member counts (roles screen) and the "role in use" delete guard count through `profile_roles`.
+
+Verified: tsc, ESLint, build clean; em-dash grep 0; migration applied to the live DB and backfilled 18/18 profiles with zero missing primary memberships. A throwaway end-to-end run (created and deleted a real user, signed in, and called the DB functions via RPC) confirmed all 16 checks: default-role seeding, assigning three roles at once, most-privileged primary, `is_admin()`/`has_capability()`/`is_approver()` following any assigned role, capability union surviving removal of another role, self-lockout guard math, reconcile down to one role, and full cleanup.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

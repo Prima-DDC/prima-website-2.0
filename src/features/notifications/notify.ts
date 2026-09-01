@@ -111,9 +111,13 @@ export async function notify(
   }
 }
 
-/** All user ids holding any of the given roles. */
+/** All user ids holding any of the given roles (as a primary or extra role). */
 export async function userIdsByRole(roles: Role[]): Promise<string[]> {
+  if (roles.length === 0) return [];
   const db = createSupabaseAdminClient();
-  const { data } = await db.from("profiles").select("id").in("role", roles);
-  return (data ?? []).map((row) => row.id);
+  const { data } = await db
+    .from("profile_roles")
+    .select("profile_id")
+    .in("role", roles);
+  return [...new Set((data ?? []).map((row) => row.profile_id))];
 }

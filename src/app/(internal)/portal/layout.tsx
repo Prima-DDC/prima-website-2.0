@@ -11,9 +11,9 @@ export default async function PortalLayout({
 }) {
   const profile = await requireRole();
   const [submittable, approvable, capabilities] = await Promise.all([
-    getSubmittableTypes(profile.role),
-    getApprovableTypes(profile.role),
-    getRoleCapabilities(profile.role),
+    getSubmittableTypes(profile.roles),
+    getApprovableTypes(profile.roles),
+    getRoleCapabilities(profile.roles),
   ]);
   const canSubmit = submittable.length > 0;
   const isApprover = approvable.length > 0;

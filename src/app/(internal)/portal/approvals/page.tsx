@@ -25,7 +25,7 @@ export default async function PortalApprovalsPage({
     .order("created_at")
     .limit(200);
   // Approvers only see request types they are configured to review.
-  if (profile.role !== "admin") {
+  if (!profile.roles.includes("admin")) {
     query = query.in("doc_type", approvableTypes);
   }
   if (type) query = query.eq("doc_type", type);
@@ -42,7 +42,9 @@ export default async function PortalApprovalsPage({
     return {
       ...doc,
       stageLabel: stage?.label ?? "-",
-      yourTurn: stage !== null && (profile.role === "admin" || stage.role === profile.role),
+      yourTurn:
+        stage !== null &&
+        (profile.roles.includes("admin") || profile.roles.includes(stage.role)),
     };
   });
   const actionable = rows.filter((r) => r.yourTurn).length;
@@ -60,7 +62,7 @@ export default async function PortalApprovalsPage({
     );
   });
   const typeOptions = DOC_TYPES.filter(
-    (t) => profile.role === "admin" || approvableTypes.includes(t),
+    (t) => profile.roles.includes("admin") || approvableTypes.includes(t),
   );
 
   return (

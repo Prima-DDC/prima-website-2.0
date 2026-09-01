@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
-import { ConfirmButton } from "@/components/ConfirmDialog";
 import { requireCapability } from "@/features/capabilities/service";
-import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
 import { getRoles } from "@/features/roles/queries";
@@ -23,15 +21,24 @@ export default async function UsersPage({
   const { q, role } = await searchParams;
   const supabase = await createSupabaseServerClient();
   const roles = await getRoles();
-  let query = supabase
+  const labelOf = (key: string) =>
+    roles.find((r) => r.key === key)?.label ?? key;
+  const { data: allUsers } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, job_title, photo_path, created_at")
+    .select("id, email, full_name, role, job_title, photo_path, created_at, profile_roles (role)")
     .order("created_at");
-  if (role) query = query.eq("role", role);
-  const { data: allUsers } = await query;
-  const users = (allUsers ?? []).filter((u) =>
-    matchesQuery(q, u.full_name, u.email, u.job_title),
-  );
+  const users = (allUsers ?? [])
+    .map((u) => ({
+      ...u,
+      roleKeys: [
+        ...new Set(
+          ((u.profile_roles ?? []) as Array<{ role: string }>).map((r) => r.role),
+        ),
+      ],
+    }))
+    // A user matches a role filter when they hold that role, primary or not.
+    .filter((u) => !role || u.roleKeys.includes(role))
+    .filter((u) => matchesQuery(q, u.full_name, u.email, u.job_title));
 
   // Users who were invited but have not confirmed their email yet are pending;
   // they get a "Resend invite" action instead of a password reset.
@@ -109,37 +116,24 @@ export default async function UsersPage({
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
-                      {user.id === acting.id ? (
-                        <span className="text-sm font-medium capitalize text-navy">
-                          {user.role}
-                        </span>
-                      ) : (
-                        <form action={updateUserRole}>
-                          <input type="hidden" name="userId" value={user.id} />
-                          <select
-                            name="role"
-                            defaultValue={user.role}
-                            className="rounded-md border border-line bg-white px-2.5 py-1.5 text-xs font-medium text-navy outline-none focus:border-brand"
-                          >
-                            {roles.map((r) => (
-                              <option key={r.key} value={r.key}>
-                                {r.label}
-                              </option>
-                            ))}
-                          </select>
-                          <ConfirmButton
-                            dialog={{
-                              tone: "brand",
-                              title: "Change this user's role?",
-                              message: `The new role takes effect immediately for ${user.full_name || user.email}, changing what they can see and do across the workspace.`,
-                              confirmLabel: "Apply new role",
-                            }}
-                            className="ml-2 rounded border border-line px-2.5 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-brand hover:text-brand"
-                          >
-                            Save
-                          </ConfirmButton>
-                        </form>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {(user.roleKeys.length ? user.roleKeys : [user.role]).map(
+                          (key) => (
+                            <span
+                              key={key}
+                              className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-semibold text-navy"
+                            >
+                              {labelOf(key)}
+                            </span>
+                          ),
+                        )}
+                        <Link
+                          href={`/admin/users/${user.id}`}
+                          className="text-xs font-semibold text-brand hover:text-brand-dark"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-slate-body">
                       {new Date(user.created_at).toLocaleDateString("en-GB")}

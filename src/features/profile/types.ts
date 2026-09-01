@@ -2,7 +2,10 @@ export interface StaffProfile {
   id: string;
   email: string;
   fullName: string | null;
+  /** Primary (most-privileged) role. */
   role: string;
+  /** Every role the user holds. */
+  roles: string[];
   leaveEntitlement: number;
   firstName: string | null;
   lastName: string | null;
@@ -24,6 +27,9 @@ export function toStaffProfile(row: any): StaffProfile {
     email: row.email,
     fullName: row.full_name,
     role: row.role,
+    roles: Array.isArray(row.profile_roles)
+      ? [...new Set(row.profile_roles.map((r: { role: string }) => r.role))]
+      : [row.role],
     leaveEntitlement: row.leave_entitlement ?? 15,
     firstName: row.first_name,
     lastName: row.last_name,
@@ -40,4 +46,4 @@ export function toStaffProfile(row: any): StaffProfile {
 }
 
 export const STAFF_PROFILE_COLUMNS =
-  "id, email, full_name, role, leave_entitlement, first_name, last_name, job_title, photo_path, division, start_date, contract_staff, business_line, direct_line, whatsapp_number, alt_email";
+  "id, email, full_name, role, leave_entitlement, first_name, last_name, job_title, photo_path, division, start_date, contract_staff, business_line, direct_line, whatsapp_number, alt_email, profile_roles (role)";

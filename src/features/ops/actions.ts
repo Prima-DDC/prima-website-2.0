@@ -93,7 +93,7 @@ export async function submitOpsDocument(
     .enum(DOC_TYPES as unknown as [DocType, ...DocType[]])
     .parse(formData.get("docType"));
 
-  const submittable = await getSubmittableTypes(profile.role);
+  const submittable = await getSubmittableTypes(profile.roles);
   if (!submittable.includes(docType)) {
     return {
       error: `Your role is not permitted to submit ${DOC_CONFIG[docType].title.toLowerCase()} requests. Contact administration.`,
@@ -185,7 +185,7 @@ export async function signOffDocument(
   if (!stage) return { error: "This document is already fully signed." };
 
   const stageLabel = stage.label;
-  if (profile.role !== "admin" && profile.role !== stage.role) {
+  if (!profile.roles.includes("admin") && !profile.roles.includes(stage.role)) {
     return { error: `This document is awaiting the ${stageLabel} sign-off.` };
   }
 
@@ -486,9 +486,9 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
     .eq("id", docId)
     .maybeSingle();
   if (!doc) return null;
-  if (doc.submitted_by !== profile.id && profile.role !== "admin") {
+  if (doc.submitted_by !== profile.id && !profile.roles.includes("admin")) {
     // An approver of this request type may also download the PDF.
-    const approvable = await getApprovableTypes(profile.role);
+    const approvable = await getApprovableTypes(profile.roles);
     if (!approvable.includes(doc.doc_type)) return null;
   }
 

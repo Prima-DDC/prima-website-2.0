@@ -79,7 +79,9 @@ export function WorkspaceShell({
             <Avatar photoPath={profile.photoPath} name={displayName} size={36} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-navy">{displayName}</p>
-              <p className="text-xs capitalize text-slate-body">{profile.role}</p>
+              <p className="text-xs capitalize text-slate-body">
+                {profile.roles.join(" · ")}
+              </p>
             </div>
           </div>
           <div className="mt-2">

@@ -63,18 +63,42 @@ export function AdminUserForm({
           <label htmlFor="u-start" className="mb-1.5 block text-sm font-semibold text-navy">Start of employment</label>
           <input id="u-start" name="startDate" type="date" defaultValue={profile.startDate ?? ""} className={inputClass} />
         </div>
-        <div>
-          <label htmlFor="u-role" className="mb-1.5 block text-sm font-semibold text-navy">Workspace role</label>
-          <select id="u-role" name="role" defaultValue={profile.role} disabled={isSelf} className={inputClass}>
-            {roles.map((r) => (
-              <option key={r.key} value={r.key}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-          {isSelf ? (
-            <input type="hidden" name="role" value={profile.role} />
-          ) : null}
+        <div className="sm:col-span-2">
+          <span className="mb-1.5 block text-sm font-semibold text-navy">Workspace roles</span>
+          <div className="flex flex-wrap gap-2">
+            {roles.map((r) => {
+              const checked = profile.roles.includes(r.key);
+              return (
+                <label
+                  key={r.key}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                    checked
+                      ? "border-brand bg-mist text-brand-dark"
+                      : "border-line bg-white text-navy hover:border-brand/50"
+                  } ${isSelf ? "cursor-not-allowed opacity-70" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    name="roles"
+                    value={r.key}
+                    defaultChecked={checked}
+                    disabled={isSelf}
+                    className="h-4 w-4 rounded border-line accent-brand"
+                  />
+                  {r.label}
+                </label>
+              );
+            })}
+          </div>
+          {/* Self-edits keep the current roles so an admin cannot lock themselves out. */}
+          {isSelf
+            ? profile.roles.map((r) => (
+                <input key={r} type="hidden" name="roles" value={r} />
+              ))
+            : null}
+          <p className="mt-1.5 text-xs text-slate-body">
+            Assign one or more roles. Access is the combination of every role granted.
+          </p>
         </div>
         <div>
           <label htmlFor="u-entitlement" className="mb-1.5 block text-sm font-semibold text-navy">Annual leave days entitled</label>

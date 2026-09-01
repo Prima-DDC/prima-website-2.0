@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCapability } from "@/features/capabilities/service";
 import { notify } from "@/features/notifications/notify";
-import { roleExists } from "@/features/roles/queries";
+import { getRoles, roleExists } from "@/features/roles/queries";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export interface UsersState {
@@ -14,25 +14,38 @@ export interface UsersState {
 
 const roleSchema = z.string().trim().min(1).max(60);
 
-export async function updateUserRole(formData: FormData): Promise<void> {
-  const acting = await requireCapability("manage_users");
-  const userId = z.string().uuid().parse(formData.get("userId"));
-  const role = roleSchema.parse(formData.get("role"));
-  if (!(await roleExists(role))) return;
+/**
+ * The primary role is the most privileged one held (roles are ordered by
+ * `sort`, admin first). It drives display and the default landing area, and
+ * is always a member of the assigned set.
+ */
+async function primaryRole(assigned: string[]): Promise<string> {
+  const ordered = await getRoles();
+  return ordered.find((r) => assigned.includes(r.key))?.key ?? assigned[0];
+}
 
-  // An admin cannot demote themselves; prevents locking everyone out.
-  if (userId === acting.id) return;
-
-  const admin = createSupabaseAdminClient();
-  await admin.from("profiles").update({ role }).eq("id", userId);
-
-  await notify([userId], {
-    title: "Your workspace role was updated",
-    body: `An administrator set your role to ${role.toUpperCase()}. Your access has changed accordingly.`,
-    link: "/portal/profile",
-  });
-
-  revalidatePath("/admin/users");
+/**
+ * Replaces a user's assigned roles: mirrors the primary onto profiles.role
+ * (a DB trigger keeps it in the set) and reconciles the profile_roles rows.
+ */
+async function setUserRoles(
+  db: ReturnType<typeof createSupabaseAdminClient>,
+  userId: string,
+  roles: string[],
+): Promise<void> {
+  const primary = await primaryRole(roles);
+  await db.from("profiles").update({ role: primary }).eq("id", userId);
+  await db
+    .from("profile_roles")
+    .delete()
+    .eq("profile_id", userId)
+    .not("role", "in", `(${roles.map((r) => `"${r}"`).join(",")})`);
+  await db
+    .from("profile_roles")
+    .upsert(
+      roles.map((role) => ({ profile_id: userId, role })),
+      { onConflict: "profile_id,role" },
+    );
 }
 
 const inviteSchema = z.object({
@@ -131,9 +144,12 @@ export async function inviteUser(
   if (error) return { error: error.message };
 
   if (data.user) {
+    // New auth users are created with the default role; set the invited role
+    // as their sole role rather than adding to it.
+    await setUserRoles(admin, data.user.id, [parsed.data.role]);
     await admin
       .from("profiles")
-      .update({ role: parsed.data.role, full_name: parsed.data.fullName || null })
+      .update({ full_name: parsed.data.fullName || null })
       .eq("id", data.user.id);
   }
 
@@ -143,7 +159,7 @@ export async function inviteUser(
 
 const staffSchema = z.object({
   userId: z.string().uuid(),
-  role: roleSchema,
+  roles: z.array(roleSchema).min(1, "Assign at least one role."),
   leaveEntitlement: z.coerce.number().int().refine((n) => [15, 18, 21, 30].includes(n), {
     message: "Leave entitlement must be 15, 18, 21, or 30",
   }),
@@ -171,7 +187,7 @@ export async function adminUpdateUser(
 
   const parsed = staffSchema.safeParse({
     userId: formData.get("userId"),
-    role: formData.get("role"),
+    roles: [...new Set(formData.getAll("roles").map((r) => String(r)))],
     leaveEntitlement: formData.get("leaveEntitlement"),
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
@@ -188,18 +204,25 @@ export async function adminUpdateUser(
     return { error: `${issue.path.join(".")}: ${issue.message}` };
   }
   const d = parsed.data;
-  if (!(await roleExists(d.role))) return { error: "Unknown role." };
+  for (const role of d.roles) {
+    if (!(await roleExists(role))) return { error: `Unknown role: ${role}.` };
+  }
 
-  if (d.userId === acting.id && d.role !== "admin") {
-    return { error: "You cannot change your own role." };
+  // An admin must not strip their own admin role and lock themselves out.
+  if (
+    d.userId === acting.id &&
+    acting.roles.includes("admin") &&
+    !d.roles.includes("admin")
+  ) {
+    return { error: "You cannot remove your own admin role." };
   }
 
   const fullName = [d.firstName, d.lastName].filter(Boolean).join(" ");
   const admin = createSupabaseAdminClient();
+  await setUserRoles(admin, d.userId, d.roles);
   const { error } = await admin
     .from("profiles")
     .update({
-      role: d.role,
       leave_entitlement: d.leaveEntitlement,
       first_name: d.firstName || null,
       last_name: d.lastName || null,

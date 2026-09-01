@@ -10,7 +10,7 @@ import {
   RolesManager,
   type PermissionMatrix,
 } from "@/features/roles/RolesManager";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export default async function RolesPage() {
   await requireCapability("manage_roles");
@@ -21,10 +21,10 @@ export default async function RolesPage() {
     getCapabilityMatrix(),
   ]);
 
-  const supabase = await createSupabaseServerClient();
-  const { data: profiles } = await supabase.from("profiles").select("role");
+  const db = createSupabaseAdminClient();
+  const { data: memberships } = await db.from("profile_roles").select("role");
   const memberCounts: Record<string, number> = {};
-  for (const row of profiles ?? []) {
+  for (const row of memberships ?? []) {
     memberCounts[row.role] = (memberCounts[row.role] ?? 0) + 1;
   }
 

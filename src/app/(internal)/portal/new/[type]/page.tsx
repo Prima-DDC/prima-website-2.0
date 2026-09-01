@@ -14,7 +14,7 @@ export default async function NewDocumentPage({
   const { type } = await params;
   const docType = docTypeFromSlug(type);
   if (!docType) notFound();
-  const submittable = await getSubmittableTypes(profile.role);
+  const submittable = await getSubmittableTypes(profile.roles);
   if (!submittable.includes(docType)) redirect("/portal/new");
 
   const { title, description, fields, lineItems, leaveBalance } = DOC_CONFIG[docType];

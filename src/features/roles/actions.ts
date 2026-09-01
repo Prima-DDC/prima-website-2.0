@@ -96,8 +96,8 @@ export async function deleteRole(
   if (role.built_in) return { error: "Built-in roles cannot be deleted." };
 
   const { count: members } = await db
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
+    .from("profile_roles")
+    .select("profile_id", { count: "exact", head: true })
     .eq("role", key);
   if ((members ?? 0) > 0) {
     return { error: `Reassign the ${members} member(s) holding this role first.` };

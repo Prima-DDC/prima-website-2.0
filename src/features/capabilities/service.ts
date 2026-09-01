@@ -4,22 +4,25 @@ import { requireRole, type SessionProfile } from "@/features/auth/helpers";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CAPABILITY_KEYS, type Capability } from "./config";
 
-/** Capabilities held by a role (admin holds all). */
-export async function getRoleCapabilities(role: string): Promise<Capability[]> {
-  if (role === "admin") return [...CAPABILITY_KEYS];
+/** Capabilities held across a set of roles (admin holds all). */
+export async function getRoleCapabilities(
+  roles: string[],
+): Promise<Capability[]> {
+  if (roles.includes("admin")) return [...CAPABILITY_KEYS];
+  if (roles.length === 0) return [];
   const db = createSupabaseAdminClient();
   const { data } = await db
     .from("role_capabilities")
     .select("capability")
-    .eq("role", role);
-  return (data ?? []).map((r) => r.capability as Capability);
+    .in("role", roles);
+  return [...new Set((data ?? []).map((r) => r.capability as Capability))];
 }
 
 export async function hasCapability(
-  role: string,
+  roles: string[],
   capability: Capability,
 ): Promise<boolean> {
-  return (await getRoleCapabilities(role)).includes(capability);
+  return (await getRoleCapabilities(roles)).includes(capability);
 }
 
 /** Gate an admin feature page/action by a specific capability. */
@@ -27,7 +30,7 @@ export async function requireCapability(
   capability: Capability,
 ): Promise<SessionProfile> {
   const profile = await requireRole();
-  if (!(await hasCapability(profile.role, capability))) redirect("/portal");
+  if (!(await hasCapability(profile.roles, capability))) redirect("/portal");
   return profile;
 }
 
@@ -37,7 +40,7 @@ export async function requireAnyCapability(): Promise<{
   capabilities: Capability[];
 }> {
   const profile = await requireRole();
-  const capabilities = await getRoleCapabilities(profile.role);
+  const capabilities = await getRoleCapabilities(profile.roles);
   if (capabilities.length === 0) redirect("/portal");
   return { profile, capabilities };
 }

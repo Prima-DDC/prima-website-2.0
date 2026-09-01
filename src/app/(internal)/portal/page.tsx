@@ -18,7 +18,7 @@ export default async function PortalHome({
 }) {
   const profile = await requireRole();
   const { q, type, status } = await searchParams;
-  const canSubmit = (await getSubmittableTypes(profile.role)).length > 0;
+  const canSubmit = (await getSubmittableTypes(profile.roles)).length > 0;
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("ops_documents")

@@ -26,7 +26,7 @@ const ICONS: Record<string, LucideIcon> = {
 
 export default async function NewRequestPage() {
   const profile = await requireRole();
-  const submittable = await getSubmittableTypes(profile.role);
+  const submittable = await getSubmittableTypes(profile.roles);
   if (submittable.length === 0) redirect("/portal");
 
   return (

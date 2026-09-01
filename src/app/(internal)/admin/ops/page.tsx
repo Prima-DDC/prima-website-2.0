@@ -41,7 +41,7 @@ export default async function OpsQueuePage({
   const { status = "submitted", q, type } = await searchParams;
   const profile = await getSessionProfile();
   const canSubmit =
-    !!profile && (await getSubmittableTypes(profile.role)).length > 0;
+    !!profile && (await getSubmittableTypes(profile.roles)).length > 0;
   const supabase = await createSupabaseServerClient();
 
   let query = supabase

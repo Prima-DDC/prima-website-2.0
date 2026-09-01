@@ -104,27 +104,29 @@ export async function chainForType(docType: DocType): Promise<ApprovalStage[]> {
   return chainFor(await getApprovalContext(), docType);
 }
 
-/** Request types the role may submit (admin included if granted). */
-export async function getSubmittableTypes(role: string): Promise<DocType[]> {
+/** Request types the given roles may submit (union across the roles). */
+export async function getSubmittableTypes(roles: string[]): Promise<DocType[]> {
+  if (roles.length === 0) return [];
   const db = createSupabaseAdminClient();
   const { data } = await db
     .from("role_permissions")
     .select("doc_type")
-    .eq("role", role)
+    .in("role", roles)
     .eq("can_submit", true);
-  return (data ?? []).map((r) => r.doc_type as DocType);
+  return [...new Set((data ?? []).map((r) => r.doc_type as DocType))];
 }
 
-/** Request types the role may approve (admin can approve everything). */
-export async function getApprovableTypes(role: string): Promise<DocType[]> {
-  if (role === "admin") return [...DOC_TYPES];
+/** Request types the given roles may approve (admin can approve everything). */
+export async function getApprovableTypes(roles: string[]): Promise<DocType[]> {
+  if (roles.includes("admin")) return [...DOC_TYPES];
+  if (roles.length === 0) return [];
   const db = createSupabaseAdminClient();
   const { data } = await db
     .from("role_permissions")
     .select("doc_type")
-    .eq("role", role)
+    .in("role", roles)
     .eq("can_approve", true);
-  return (data ?? []).map((r) => r.doc_type as DocType);
+  return [...new Set((data ?? []).map((r) => r.doc_type as DocType))];
 }
 
 /** Gate for approval pages: admins or any role that approves at least one type. */
@@ -133,7 +135,7 @@ export async function requireApprover(): Promise<{
   approvableTypes: DocType[];
 }> {
   const profile = await requireRole();
-  const approvableTypes = await getApprovableTypes(profile.role);
+  const approvableTypes = await getApprovableTypes(profile.roles);
   if (approvableTypes.length === 0) redirect("/portal");
   return { profile, approvableTypes };
 }
