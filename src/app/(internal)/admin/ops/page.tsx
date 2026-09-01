@@ -2,10 +2,16 @@ import { FilePlus2 } from "lucide-react";
 import Link from "next/link";
 import {
   DOC_CONFIG,
+  DOC_TYPES,
   nextStage,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
+import {
+  ListToolbar,
+  filterSelectClass,
+  matchesQuery,
+} from "@/features/internal/ListToolbar";
 import {
   chainFor,
   getApprovalContext,
@@ -29,10 +35,10 @@ const TABS: Array<{ value: string; label: string }> = [
 export default async function OpsQueuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; type?: string }>;
 }) {
   await requireCapability("manage_documents");
-  const { status = "submitted" } = await searchParams;
+  const { status = "submitted", q, type } = await searchParams;
   const profile = await getSessionProfile();
   const canSubmit =
     !!profile && (await getSubmittableTypes(profile.role)).length > 0;
@@ -44,7 +50,21 @@ export default async function OpsQueuePage({
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
-  const { data: docs } = await query;
+  if (type) query = query.eq("doc_type", type);
+  const { data: allDocs } = await query;
+  const docs = (allDocs ?? []).filter((d) => {
+    const submitter = d.profiles as unknown as {
+      full_name: string | null;
+      email: string;
+    } | null;
+    return matchesQuery(
+      q,
+      d.doc_number,
+      DOC_CONFIG[d.doc_type as DocType]?.title,
+      submitter?.full_name,
+      submitter?.email,
+    );
+  });
   const [approvalsMap, ctx] = await Promise.all([
     getApprovalsMap((docs ?? []).map((d) => d.id)),
     getApprovalContext(),
@@ -94,7 +114,21 @@ export default async function OpsQueuePage({
         ))}
       </div>
 
-      {!docs || docs.length === 0 ? (
+      <ListToolbar
+        action="/admin/ops"
+        q={q}
+        placeholder="Search by number, type, or submitter"
+        hidden={{ status: status === "submitted" ? undefined : status }}
+      >
+        <select name="type" defaultValue={type ?? ""} className={filterSelectClass}>
+          <option value="">All types</option>
+          {DOC_TYPES.map((t) => (
+            <option key={t} value={t}>{DOC_CONFIG[t].title}</option>
+          ))}
+        </select>
+      </ListToolbar>
+
+      {docs.length === 0 ? (
         <p className="mt-8 rounded-lg border border-dashed border-line bg-white p-10 text-center text-sm text-slate-body">
           Nothing here.
         </p>

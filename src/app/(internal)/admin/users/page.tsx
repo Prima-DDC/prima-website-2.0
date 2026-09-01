@@ -6,17 +6,32 @@ import { updateUserRole } from "@/features/users/actions";
 import { InviteUserForm } from "@/features/users/InviteUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
 import { getRoles } from "@/features/roles/queries";
+import {
+  ListToolbar,
+  filterSelectClass,
+  matchesQuery,
+} from "@/features/internal/ListToolbar";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; role?: string }>;
+}) {
   const acting = await requireCapability("manage_users");
+  const { q, role } = await searchParams;
   const supabase = await createSupabaseServerClient();
   const roles = await getRoles();
-  const { data: users } = await supabase
+  let query = supabase
     .from("profiles")
-    .select("id, email, full_name, role, photo_path, created_at")
+    .select("id, email, full_name, role, job_title, photo_path, created_at")
     .order("created_at");
+  if (role) query = query.eq("role", role);
+  const { data: allUsers } = await query;
+  const users = (allUsers ?? []).filter((u) =>
+    matchesQuery(q, u.full_name, u.email, u.job_title),
+  );
 
   // Users who were invited but have not confirmed their email yet are pending;
   // they get a "Resend invite" action instead of a password reset.
@@ -35,7 +50,16 @@ export default async function UsersPage() {
         Manage workspace access and roles.
       </p>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <ListToolbar action="/admin/users" q={q} placeholder="Search by name, email, or job title">
+        <select name="role" defaultValue={role ?? ""} className={filterSelectClass}>
+          <option value="">All roles</option>
+          {roles.map((r) => (
+            <option key={r.key} value={r.key}>{r.label}</option>
+          ))}
+        </select>
+      </ListToolbar>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="overflow-hidden rounded-lg border border-line bg-white lg:col-span-2">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -48,7 +72,14 @@ export default async function UsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {(users ?? []).map((user) => (
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-body">
+                      No users match your search.
+                    </td>
+                  </tr>
+                ) : null}
+                {users.map((user) => (
                   <tr key={user.id}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">

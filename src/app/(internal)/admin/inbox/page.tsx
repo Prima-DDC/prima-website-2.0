@@ -2,6 +2,11 @@ import { Archive, MailOpen } from "lucide-react";
 import { requireCapability } from "@/features/capabilities/service";
 import { ConfirmButton } from "@/components/ConfirmDialog";
 import { updateSubmissionStatus } from "@/features/contact/admin-actions";
+import {
+  ListToolbar,
+  filterSelectClass,
+  matchesQuery,
+} from "@/features/internal/ListToolbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -10,15 +15,26 @@ const STATUS_STYLES: Record<string, string> = {
   archived: "bg-line/50 text-slate-body/70",
 };
 
-export default async function InboxPage() {
+export default async function InboxPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
   await requireCapability("manage_inbox");
+  const { q, status } = await searchParams;
   const supabase = await createSupabaseServerClient();
-  const { data: submissions } = await supabase
+  let query = supabase
     .from("contact_submissions")
     .select("id, name, email, phone, service_interest, message, locale, status, created_at")
     .neq("status", "archived")
     .order("created_at", { ascending: false })
     .limit(100);
+  if (status) query = query.eq("status", status);
+  const { data: allSubmissions } = await query;
+  const hasAny = (allSubmissions ?? []).length > 0;
+  const submissions = (allSubmissions ?? []).filter((s) =>
+    matchesQuery(q, s.name, s.email, s.phone, s.service_interest, s.message),
+  );
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -27,9 +43,23 @@ export default async function InboxPage() {
         Confidential enquiries submitted through the public contact form.
       </p>
 
-      {!submissions || submissions.length === 0 ? (
+      {hasAny ? (
+        <ListToolbar action="/admin/inbox" q={q} placeholder="Search name, email, phone, or message">
+          <select name="status" defaultValue={status ?? ""} className={filterSelectClass}>
+            <option value="">All statuses</option>
+            <option value="new">New</option>
+            <option value="read">Read</option>
+          </select>
+        </ListToolbar>
+      ) : null}
+
+      {!hasAny ? (
         <p className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center text-sm text-slate-body">
           No enquiries yet.
+        </p>
+      ) : submissions.length === 0 ? (
+        <p className="mt-6 rounded-lg border border-dashed border-line bg-white p-10 text-center text-sm text-slate-body">
+          No enquiries match your search.
         </p>
       ) : (
         <div className="mt-8 space-y-4">

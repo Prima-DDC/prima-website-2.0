@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { requireCapability } from "@/features/capabilities/service";
-import { categoryLabel, TICKET_STATUS_STYLES, type TicketStatus } from "@/features/support/config";
+import {
+  categoryLabel,
+  TICKET_CATEGORIES,
+  TICKET_STATUS_STYLES,
+  type TicketStatus,
+} from "@/features/support/config";
+import {
+  ListToolbar,
+  filterSelectClass,
+  matchesQuery,
+} from "@/features/internal/ListToolbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const TABS = [
@@ -14,10 +24,10 @@ const TABS = [
 export default async function AdminSupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; category?: string }>;
 }) {
   await requireCapability("manage_support");
-  const { status = "open" } = await searchParams;
+  const { status = "open", q, category } = await searchParams;
   const supabase = await createSupabaseServerClient();
 
   let query = supabase
@@ -28,7 +38,21 @@ export default async function AdminSupportPage({
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
-  const { data: tickets } = await query;
+  if (category) query = query.eq("category", category);
+  const { data: allTickets } = await query;
+  const tickets = (allTickets ?? []).filter((t) => {
+    const owner = t.profiles as unknown as {
+      full_name: string | null;
+      email: string;
+    } | null;
+    return matchesQuery(
+      q,
+      t.ticket_number,
+      t.subject,
+      owner?.full_name,
+      owner?.email,
+    );
+  });
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -53,7 +77,21 @@ export default async function AdminSupportPage({
         ))}
       </div>
 
-      {!tickets || tickets.length === 0 ? (
+      <ListToolbar
+        action="/admin/support"
+        q={q}
+        placeholder="Search by ticket, subject, or staff"
+        hidden={{ status: status === "open" ? undefined : status }}
+      >
+        <select name="category" defaultValue={category ?? ""} className={filterSelectClass}>
+          <option value="">All categories</option>
+          {TICKET_CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+      </ListToolbar>
+
+      {tickets.length === 0 ? (
         <p className="mt-8 rounded-lg border border-dashed border-line bg-white p-10 text-center text-sm text-slate-body">
           Nothing here.
         </p>

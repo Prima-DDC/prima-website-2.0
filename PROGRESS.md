@@ -276,6 +276,22 @@ Verified: tsc, ESLint, build (75/75) clean; em-dash grep 0; migration applied to
 
 Note: the public marketing site still describes the firm's Kigali (Rwanda) office in `content/fallback/offices.ts`, `services.ts`, `blocks.ts`, `seo.ts`. That is the company's real public presence, not an internal feature, so it was left as-is. Say the word if you also want the Rwanda office removed from the public website.
 
+## Phase 18 (2026-09-01): Rename Expense Form + search and filter on every internal list (DONE)
+
+1. Renamed the "Expense Form" to "Field Expenses Form" across internal features: `ops/config.ts` (`expense_form.title`) and `ops/pdf/templates.tsx` (`TYPE_TITLES.expense_form`). The `expense_form` doc-type key, EX numbering, and stored data are unchanged, so existing documents keep working; only the display title moved.
+
+2. Added a shared search-and-filter bar to every internal list page. New `src/features/internal/ListToolbar.tsx` exports a GET-form `ListToolbar` (free-text `q` input, filter selects passed as children, hidden params to preserve the active status tab, and a Reset link), a `matchesQuery` helper (case-insensitive substring across fields), and a `filterSelectClass`. Structured filters run server-side as `.eq(...)` on the query; free-text runs as a JS `matchesQuery` over the capped result set. Wired into:
+   - Portal My Documents (`/portal`): search by number/type, filter by type and status.
+   - Admin Approvals queue (`/admin/ops`): search by number/type/submitter, filter by type, status tab preserved.
+   - Portal Approvals (`/portal/approvals`): search by number/type/submitter, filter by type (restricted to the approver's reviewable types).
+   - Admin Users (`/admin/users`): search by name/email/job title, filter by role.
+   - Admin Inbox (`/admin/inbox`): search by name/email/phone/service/message, filter by status.
+   - Admin Support (`/admin/support`): search by ticket/subject/staff, filter by category, status tab preserved.
+   - Portal Support (`/portal/support`): search by ticket/subject, filter by status and category.
+   Accounting already had its own currency/type/date filters and was left as-is. Each page shows a distinct "no match" empty state separate from its "nothing yet" state.
+
+Verified: tsc, ESLint, build clean; em-dash grep 0.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

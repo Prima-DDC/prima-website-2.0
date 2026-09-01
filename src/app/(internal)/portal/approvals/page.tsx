@@ -1,11 +1,21 @@
 import Link from "next/link";
-import { DOC_CONFIG, nextStage, type DocType } from "@/features/ops/config";
+import { DOC_CONFIG, DOC_TYPES, nextStage, type DocType } from "@/features/ops/config";
 import { chainFor, getApprovalContext, requireApprover } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
+import {
+  ListToolbar,
+  filterSelectClass,
+  matchesQuery,
+} from "@/features/internal/ListToolbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function PortalApprovalsPage() {
+export default async function PortalApprovalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; type?: string }>;
+}) {
   const { profile, approvableTypes } = await requireApprover();
+  const { q, type } = await searchParams;
 
   const supabase = await createSupabaseServerClient();
   let query = supabase
@@ -18,6 +28,7 @@ export default async function PortalApprovalsPage() {
   if (profile.role !== "admin") {
     query = query.in("doc_type", approvableTypes);
   }
+  if (type) query = query.eq("doc_type", type);
   const { data: docs } = await query;
 
   const [approvalsMap, ctx] = await Promise.all([
@@ -35,6 +46,22 @@ export default async function PortalApprovalsPage() {
     };
   });
   const actionable = rows.filter((r) => r.yourTurn).length;
+  const shown = rows.filter((r) => {
+    const submitter = r.profiles as unknown as {
+      full_name: string | null;
+      email: string;
+    } | null;
+    return matchesQuery(
+      q,
+      r.doc_number,
+      DOC_CONFIG[r.doc_type as DocType]?.title,
+      submitter?.full_name,
+      submitter?.email,
+    );
+  });
+  const typeOptions = DOC_TYPES.filter(
+    (t) => profile.role === "admin" || approvableTypes.includes(t),
+  );
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -45,15 +72,26 @@ export default async function PortalApprovalsPage() {
           : "Nothing is awaiting your sign-off right now."}
       </p>
 
-      {rows.length === 0 ? (
+      {rows.length > 0 ? (
+        <ListToolbar action="/portal/approvals" q={q} placeholder="Search by number, type, or submitter">
+          <select name="type" defaultValue={type ?? ""} className={filterSelectClass}>
+            <option value="">All types</option>
+            {typeOptions.map((t) => (
+              <option key={t} value={t}>{DOC_CONFIG[t].title}</option>
+            ))}
+          </select>
+        </ListToolbar>
+      ) : null}
+
+      {shown.length === 0 ? (
         <p className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center text-sm text-slate-body">
-          No documents are in review.
+          {rows.length === 0 ? "No documents are in review." : "No documents match your search."}
         </p>
       ) : (
         <>
           {/* Mobile card list */}
           <ul className="mt-6 space-y-3 sm:hidden">
-            {rows.map((doc) => {
+            {shown.map((doc) => {
               const submitter = doc.profiles as unknown as {
                 full_name: string | null;
                 email: string;
@@ -101,7 +139,7 @@ export default async function PortalApprovalsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {rows.map((doc) => {
+                {shown.map((doc) => {
                   const submitter = doc.profiles as unknown as {
                     full_name: string | null;
                     email: string;

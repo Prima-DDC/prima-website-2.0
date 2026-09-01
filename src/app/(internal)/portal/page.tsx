@@ -2,19 +2,36 @@ import { FilePlus2 } from "lucide-react";
 import Link from "next/link";
 import { requireRole } from "@/features/auth/helpers";
 import { getSubmittableTypes } from "@/features/ops/stages";
-import { DOC_CONFIG, type DocStatus, type DocType } from "@/features/ops/config";
+import { DOC_CONFIG, DOC_TYPES, type DocStatus, type DocType } from "@/features/ops/config";
 import { StatusBadge } from "@/features/ops/StatusBadge";
+import {
+  ListToolbar,
+  filterSelectClass,
+  matchesQuery,
+} from "@/features/internal/ListToolbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function PortalHome() {
+export default async function PortalHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; type?: string; status?: string }>;
+}) {
   const profile = await requireRole();
+  const { q, type, status } = await searchParams;
   const canSubmit = (await getSubmittableTypes(profile.role)).length > 0;
   const supabase = await createSupabaseServerClient();
-  const { data: docs } = await supabase
+  let query = supabase
     .from("ops_documents")
     .select("id, doc_type, doc_number, status, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
+  if (type) query = query.eq("doc_type", type);
+  if (status) query = query.eq("status", status);
+  const { data: allDocs } = await query;
+  const docs = (allDocs ?? []).filter((d) =>
+    matchesQuery(q, d.doc_number, DOC_CONFIG[d.doc_type as DocType]?.title),
+  );
+  const hasDocs = (allDocs ?? []).length > 0;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -38,7 +55,7 @@ export default async function PortalHome() {
         ) : null}
       </div>
 
-      {!docs || docs.length === 0 ? (
+      {!hasDocs ? (
         <div className="mt-10 rounded-lg border border-dashed border-line bg-white p-12 text-center">
           <FilePlus2 className="mx-auto h-10 w-10 text-brand" aria-hidden />
           <p className="mt-4 font-semibold text-navy">No documents yet</p>
@@ -50,6 +67,27 @@ export default async function PortalHome() {
         </div>
       ) : (
         <>
+          <ListToolbar action="/portal" q={q} placeholder="Search by number or type">
+            <select name="type" defaultValue={type ?? ""} className={filterSelectClass}>
+              <option value="">All types</option>
+              {DOC_TYPES.map((t) => (
+                <option key={t} value={t}>{DOC_CONFIG[t].title}</option>
+              ))}
+            </select>
+            <select name="status" defaultValue={status ?? ""} className={filterSelectClass}>
+              <option value="">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </ListToolbar>
+          {docs.length === 0 ? (
+            <div className="mt-6 rounded-lg border border-dashed border-line bg-white p-10 text-center text-sm text-slate-body">
+              No documents match your search.
+            </div>
+          ) : (
+          <>
           {/* Mobile card list */}
           <ul className="mt-6 space-y-3 sm:hidden">
             {docs.map((doc) => (
@@ -111,6 +149,8 @@ export default async function PortalHome() {
             </table>
           </div>
           </div>
+          </>
+          )}
         </>
       )}
     </div>
