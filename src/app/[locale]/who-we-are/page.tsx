@@ -2,14 +2,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MediaImage } from "@/components/MediaImage";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
-import { CertificationsStrip } from "@/features/content/components/CertificationsStrip";
-import { CredentialClusters } from "@/features/content/components/CredentialClusters";
 import { FaqAccordion } from "@/features/content/components/FaqAccordion";
-import { getBlock, getSiteSettings } from "@/features/content/queries";
+import { getBlock } from "@/features/content/queries";
 import {
   pick,
-  type CertificationsBlock,
-  type CredentialsBlock,
   type CtaBlock,
   type FaqBlock,
   type ItemListBlock,
@@ -38,17 +34,13 @@ export default async function WhoWeArePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [intro, missionVision, faq, credentials, certifications, cta, settings, tCommon] =
-    await Promise.all([
-      getBlock<TextBlock>("who-we-are", "intro"),
-      getBlock<ItemListBlock>("who-we-are", "mission-vision"),
-      getBlock<FaqBlock>("who-we-are", "faq"),
-      getBlock<CredentialsBlock>("home", "credentials"),
-      getBlock<CertificationsBlock>("home", "certifications"),
-      getBlock<CtaBlock>("home", "cta"),
-      getSiteSettings(),
-      getTranslations({ locale, namespace: "common" }),
-    ]);
+  const [intro, missionVision, faq, cta, tCommon] = await Promise.all([
+    getBlock<TextBlock>("who-we-are", "intro"),
+    getBlock<ItemListBlock>("who-we-are", "mission-vision"),
+    getBlock<FaqBlock>("who-we-are", "faq"),
+    getBlock<CtaBlock>("home", "cta"),
+    getTranslations({ locale, namespace: "common" }),
+  ]);
 
   const introContent = pick(intro.t, locale);
   const mv = pick(missionVision.t, locale);
@@ -114,12 +106,6 @@ export default async function WhoWeArePage({
           </div>
         </div>
       </section>
-
-      <CredentialClusters block={pick(credentials.t, locale)} />
-      <CertificationsStrip
-        block={pick(certifications.t, locale)}
-        certifications={pick(settings.certifications, locale)}
-      />
 
       <section className="bg-white">
         <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6 sm:py-28">
