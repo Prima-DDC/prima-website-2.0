@@ -5,7 +5,6 @@ import { Reveal } from "@/components/Reveal";
 import { CertificationsStrip } from "@/features/content/components/CertificationsStrip";
 import { CredentialClusters } from "@/features/content/components/CredentialClusters";
 import { FaqAccordion } from "@/features/content/components/FaqAccordion";
-import { StatBar } from "@/features/content/components/StatBar";
 import { getBlock, getSiteSettings } from "@/features/content/queries";
 import {
   pick,
@@ -14,7 +13,6 @@ import {
   type CtaBlock,
   type FaqBlock,
   type ItemListBlock,
-  type StatBarBlock,
   type TextBlock,
 } from "@/features/content/types";
 import { pageMetadata } from "@/features/seo/metadata";
@@ -40,12 +38,11 @@ export default async function WhoWeArePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [intro, missionVision, faq, statBar, credentials, certifications, cta, settings, tCommon] =
+  const [intro, missionVision, faq, credentials, certifications, cta, settings, tCommon] =
     await Promise.all([
       getBlock<TextBlock>("who-we-are", "intro"),
       getBlock<ItemListBlock>("who-we-are", "mission-vision"),
       getBlock<FaqBlock>("who-we-are", "faq"),
-      getBlock<StatBarBlock>("home", "stat-bar"),
       getBlock<CredentialsBlock>("home", "credentials"),
       getBlock<CertificationsBlock>("home", "certifications"),
       getBlock<CtaBlock>("home", "cta"),
@@ -118,7 +115,6 @@ export default async function WhoWeArePage({
         </div>
       </section>
 
-      <StatBar items={pick(statBar.t, locale).items} />
       <CredentialClusters block={pick(credentials.t, locale)} />
       <CertificationsStrip
         block={pick(certifications.t, locale)}
