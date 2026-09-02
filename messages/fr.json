@@ -17,6 +17,7 @@
     "practiceAreas": "Domaines d'expertise",
     "company": "Entreprise",
     "offices": "Bureaux",
+    "contact": "Contact",
     "legal": "Mentions légales",
     "dataProtection": "Politique de protection des données",
     "allRightsReserved": "Tous droits réservés.",
@@ -41,8 +42,7 @@
     "deliverables": "Ce que reçoivent nos clients",
     "caseExperience": "Expérience représentative",
     "caseExperienceNote": "Les exemples sont anonymisés et partagés dans le respect de la confidentialité des clients.",
-    "whyPrima": "Pourquoi les organisations choisissent PRIMA",
-    "gallery": "Notre travail en images"
+    "whyPrima": "Pourquoi les organisations choisissent PRIMA"
   },
   "contactForm": {
     "title": "Envoyez-nous une demande confidentielle",

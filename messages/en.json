@@ -17,6 +17,7 @@
     "practiceAreas": "Practice Areas",
     "company": "Company",
     "offices": "Offices",
+    "contact": "Contact",
     "legal": "Legal",
     "dataProtection": "Data Protection Policy",
     "allRightsReserved": "All rights reserved.",
@@ -41,8 +42,7 @@
     "deliverables": "What Clients Receive",
     "caseExperience": "Representative Experience",
     "caseExperienceNote": "Examples are anonymized and shared with client confidentiality preserved.",
-    "whyPrima": "Why Organizations Choose PRIMA",
-    "gallery": "Our work in focus"
+    "whyPrima": "Why Organizations Choose PRIMA"
   },
   "contactForm": {
     "title": "Send us a confidential enquiry",

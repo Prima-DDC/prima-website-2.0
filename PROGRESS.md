@@ -304,6 +304,20 @@ A user can now hold more than one workspace role, and their access is the union 
 
 Verified: tsc, ESLint, build clean; em-dash grep 0; migration applied to the live DB and backfilled 18/18 profiles with zero missing primary memberships. A throwaway end-to-end run (created and deleted a real user, signed in, and called the DB functions via RPC) confirmed all 16 checks: default-role seeding, assigning three roles at once, most-privileged primary, `is_admin()`/`has_capability()`/`is_approver()` following any assigned role, capability union surviving removal of another role, self-lockout guard math, reconcile down to one role, and full cleanup.
 
+## Phase 20 (2026-09-02): Client content feedback pass on the public site (DONE)
+
+Applied the client's WhatsApp feedback (see /issues screenshots). The public marketing pages render from the database (content_blocks/services/offices/page_seo), with the bundled fallback as the seed, so structural removals were code changes and copy/data changes were made in the fallback and pushed to the live DB with `npm run db:seed` (plus a one-off delete of the removed office row).
+
+Homepage (`app/[locale]/(home)/page.tsx`): removed the stats bar (StatBar), the "7+ Years in Operation" floating badge on the who-we-are image, the "Four disciplines under one roof" section (CredentialClusters), the "Certifications & Licenses" strip (CertificationsStrip), and the "Our Clients / Trusted by organizations that cannot afford to be wrong" stats section (ClientsStats), with their now-unused imports, blocks, and variables. The who-we-are, practice areas, industries, regional teaser, standards, and CTA sections are unchanged. The components remain in the codebase (still used by the who-we-are page, which the client has not reviewed).
+
+Navigation: removed the "Regional Coverage" tab from the header nav (`Header.tsx`, which also feeds the mobile nav) and from the footer company links (`Footer.tsx`). The page and its homepage teaser remain, just unlinked from the primary navigation.
+
+Practice-area detail (`practice-areas/[slug]/page.tsx`): removed the "Our work in focus" gallery section (title plus `ImageCarousel`) and the unused `gallery` message key; removed the Enhanced Due Diligence (EDD) description paragraph while keeping its heading and checklist (`services.ts`, all three locales).
+
+Offices and contact: dropped "(Head Office)" so the head office reads simply "Ghana, Accra" everywhere (all locales); removed the Tamale office entirely; kept the Kigali contact details on the contact page. The footer now shows a single point of contact (Accra only) under a "Contact" heading (new `footer.contact` message key) instead of the full "Offices" list. Removed every remaining "Tamale" reference across body copy and SEO/meta descriptions (`blocks.ts`, `seo.ts`) and from the internal notification-email and PDF footers, leaving "Accra" and "Kigali".
+
+Verified: tsc, ESLint, and a clean `next build` all pass; em-dash grep 0. Ran the production server and asserted the rendered HTML across en/fr/es (33 checks): every removed section is gone, the site still renders, the contact page shows Accra and Kigali (no Tamale, no "Head Office"), the EDD heading and checklist remain without the paragraph, the gallery is gone, the Regional Coverage tab and link are absent, and a whole-page "Tamale" sweep across the home, who-we-are, regional-coverage, standards, and contact pages returns nothing (visible content and meta). Live DB updated and confirmed Tamale-free (offices: ghana-accra, rwanda-kigali).
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

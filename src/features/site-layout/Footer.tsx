@@ -30,11 +30,14 @@ export async function Footer() {
   const companyLinks = [
     { href: "/who-we-are", label: tNav("whoWeAre") },
     { href: "/industries", label: tNav("industries") },
-    { href: "/regional-coverage", label: tNav("regionalCoverage") },
     { href: "/our-standards", label: tNav("ourStandards") },
     { href: "/training", label: tNav("training") },
     { href: "/contact", label: tNav("contact") },
   ];
+
+  // The footer shows a single point of contact (the Accra office) to avoid the
+  // impression of multiple outlets; the full list lives on the contact page.
+  const footerOffices = offices.filter((o) => o.slug === "ghana-accra");
 
   const socials = [
     { href: settings.socials.linkedin, label: "LinkedIn", Icon: LinkedinIcon },
@@ -113,10 +116,10 @@ export async function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white/50">
-              {tFooter("offices")}
+              {tFooter("contact")}
             </h3>
             <ul className="mt-4 space-y-5">
-              {offices.map((office) => {
+              {footerOffices.map((office) => {
                 const o = pick(office.t, locale);
                 return (
                   <li key={office.slug} className="text-sm">

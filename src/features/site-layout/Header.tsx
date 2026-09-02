@@ -18,7 +18,6 @@ export async function Header() {
     { href: "/who-we-are", label: t("whoWeAre") },
     { href: "/practice-areas", label: t("practiceAreas") },
     { href: "/industries", label: t("industries") },
-    { href: "/regional-coverage", label: t("regionalCoverage") },
     { href: "/our-standards", label: t("ourStandards") },
     { href: "/training", label: t("training") },
     { href: "/contact", label: t("contact") },

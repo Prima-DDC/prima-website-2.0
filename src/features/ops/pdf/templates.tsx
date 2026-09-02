@@ -393,7 +393,7 @@ export function DocumentPdf(input: PdfInput) {
 
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            PRIMA Due Diligence Consult | Accra | Tamale | Kigali
+            PRIMA Due Diligence Consult | Accra | Kigali
           </Text>
           <Text
             style={styles.footerText}

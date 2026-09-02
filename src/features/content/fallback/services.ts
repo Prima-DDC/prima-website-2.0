@@ -18,8 +18,6 @@ export const SERVICES: Service[] = [
         groups: [
           {
             heading: "Enhanced Due Diligence (EDD)",
-            summary:
-              "Comprehensive assessments for higher-risk individuals, companies, transactions, and relationships, screened against international AML/CFT and sanctions standards (FATF-aligned methodology; UN, OFAC, and EU sanctions and PEP screening).",
             items: [
               "Ownership and control analysis",
               "Beneficial ownership identification",
@@ -141,8 +139,6 @@ export const SERVICES: Service[] = [
         groups: [
           {
             heading: "Due Diligence Renforcée (EDD)",
-            summary:
-              "Des évaluations approfondies des personnes, sociétés, transactions et relations à risque élevé, avec un criblage selon les normes internationales LBC/FT et de sanctions (méthodologie alignée GAFI ; criblage des sanctions ONU, OFAC et UE, et des PPE).",
             items: [
               "Analyse de l'actionnariat et du contrôle",
               "Identification des bénéficiaires effectifs",
@@ -264,8 +260,6 @@ export const SERVICES: Service[] = [
         groups: [
           {
             heading: "Due Diligence Reforzada (EDD)",
-            summary:
-              "Evaluaciones integrales de personas, empresas, transacciones y relaciones de mayor riesgo, contrastadas con estándares internacionales ALD/CFT y de sanciones (metodología alineada con el GAFI; sanciones de la ONU, OFAC y la UE, y cribado de PEP).",
             items: [
               "Análisis de propiedad y control",
               "Identificación de beneficiarios finales",

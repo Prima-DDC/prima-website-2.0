@@ -155,17 +155,17 @@ export const PAGE_SEO: PageSeo[] = [
       en: {
         title: "Contact | PRIMA Due Diligence Consult",
         description:
-          "Start a confidential conversation with PRIMA's team in Accra, Tamale, or Kigali. All enquiries answered within one business day.",
+          "Start a confidential conversation with PRIMA's team in Accra or Kigali. All enquiries answered within one business day.",
       },
       fr: {
         title: "Contact | PRIMA Due Diligence Consult",
         description:
-          "Engagez une conversation confidentielle avec l'équipe PRIMA à Accra, Tamale ou Kigali. Toutes les demandes reçoivent une réponse sous un jour ouvré.",
+          "Engagez une conversation confidentielle avec l'équipe PRIMA à Accra ou Kigali. Toutes les demandes reçoivent une réponse sous un jour ouvré.",
       },
       es: {
         title: "Contacto | PRIMA Due Diligence Consult",
         description:
-          "Inicie una conversación confidencial con el equipo de PRIMA en Accra, Tamale o Kigali. Todas las consultas se responden en un día hábil.",
+          "Inicie una conversación confidencial con el equipo de PRIMA en Accra o Kigali. Todas las consultas se responden en un día hábil.",
       },
     },
   },

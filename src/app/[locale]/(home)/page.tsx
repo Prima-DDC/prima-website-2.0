@@ -1,31 +1,22 @@
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MediaImage } from "@/components/MediaImage";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
-import { CertificationsStrip } from "@/features/content/components/CertificationsStrip";
-import { ClientsStats } from "@/features/content/components/ClientsStats";
-import { CredentialClusters } from "@/features/content/components/CredentialClusters";
 import { Hero } from "@/features/content/components/Hero";
 import { IndustriesStrip } from "@/features/content/components/IndustriesStrip";
 import { LinkedItemGrid } from "@/features/content/components/LinkedItemGrid";
 import { ServiceCard } from "@/features/content/components/ServiceCard";
-import { StatBar } from "@/features/content/components/StatBar";
 import {
   getBlock,
   getIndustries,
   getServices,
-  getSiteSettings,
 } from "@/features/content/queries";
 import {
   pick,
-  type ClientsStatsBlock,
-  type CertificationsBlock,
-  type CredentialsBlock,
   type CtaBlock,
   type HeroBlock,
   type ItemListBlock,
-  type StatBarBlock,
   type TextBlock,
 } from "@/features/content/types";
 import { pageMetadata } from "@/features/seo/metadata";
@@ -53,31 +44,21 @@ export default async function HomePage({
   const [
     hero,
     whoWeAre,
-    statBar,
-    credentials,
-    certifications,
-    clientsStats,
     regionalTeaser,
     standardsExcerpt,
     cta,
     services,
     industries,
-    settings,
     tCommon,
     tNav,
   ] = await Promise.all([
     getBlock<HeroBlock>("home", "hero"),
     getBlock<TextBlock>("home", "who-we-are"),
-    getBlock<StatBarBlock>("home", "stat-bar"),
-    getBlock<CredentialsBlock>("home", "credentials"),
-    getBlock<CertificationsBlock>("home", "certifications"),
-    getBlock<ClientsStatsBlock>("home", "clients-stats"),
     getBlock<TextBlock>("home", "regional-teaser"),
     getBlock<ItemListBlock>("home", "standards-excerpt"),
     getBlock<CtaBlock>("home", "cta"),
     getServices(),
     getIndustries(),
-    getSiteSettings(),
     getTranslations({ locale, namespace: "common" }),
     getTranslations({ locale, namespace: "nav" }),
   ]);
@@ -85,13 +66,11 @@ export default async function HomePage({
   const who = pick(whoWeAre.t, locale);
   const regional = pick(regionalTeaser.t, locale);
   const standards = pick(standardsExcerpt.t, locale);
-  const statItems = pick(statBar.t, locale).items;
   const ctaContent = pick(cta.t, locale);
 
   return (
     <>
       <Hero block={pick(hero.t, locale)} imagePath={hero.imagePath} />
-      <StatBar items={statItems} />
 
       {/* Who we are excerpt with authentic office imagery */}
       <section className="bg-white">
@@ -130,29 +109,12 @@ export default async function HomePage({
                     sizes="(min-width: 1024px) 45vw, 100vw"
                     className="aspect-[3/2] rounded-lg shadow-2xl shadow-navy/20"
                   />
-                  <div className="glass-dark absolute -bottom-6 left-6 flex items-center gap-3 rounded-xl px-5 py-4 shadow-xl">
-                    <ShieldCheck className="h-8 w-8 text-brand-bright" aria-hidden />
-                    <div>
-                      <p className="font-serif text-2xl font-bold leading-none text-white">
-                        {statItems[0]?.value}
-                      </p>
-                      <p className="mt-1 text-xs font-medium text-white/80">
-                        {statItems[0]?.label}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </Reveal>
             ) : null}
           </div>
         </div>
       </section>
-
-      <CredentialClusters block={pick(credentials.t, locale)} />
-      <CertificationsStrip
-        block={pick(certifications.t, locale)}
-        certifications={pick(settings.certifications, locale)}
-      />
 
       {/* Practice areas */}
       <section className="bg-white">
@@ -252,8 +214,6 @@ export default async function HomePage({
           </Reveal>
         </div>
       </section>
-
-      <ClientsStats block={pick(clientsStats.t, locale)} />
 
       {/* Standards excerpt */}
       <section className="bg-white">

@@ -578,7 +578,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
         {
           question: "Where does PRIMA operate?",
           answer:
-            "We operate from offices in Ghana (Accra and Tamale) and Rwanda (Kigali), with investigative reach across African markets through vetted, directly managed resources rather than uncontrolled subcontractors.",
+            "We operate from offices in Ghana (Accra) and Rwanda (Kigali), with investigative reach across African markets through vetted, directly managed resources rather than uncontrolled subcontractors.",
         },
         {
           question: "Can PRIMA's findings be used in court or before regulators?",
@@ -603,7 +603,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
         {
           question: "Où PRIMA opère-t-elle ?",
           answer:
-            "Nous opérons depuis nos bureaux au Ghana (Accra et Tamale) et au Rwanda (Kigali), avec une portée d'investigation sur les marchés africains grâce à des ressources vérifiées et gérées directement, plutôt que des sous-traitants non contrôlés.",
+            "Nous opérons depuis nos bureaux au Ghana (Accra) et au Rwanda (Kigali), avec une portée d'investigation sur les marchés africains grâce à des ressources vérifiées et gérées directement, plutôt que des sous-traitants non contrôlés.",
         },
         {
           question:
@@ -629,7 +629,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
         {
           question: "¿Dónde opera PRIMA?",
           answer:
-            "Operamos desde oficinas en Ghana (Accra y Tamale) y Ruanda (Kigali), con alcance investigativo en los mercados africanos mediante recursos verificados y gestionados directamente, en lugar de subcontratistas sin control.",
+            "Operamos desde oficinas en Ghana (Accra) y Ruanda (Kigali), con alcance investigativo en los mercados africanos mediante recursos verificados y gestionados directamente, en lugar de subcontratistas sin control.",
         },
         {
           question:
@@ -725,7 +725,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
       items: [
         {
           title: "Direct on-ground presence",
-          body: "Offices in Accra, Tamale, and Kigali with directly managed investigators and analysts, not uncontrolled subcontractors.",
+          body: "Offices in Accra and Kigali with directly managed investigators and analysts, not uncontrolled subcontractors.",
         },
         {
           title: "Language coverage",
@@ -746,7 +746,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
       items: [
         {
           title: "Présence directe sur le terrain",
-          body: "Des bureaux à Accra, Tamale et Kigali avec des enquêteurs et analystes gérés directement, et non des sous-traitants non contrôlés.",
+          body: "Des bureaux à Accra et Kigali avec des enquêteurs et analystes gérés directement, et non des sous-traitants non contrôlés.",
         },
         {
           title: "Couverture linguistique",
@@ -767,7 +767,7 @@ export const CONTENT_BLOCKS: ContentBlockRow[] = [
       items: [
         {
           title: "Presencia directa sobre el terreno",
-          body: "Oficinas en Accra, Tamale y Kigali con investigadores y analistas gestionados directamente, no subcontratistas sin control.",
+          body: "Oficinas en Accra y Kigali con investigadores y analistas gestionados directamente, no subcontratistas sin control.",
         },
         {
           title: "Cobertura de idiomas",

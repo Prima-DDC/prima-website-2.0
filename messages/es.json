@@ -17,6 +17,7 @@
     "practiceAreas": "Áreas de práctica",
     "company": "Empresa",
     "offices": "Oficinas",
+    "contact": "Contacto",
     "legal": "Legal",
     "dataProtection": "Política de protección de datos",
     "allRightsReserved": "Todos los derechos reservados.",
@@ -41,8 +42,7 @@
     "deliverables": "Qué reciben nuestros clientes",
     "caseExperience": "Experiencia representativa",
     "caseExperienceNote": "Los ejemplos están anonimizados y se comparten preservando la confidencialidad de los clientes.",
-    "whyPrima": "Por qué las organizaciones eligen PRIMA",
-    "gallery": "Nuestro trabajo en imágenes"
+    "whyPrima": "Por qué las organizaciones eligen PRIMA"
   },
   "contactForm": {
     "title": "Envíenos una consulta confidencial",
