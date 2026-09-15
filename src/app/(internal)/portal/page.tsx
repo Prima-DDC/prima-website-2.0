@@ -2,7 +2,16 @@ import { FilePlus2 } from "lucide-react";
 import Link from "next/link";
 import { requireRole } from "@/features/auth/helpers";
 import { getSubmittableTypes } from "@/features/ops/stages";
-import { DOC_CONFIG, DOC_TYPES, type DocStatus, type DocType } from "@/features/ops/config";
+import {
+  DOC_CONFIG,
+  DOC_TYPES,
+  documentTotal,
+  formatMoney,
+  type DocStatus,
+  type DocType,
+} from "@/features/ops/config";
+import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
+import { getColumnConfig } from "@/features/ops/columns-store";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import {
   ListToolbar,
@@ -22,7 +31,7 @@ export default async function PortalHome({
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, created_at")
+    .select("id, doc_type, doc_number, status, created_at, data")
     .order("created_at", { ascending: false })
     .limit(100);
   if (type) query = query.eq("doc_type", type);
@@ -32,6 +41,31 @@ export default async function PortalHome({
     matchesQuery(q, d.doc_number, DOC_CONFIG[d.doc_type as DocType]?.title),
   );
   const hasDocs = (allDocs ?? []).length > 0;
+  const cols = columnsFor(await getColumnConfig(), "my_documents");
+
+  const cell = (doc: (typeof docs)[number], key: string) => {
+    const data = (doc.data ?? {}) as Record<string, unknown>;
+    switch (key) {
+      case "type":
+        return DOC_CONFIG[doc.doc_type as DocType]?.title ?? doc.doc_type;
+      case "status":
+        return <StatusBadge status={doc.status as DocStatus} />;
+      case "submitted":
+        return (
+          <span className="text-xs text-slate-body">
+            {new Date(doc.created_at).toLocaleString("en-GB")}
+          </span>
+        );
+      case "total": {
+        const total = documentTotal(doc.doc_type as DocType, data);
+        return total != null
+          ? formatMoney(total, String(data.currency ?? "GHS"))
+          : "";
+      }
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -118,9 +152,11 @@ export default async function PortalHome({
               <thead className="border-b border-line bg-mist/50 text-xs uppercase tracking-wider text-slate-body">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Document</th>
-                  <th className="px-5 py-3 font-semibold">Type</th>
-                  <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 font-semibold">Submitted</th>
+                  {cols.map((c) => (
+                    <th key={c} className="px-5 py-3 font-semibold">
+                      {COLUMN_LABELS[c]}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -134,15 +170,11 @@ export default async function PortalHome({
                         {doc.doc_number}
                       </Link>
                     </td>
-                    <td className="px-5 py-3.5 text-navy">
-                      {DOC_CONFIG[doc.doc_type as DocType]?.title ?? doc.doc_type}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <StatusBadge status={doc.status as DocStatus} />
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-slate-body">
-                      {new Date(doc.created_at).toLocaleString("en-GB")}
-                    </td>
+                    {cols.map((c) => (
+                      <td key={c} className="px-5 py-3.5 text-navy">
+                        {cell(doc, c)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

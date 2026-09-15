@@ -1,13 +1,24 @@
 import Link from "next/link";
-import { DOC_CONFIG, DOC_TYPES, nextStage, type DocType } from "@/features/ops/config";
+import {
+  DOC_CONFIG,
+  DOC_TYPES,
+  documentTotal,
+  formatMoney,
+  nextStage,
+  type DocType,
+} from "@/features/ops/config";
 import { chainFor, getApprovalContext, requireApprover } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
+import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
+import { getColumnConfig } from "@/features/ops/columns-store";
 import {
   ListToolbar,
   filterSelectClass,
   matchesQuery,
 } from "@/features/internal/ListToolbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+type Submitter = { full_name: string | null; email: string } | null;
 
 export default async function PortalApprovalsPage({
   searchParams,
@@ -20,7 +31,7 @@ export default async function PortalApprovalsPage({
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, created_at, profiles:submitted_by (full_name, email)")
+    .select("id, doc_type, doc_number, created_at, data, profiles:submitted_by (full_name, email)")
     .eq("status", "submitted")
     .order("created_at")
     .limit(200);
@@ -64,6 +75,30 @@ export default async function PortalApprovalsPage({
   const typeOptions = DOC_TYPES.filter(
     (t) => profile.roles.includes("admin") || approvableTypes.includes(t),
   );
+  const cols = columnsFor(await getColumnConfig(), "portal_approvals");
+
+  const cell = (row: (typeof shown)[number], key: string) => {
+    const submitter = row.profiles as unknown as Submitter;
+    const data = (row.data ?? {}) as Record<string, unknown>;
+    switch (key) {
+      case "type":
+        return DOC_CONFIG[row.doc_type as DocType]?.title;
+      case "submitter":
+        return submitter?.full_name || submitter?.email;
+      case "awaiting":
+        return row.stageLabel;
+      case "submitted":
+        return new Date(row.created_at).toLocaleString("en-GB");
+      case "total": {
+        const total = documentTotal(row.doc_type as DocType, data);
+        return total != null
+          ? formatMoney(total, String(data.currency ?? "GHS"))
+          : "";
+      }
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -134,46 +169,36 @@ export default async function PortalApprovalsPage({
               <thead className="border-b border-line bg-mist/50 text-xs uppercase tracking-wider text-slate-body">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Document</th>
-                  <th className="px-5 py-3 font-semibold">Type</th>
-                  <th className="px-5 py-3 font-semibold">Submitted by</th>
-                  <th className="px-5 py-3 font-semibold">Awaiting</th>
-                  <th className="px-5 py-3 font-semibold">Date</th>
+                  {cols.map((c) => (
+                    <th key={c} className="px-5 py-3 font-semibold">
+                      {COLUMN_LABELS[c]}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {shown.map((doc) => {
-                  const submitter = doc.profiles as unknown as {
-                    full_name: string | null;
-                    email: string;
-                  } | null;
-                  return (
-                    <tr key={doc.id} className="transition-colors hover:bg-mist/40">
-                      <td className="px-5 py-3.5">
-                        <Link
-                          href={`/portal/approvals/${doc.id}`}
-                          className="font-semibold text-brand hover:text-brand-dark"
-                        >
-                          {doc.doc_number}
-                        </Link>
-                        {doc.yourTurn ? (
-                          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-800">
-                            Your turn
-                          </span>
-                        ) : null}
+                {shown.map((doc) => (
+                  <tr key={doc.id} className="transition-colors hover:bg-mist/40">
+                    <td className="px-5 py-3.5">
+                      <Link
+                        href={`/portal/approvals/${doc.id}`}
+                        className="font-semibold text-brand hover:text-brand-dark"
+                      >
+                        {doc.doc_number}
+                      </Link>
+                      {doc.yourTurn ? (
+                        <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-800">
+                          Your turn
+                        </span>
+                      ) : null}
+                    </td>
+                    {cols.map((c) => (
+                      <td key={c} className="px-5 py-3.5 text-navy">
+                        {cell(doc, c)}
                       </td>
-                      <td className="px-5 py-3.5 text-navy">
-                        {DOC_CONFIG[doc.doc_type as DocType]?.title}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-body">
-                        {submitter?.full_name || submitter?.email}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-body">{doc.stageLabel}</td>
-                      <td className="px-5 py-3.5 text-xs text-slate-body">
-                        {new Date(doc.created_at).toLocaleString("en-GB")}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

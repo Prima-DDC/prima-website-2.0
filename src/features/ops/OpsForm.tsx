@@ -190,9 +190,14 @@ export function OpsForm({
                       </label>
                     ) : null}
                     <input
-                      type={col.type === "number" ? "number" : "text"}
-                      step="0.01"
-                      min="0"
+                      type={
+                        col.type === "number"
+                          ? "number"
+                          : col.type === "date"
+                            ? "date"
+                            : "text"
+                      }
+                      {...(col.type === "number" ? { step: "0.01", min: "0" } : {})}
                       required
                       value={item[col.name] ?? ""}
                       onChange={(e) => {

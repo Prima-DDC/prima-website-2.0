@@ -248,7 +248,7 @@ function BodyByType({ input }: { input: PdfInput }) {
       );
     }
     case "expense_form": {
-      const items = d.items as Array<{ description: string; amount: number }>;
+      const items = d.items as Array<{ date?: string; description: string; amount: number }>;
       const total = documentTotal("expense_form", d) ?? 0;
       return (
         <>
@@ -256,8 +256,9 @@ function BodyByType({ input }: { input: PdfInput }) {
           <View style={styles.section}>
             <Text style={styles.label}>Expense items</Text>
             <ItemsTable
-              headers={["Description", "Amount"]}
+              headers={["Date", "Description", `Amount (${str(d.currency)})`]}
               rows={items.map((item) => [
+                str(item.date),
                 item.description,
                 formatMoney(item.amount, str(d.currency)),
               ])}

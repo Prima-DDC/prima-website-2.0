@@ -52,7 +52,7 @@ export interface FieldConfig {
 export interface LineItemsConfig {
   name: string;
   label: string;
-  columns: Array<{ name: string; label: string; type: "text" | "number" }>;
+  columns: Array<{ name: string; label: string; type: "text" | "number" | "date" }>;
 }
 
 /**
@@ -199,6 +199,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
       name: "items",
       label: "Expense items",
       columns: [
+        { name: "date", label: "Date", type: "date" },
         { name: "description", label: "Description", type: "text" },
         { name: "amount", label: "Amount", type: "number" },
       ],
@@ -210,6 +211,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
       items: z
         .array(
           z.object({
+            date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
             description: z.string().trim().min(1).max(300),
             amount: money,
           }),

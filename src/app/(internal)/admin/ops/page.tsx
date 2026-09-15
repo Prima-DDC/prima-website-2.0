@@ -3,6 +3,8 @@ import Link from "next/link";
 import {
   DOC_CONFIG,
   DOC_TYPES,
+  documentTotal,
+  formatMoney,
   nextStage,
   type DocStatus,
   type DocType,
@@ -18,6 +20,8 @@ import {
   getSubmittableTypes,
 } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
+import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
+import { getColumnConfig } from "@/features/ops/columns-store";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { getSessionProfile } from "@/features/auth/helpers";
 import { requireCapability } from "@/features/capabilities/service";
@@ -46,7 +50,7 @@ export default async function OpsQueuePage({
 
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, created_at, profiles:submitted_by (full_name, email)")
+    .select("id, doc_type, doc_number, status, created_at, data, profiles:submitted_by (full_name, email)")
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
@@ -75,6 +79,39 @@ export default async function OpsQueuePage({
     const stage = nextStage(approvals, chain);
     const done = approvals.filter((a) => a.status === "approved").length;
     return stage ? `${done}/${chain.length}, awaiting ${stage.label}` : "-";
+  };
+  const cols = columnsFor(await getColumnConfig(), "admin_ops");
+
+  const cell = (doc: (typeof docs)[number], key: string) => {
+    const submitter = doc.profiles as unknown as {
+      full_name: string | null;
+      email: string;
+    } | null;
+    const data = (doc.data ?? {}) as Record<string, unknown>;
+    switch (key) {
+      case "type":
+        return DOC_CONFIG[doc.doc_type as DocType]?.title;
+      case "submitter":
+        return submitter?.full_name || submitter?.email;
+      case "status":
+        return <StatusBadge status={doc.status as DocStatus} />;
+      case "stage":
+        return stageProgress(
+          doc.doc_type as DocType,
+          doc.status,
+          approvalsMap.get(doc.id) ?? [],
+        );
+      case "submitted":
+        return new Date(doc.created_at).toLocaleString("en-GB");
+      case "total": {
+        const total = documentTotal(doc.doc_type as DocType, data);
+        return total != null
+          ? formatMoney(total, String(data.currency ?? "GHS"))
+          : "";
+      }
+      default:
+        return "";
+    }
   };
 
   return (
@@ -174,47 +211,31 @@ export default async function OpsQueuePage({
               <thead className="border-b border-line bg-mist/50 text-xs uppercase tracking-wider text-slate-body">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Document</th>
-                  <th className="px-5 py-3 font-semibold">Type</th>
-                  <th className="px-5 py-3 font-semibold">Submitted by</th>
-                  <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 font-semibold">Sign-offs</th>
-                  <th className="px-5 py-3 font-semibold">Date</th>
+                  {cols.map((c) => (
+                    <th key={c} className="px-5 py-3 font-semibold">
+                      {COLUMN_LABELS[c]}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {docs.map((doc) => {
-                  const submitter = doc.profiles as unknown as {
-                    full_name: string | null;
-                    email: string;
-                  } | null;
-                  return (
-                    <tr key={doc.id} className="transition-colors hover:bg-mist/40">
-                      <td className="px-5 py-3.5">
-                        <Link
-                          href={`/admin/ops/${doc.id}`}
-                          className="font-semibold text-brand hover:text-brand-dark"
-                        >
-                          {doc.doc_number}
-                        </Link>
+                {docs.map((doc) => (
+                  <tr key={doc.id} className="transition-colors hover:bg-mist/40">
+                    <td className="px-5 py-3.5">
+                      <Link
+                        href={`/admin/ops/${doc.id}`}
+                        className="font-semibold text-brand hover:text-brand-dark"
+                      >
+                        {doc.doc_number}
+                      </Link>
+                    </td>
+                    {cols.map((c) => (
+                      <td key={c} className="px-5 py-3.5 text-navy">
+                        {cell(doc, c)}
                       </td>
-                      <td className="px-5 py-3.5 text-navy">
-                        {DOC_CONFIG[doc.doc_type as DocType]?.title}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-body">
-                        {submitter?.full_name || submitter?.email}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <StatusBadge status={doc.status as DocStatus} />
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-slate-body">
-                        {stageProgress(doc.doc_type as DocType, doc.status, approvalsMap.get(doc.id) ?? [])}
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-slate-body">
-                        {new Date(doc.created_at).toLocaleString("en-GB")}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
