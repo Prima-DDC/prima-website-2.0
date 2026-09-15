@@ -328,6 +328,8 @@ ISSUE-2 (admins can configure which columns show in My Documents and Approvals):
 
 Verified: tsc, ESLint (0 warnings), and a clean `next build` all pass (the new route builds); em-dash grep 0; migration applied to the live DB. A throwaway end-to-end run (15 checks, real users/sessions, cleaned up afterwards) confirmed: the expense schema accepts per-day dated items and rejects missing/non-ISO dates, a real RLS field-expense submit persists the dates, `ops_settings` is readable by any signed-in user but only writable by a `manage_documents` holder (RLS), and the saved column config round-trips and resolves correctly (defaults when unset, explicit empty respected, catalog-ordered filtering).
 
+Follow-up (same day): My Documents now offers and defaults to a Submitted by column, and the catalog was expanded to cover every displayable `ops_documents` field (Type, Submitted by, Status, Submitted, Last updated, Total, Reviewed by, Review comment, Payment, Paid on, Payment reference; plus computed Awaiting on the portal approvals view and Sign-offs on the admin view). A shared `doc-cell.tsx` module (`DOC_LIST_SELECT` + `renderDocCell` + `DocListRow`) now backs all three list pages with one select (joining submitter and reviewer profiles) and one renderer; each page keeps only its computed column inline. Payment columns render only for money document types. A 10-check E2E confirmed the default, full catalog coverage per view, catalog-ordered resolution, and RLS round-trip.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.
