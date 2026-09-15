@@ -1,24 +1,16 @@
 import Link from "next/link";
-import {
-  DOC_CONFIG,
-  DOC_TYPES,
-  documentTotal,
-  formatMoney,
-  nextStage,
-  type DocType,
-} from "@/features/ops/config";
+import { DOC_CONFIG, DOC_TYPES, nextStage, type DocType } from "@/features/ops/config";
 import { chainFor, getApprovalContext, requireApprover } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
 import { getColumnConfig } from "@/features/ops/columns-store";
+import { DOC_LIST_SELECT, renderDocCell, type DocListRow } from "@/features/ops/doc-cell";
 import {
   ListToolbar,
   filterSelectClass,
   matchesQuery,
 } from "@/features/internal/ListToolbar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-type Submitter = { full_name: string | null; email: string } | null;
 
 export default async function PortalApprovalsPage({
   searchParams,
@@ -31,7 +23,7 @@ export default async function PortalApprovalsPage({
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, created_at, data, profiles:submitted_by (full_name, email)")
+    .select(DOC_LIST_SELECT)
     .eq("status", "submitted")
     .order("created_at")
     .limit(200);
@@ -60,10 +52,7 @@ export default async function PortalApprovalsPage({
   });
   const actionable = rows.filter((r) => r.yourTurn).length;
   const shown = rows.filter((r) => {
-    const submitter = r.profiles as unknown as {
-      full_name: string | null;
-      email: string;
-    } | null;
+    const submitter = (r as unknown as DocListRow).submitter;
     return matchesQuery(
       q,
       r.doc_number,
@@ -77,28 +66,11 @@ export default async function PortalApprovalsPage({
   );
   const cols = columnsFor(await getColumnConfig(), "portal_approvals");
 
-  const cell = (row: (typeof shown)[number], key: string) => {
-    const submitter = row.profiles as unknown as Submitter;
-    const data = (row.data ?? {}) as Record<string, unknown>;
-    switch (key) {
-      case "type":
-        return DOC_CONFIG[row.doc_type as DocType]?.title;
-      case "submitter":
-        return submitter?.full_name || submitter?.email;
-      case "awaiting":
-        return row.stageLabel;
-      case "submitted":
-        return new Date(row.created_at).toLocaleString("en-GB");
-      case "total": {
-        const total = documentTotal(row.doc_type as DocType, data);
-        return total != null
-          ? formatMoney(total, String(data.currency ?? "GHS"))
-          : "";
-      }
-      default:
-        return "";
-    }
-  };
+  // "awaiting" is computed here; every other column is shared.
+  const cell = (row: (typeof shown)[number], key: (typeof cols)[number]) =>
+    key === "awaiting"
+      ? row.stageLabel
+      : renderDocCell(key, row as unknown as DocListRow);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -129,10 +101,7 @@ export default async function PortalApprovalsPage({
           {/* Mobile card list */}
           <ul className="mt-6 space-y-3 sm:hidden">
             {shown.map((doc) => {
-              const submitter = doc.profiles as unknown as {
-                full_name: string | null;
-                email: string;
-              } | null;
+              const submitter = (doc as unknown as DocListRow).submitter;
               return (
                 <li key={doc.id} className="rounded-lg border border-line bg-white p-4">
                   <div className="flex items-center justify-between gap-2">

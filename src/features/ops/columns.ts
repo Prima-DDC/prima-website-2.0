@@ -2,6 +2,11 @@
 // is pure config (no server-only imports) so the admin form and the server
 // pages can both use it. The document number is always shown as the anchor
 // column and is not part of the configurable set.
+//
+// The catalog covers every displayable column of the ops_documents table
+// (plus two computed approval columns). Purely internal fields (id, the raw
+// data payload, the PDF storage path) are surfaced through friendlier columns
+// (Total from the payload) or omitted.
 
 export type DocView = "my_documents" | "portal_approvals" | "admin_ops";
 
@@ -12,7 +17,13 @@ export type DocColumnKey =
   | "awaiting"
   | "stage"
   | "submitted"
-  | "total";
+  | "updated"
+  | "total"
+  | "reviewer"
+  | "review_comment"
+  | "payment_status"
+  | "paid_at"
+  | "payment_ref";
 
 export const COLUMN_LABELS: Record<DocColumnKey, string> = {
   type: "Type",
@@ -21,8 +32,48 @@ export const COLUMN_LABELS: Record<DocColumnKey, string> = {
   awaiting: "Awaiting",
   stage: "Sign-offs",
   submitted: "Submitted",
+  updated: "Last updated",
   total: "Total",
+  reviewer: "Reviewed by",
+  review_comment: "Review comment",
+  payment_status: "Payment",
+  paid_at: "Paid on",
+  payment_ref: "Payment reference",
 };
+
+// Canonical column order; each view lists the applicable subset in this order.
+const ORDER: DocColumnKey[] = [
+  "type",
+  "submitter",
+  "status",
+  "awaiting",
+  "stage",
+  "submitted",
+  "updated",
+  "total",
+  "reviewer",
+  "review_comment",
+  "payment_status",
+  "paid_at",
+  "payment_ref",
+];
+
+// Columns backed directly by an ops_documents field, available to every view.
+const DB_COLUMNS: DocColumnKey[] = [
+  "type",
+  "submitter",
+  "status",
+  "submitted",
+  "updated",
+  "total",
+  "reviewer",
+  "review_comment",
+  "payment_status",
+  "paid_at",
+  "payment_ref",
+];
+
+const inOrder = (keys: DocColumnKey[]) => ORDER.filter((k) => keys.includes(k));
 
 /** Per-view catalog (which columns the view can show) and its default set. */
 export const VIEW_META: Record<
@@ -31,17 +82,19 @@ export const VIEW_META: Record<
 > = {
   my_documents: {
     label: "My Documents",
-    columns: ["type", "status", "submitted", "total"],
-    default: ["type", "status", "submitted"],
+    columns: inOrder(DB_COLUMNS),
+    default: ["type", "submitter", "status", "submitted"],
   },
   portal_approvals: {
     label: "Approvals (Employee Portal)",
-    columns: ["type", "submitter", "awaiting", "submitted", "total"],
+    // "awaiting" is a computed approval column, meaningful only here.
+    columns: inOrder([...DB_COLUMNS, "awaiting"]),
     default: ["type", "submitter", "awaiting", "submitted"],
   },
   admin_ops: {
     label: "Approvals (Administration)",
-    columns: ["type", "submitter", "status", "stage", "submitted", "total"],
+    // "stage" (sign-off progress) is computed and specific to this view.
+    columns: inOrder([...DB_COLUMNS, "stage"]),
     default: ["type", "submitter", "status", "stage", "submitted"],
   },
 };

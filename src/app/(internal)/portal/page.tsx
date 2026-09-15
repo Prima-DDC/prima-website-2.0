@@ -5,13 +5,12 @@ import { getSubmittableTypes } from "@/features/ops/stages";
 import {
   DOC_CONFIG,
   DOC_TYPES,
-  documentTotal,
-  formatMoney,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
 import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
 import { getColumnConfig } from "@/features/ops/columns-store";
+import { DOC_LIST_SELECT, renderDocCell, type DocListRow } from "@/features/ops/doc-cell";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import {
   ListToolbar,
@@ -31,7 +30,7 @@ export default async function PortalHome({
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, created_at, data")
+    .select(DOC_LIST_SELECT)
     .order("created_at", { ascending: false })
     .limit(100);
   if (type) query = query.eq("doc_type", type);
@@ -42,30 +41,6 @@ export default async function PortalHome({
   );
   const hasDocs = (allDocs ?? []).length > 0;
   const cols = columnsFor(await getColumnConfig(), "my_documents");
-
-  const cell = (doc: (typeof docs)[number], key: string) => {
-    const data = (doc.data ?? {}) as Record<string, unknown>;
-    switch (key) {
-      case "type":
-        return DOC_CONFIG[doc.doc_type as DocType]?.title ?? doc.doc_type;
-      case "status":
-        return <StatusBadge status={doc.status as DocStatus} />;
-      case "submitted":
-        return (
-          <span className="text-xs text-slate-body">
-            {new Date(doc.created_at).toLocaleString("en-GB")}
-          </span>
-        );
-      case "total": {
-        const total = documentTotal(doc.doc_type as DocType, data);
-        return total != null
-          ? formatMoney(total, String(data.currency ?? "GHS"))
-          : "";
-      }
-      default:
-        return "";
-    }
-  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -172,7 +147,7 @@ export default async function PortalHome({
                     </td>
                     {cols.map((c) => (
                       <td key={c} className="px-5 py-3.5 text-navy">
-                        {cell(doc, c)}
+                        {renderDocCell(c, doc as unknown as DocListRow)}
                       </td>
                     ))}
                   </tr>

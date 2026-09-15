@@ -3,8 +3,6 @@ import Link from "next/link";
 import {
   DOC_CONFIG,
   DOC_TYPES,
-  documentTotal,
-  formatMoney,
   nextStage,
   type DocStatus,
   type DocType,
@@ -22,6 +20,7 @@ import {
 import { getApprovalsMap } from "@/features/ops/queries";
 import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
 import { getColumnConfig } from "@/features/ops/columns-store";
+import { DOC_LIST_SELECT, renderDocCell, type DocListRow } from "@/features/ops/doc-cell";
 import { StatusBadge } from "@/features/ops/StatusBadge";
 import { getSessionProfile } from "@/features/auth/helpers";
 import { requireCapability } from "@/features/capabilities/service";
@@ -50,17 +49,14 @@ export default async function OpsQueuePage({
 
   let query = supabase
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, created_at, data, profiles:submitted_by (full_name, email)")
+    .select(DOC_LIST_SELECT)
     .order("created_at", { ascending: false })
     .limit(200);
   if (status !== "all") query = query.eq("status", status);
   if (type) query = query.eq("doc_type", type);
   const { data: allDocs } = await query;
   const docs = (allDocs ?? []).filter((d) => {
-    const submitter = d.profiles as unknown as {
-      full_name: string | null;
-      email: string;
-    } | null;
+    const submitter = (d as unknown as DocListRow).submitter;
     return matchesQuery(
       q,
       d.doc_number,
@@ -82,37 +78,15 @@ export default async function OpsQueuePage({
   };
   const cols = columnsFor(await getColumnConfig(), "admin_ops");
 
-  const cell = (doc: (typeof docs)[number], key: string) => {
-    const submitter = doc.profiles as unknown as {
-      full_name: string | null;
-      email: string;
-    } | null;
-    const data = (doc.data ?? {}) as Record<string, unknown>;
-    switch (key) {
-      case "type":
-        return DOC_CONFIG[doc.doc_type as DocType]?.title;
-      case "submitter":
-        return submitter?.full_name || submitter?.email;
-      case "status":
-        return <StatusBadge status={doc.status as DocStatus} />;
-      case "stage":
-        return stageProgress(
+  // "stage" (sign-off progress) is computed here; every other column is shared.
+  const cell = (doc: (typeof docs)[number], key: (typeof cols)[number]) =>
+    key === "stage"
+      ? stageProgress(
           doc.doc_type as DocType,
           doc.status,
           approvalsMap.get(doc.id) ?? [],
-        );
-      case "submitted":
-        return new Date(doc.created_at).toLocaleString("en-GB");
-      case "total": {
-        const total = documentTotal(doc.doc_type as DocType, data);
-        return total != null
-          ? formatMoney(total, String(data.currency ?? "GHS"))
-          : "";
-      }
-      default:
-        return "";
-    }
-  };
+        )
+      : renderDocCell(key, doc as unknown as DocListRow);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -174,10 +148,7 @@ export default async function OpsQueuePage({
           {/* Mobile card list */}
           <ul className="mt-6 space-y-3 sm:hidden">
             {docs.map((doc) => {
-              const submitter = doc.profiles as unknown as {
-                full_name: string | null;
-                email: string;
-              } | null;
+              const submitter = (doc as unknown as DocListRow).submitter;
               return (
                 <li key={doc.id} className="rounded-lg border border-line bg-white p-4">
                   <div className="flex items-center justify-between gap-2">
