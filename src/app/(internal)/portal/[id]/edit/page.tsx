@@ -27,7 +27,7 @@ export default async function EditOwnDocumentPage({
   }
 
   const docType = doc.doc_type as DocType;
-  const { title, fields, lineItems } = DOC_CONFIG[docType];
+  const { title, fields, lineItems, attachments } = DOC_CONFIG[docType];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -50,6 +50,7 @@ export default async function EditOwnDocumentPage({
           docId={doc.id}
           initialData={doc.data as Record<string, unknown>}
           editor="owner"
+          allowAttachments={attachments ?? false}
         />
       </div>
     </div>

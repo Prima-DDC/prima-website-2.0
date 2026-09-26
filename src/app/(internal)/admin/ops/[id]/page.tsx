@@ -110,6 +110,7 @@ export default async function AdminOpsDocumentPage({
         <DocDetails
           docType={doc.doc_type as DocType}
           data={doc.data as Record<string, unknown>}
+          docId={doc.id}
         />
       </div>
 

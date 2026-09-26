@@ -103,6 +103,7 @@ export default async function ApprovalDetailPage({
         <DocDetails
           docType={doc.doc_type as DocType}
           data={doc.data as Record<string, unknown>}
+          docId={doc.id}
         />
       </div>
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { attachmentsSchema } from "./attachments";
 
 export const DOC_TYPES = [
   "honour_certificate",
@@ -72,6 +73,8 @@ export interface DocTypeConfig {
   fields: FieldConfig[];
   lineItems?: LineItemsConfig;
   leaveBalance?: LeaveBalanceConfig;
+  /** Whether supporting files may be attached (receipts, invoices, quotations). */
+  attachments?: boolean;
   schema: z.ZodType;
 }
 
@@ -139,6 +142,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     title: "Fund Request",
     description: "Request funds for an engagement, purchase, or activity.",
     icon: "Wallet",
+    attachments: true,
     fields: [
       { name: "purpose", label: "Purpose of funds", type: "text", required: true },
       { name: "amount", label: "Amount", type: "number", required: true },
@@ -152,6 +156,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
       currency: z.enum(CURRENCIES as [string, ...string[]]),
       neededBy: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       details: z.string().trim().min(5).max(5000),
+      attachments: attachmentsSchema,
     }),
   },
   petty_cash: {
@@ -190,6 +195,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     title: "Field Expenses Form",
     description: "Submit expenses for reimbursement with line items.",
     icon: "Receipt",
+    attachments: true,
     fields: [
       { name: "title", label: "Expense summary", type: "text", required: true },
       { name: "currency", label: "Currency", type: "select", options: CURRENCIES, required: true },
@@ -218,6 +224,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
         )
         .min(1)
         .max(50),
+      attachments: attachmentsSchema,
     }),
   },
   leave_form: {

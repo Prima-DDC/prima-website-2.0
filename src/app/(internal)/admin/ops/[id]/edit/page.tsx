@@ -25,7 +25,7 @@ export default async function EditOpsDocumentPage({
   if (doc.status !== "submitted") redirect(`/admin/ops/${id}`);
 
   const docType = doc.doc_type as DocType;
-  const { title, fields, lineItems } = DOC_CONFIG[docType];
+  const { title, fields, lineItems, attachments } = DOC_CONFIG[docType];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -46,6 +46,7 @@ export default async function EditOpsDocumentPage({
           config={{ title, fields, lineItems }}
           docId={doc.id}
           initialData={doc.data as Record<string, unknown>}
+          allowAttachments={attachments ?? false}
         />
       </div>
     </div>

@@ -4,18 +4,24 @@ import {
   formatMoney,
   type DocType,
 } from "./config";
+import { type Attachment } from "./attachments";
+import { AttachmentList } from "./AttachmentList";
 
 /** Read-only rendering of a document payload, driven by the type config. */
 export function DocDetails({
   docType,
   data,
+  docId,
 }: {
   docType: DocType;
   data: Record<string, unknown>;
+  /** Enables attachment downloads when provided. */
+  docId?: string;
 }) {
   const config = DOC_CONFIG[docType];
   const total = documentTotal(docType, data);
   const currency = String(data.currency ?? "GHS");
+  const attachments = (data.attachments as Attachment[] | undefined) ?? [];
 
   return (
     <div>
@@ -92,6 +98,23 @@ export function DocDetails({
               Total: {formatMoney(total, currency)}
             </p>
           ) : null}
+        </div>
+      ) : null}
+
+      {config.attachments && attachments.length > 0 ? (
+        <div className="mt-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-body">
+            Attachments
+          </p>
+          {docId ? (
+            <AttachmentList docId={docId} attachments={attachments} />
+          ) : (
+            <ul className="mt-2 space-y-1 text-sm text-navy">
+              {attachments.map((a) => (
+                <li key={a.path}>{a.name}</li>
+              ))}
+            </ul>
+          )}
         </div>
       ) : null}
     </div>

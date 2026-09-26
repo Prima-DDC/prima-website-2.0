@@ -17,7 +17,8 @@ export default async function NewDocumentPage({
   const submittable = await getSubmittableTypes(profile.roles);
   if (!submittable.includes(docType)) redirect("/portal/new");
 
-  const { title, description, fields, lineItems, leaveBalance } = DOC_CONFIG[docType];
+  const { title, description, fields, lineItems, leaveBalance, attachments } =
+    DOC_CONFIG[docType];
 
   // Leave and excuse duty show a live balance against the annual entitlement.
   let balance = null;
@@ -43,6 +44,7 @@ export default async function NewDocumentPage({
           docType={docType}
           config={{ title, fields, lineItems }}
           balance={balance}
+          allowAttachments={attachments ?? false}
         />
       </div>
     </div>

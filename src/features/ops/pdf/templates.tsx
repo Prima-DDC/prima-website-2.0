@@ -110,6 +110,12 @@ export interface PdfInput {
 
 const str = (v: unknown) => (v == null ? "" : String(v));
 
+/** Comma-joined names of the document's attachments (empty when none). */
+const attachmentNames = (d: Record<string, unknown>) =>
+  ((d.attachments as Array<{ name: string }> | undefined) ?? [])
+    .map((a) => a.name)
+    .join(", ");
+
 function Field({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
@@ -219,6 +225,7 @@ function BodyByType({ input }: { input: PdfInput }) {
           />
           <Field label="Needed by" value={str(d.neededBy)} />
           <Field label="Details" value={str(d.details)} />
+          <Field label="Attachments" value={attachmentNames(d)} />
         </>
       );
     case "petty_cash": {
@@ -271,6 +278,7 @@ function BodyByType({ input }: { input: PdfInput }) {
             </View>
           </View>
           <Field label="Notes" value={str(d.notes)} />
+          <Field label="Attachments" value={attachmentNames(d)} />
         </>
       );
     }

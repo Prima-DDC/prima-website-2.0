@@ -330,6 +330,16 @@ Verified: tsc, ESLint (0 warnings), and a clean `next build` all pass (the new r
 
 Follow-up (same day): My Documents now offers and defaults to a Submitted by column, and the catalog was expanded to cover every displayable `ops_documents` field (Type, Submitted by, Status, Submitted, Last updated, Total, Reviewed by, Review comment, Payment, Paid on, Payment reference; plus computed Awaiting on the portal approvals view and Sign-offs on the admin view). A shared `doc-cell.tsx` module (`DOC_LIST_SELECT` + `renderDocCell` + `DocListRow`) now backs all three list pages with one select (joining submitter and reviewer profiles) and one renderer; each page keeps only its computed column inline. Payment columns render only for money document types. A 10-check E2E confirmed the default, full catalog coverage per view, catalog-ordered resolution, and RLS round-trip.
 
+## Phase 22 (2026-09-26): File attachments on Fund and Field Expenses requests (DONE)
+
+Submitters can attach supporting files (receipts, invoices, quotations) to Fund Requests and Field Expenses Forms. Every file format is accepted except cybersecurity-risk types (executables, scripts, installers, and active markup such as HTML/SVG), validated by the final file extension so a disguised `invoice.pdf.exe` is still caught.
+
+- Storage: new private bucket `ops-attachments` (migration `0019`), reached only through server actions with the service role and served via 60-second signed URLs; no direct client access, so no storage policies are granted.
+- `attachments.ts` (pure): the blocklist, size limits (10 MB per file, 10 files, 24 MB per submission), `attachmentError()` validator, the `Attachment` type, and the zod `attachmentsSchema`. `attachments-store.ts` (server-only): `uploadAttachments` (validates + stores under the owner's folder with a random key, rolling back on partial failure), `removeAttachmentObjects`, and `signAttachmentUrl` (download under the original name).
+- Config: `fund_request` and `expense_form` gain `attachments: true` and an optional `attachments` field on their schemas. `OpsForm` renders an upload control (client-side blocklist + size checks) plus a removable list of existing attachments. The submit/edit actions upload new files, merge them with kept ones, delete removed objects, and the delete action purges a document's files. New `getAttachmentUrl` action authorizes (submitter, admin, or approver of the type) and returns a signed download URL. `DocDetails` shows an attachment list with downloads; the PDF lists attachment names. Server action body limit raised to 25 MB.
+
+Verified: tsc, ESLint (0 warnings), clean build; em-dash grep 0; migration applied. A throwaway end-to-end run (31 checks, cleaned up) confirmed the security blocklist and size limits, the schema/config, the private bucket, a signed-URL download round-trip (content + forced original filename), and a real RLS fund request carrying attachment metadata.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

@@ -6,8 +6,9 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      // Media library uploads (images) go through a server action.
-      bodySizeLimit: "12mb",
+      // Media library images and fund/expense attachments go through a
+      // server action, so allow room for a batch of supporting files.
+      bodySizeLimit: "25mb",
     },
   },
   images: {

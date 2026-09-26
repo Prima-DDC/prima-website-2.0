@@ -15,10 +15,41 @@ import {
   getLeaveUsage,
   getSubmittableTypes,
 } from "./stages";
+import type { Attachment } from "./attachments";
+import {
+  removeAttachmentObjects,
+  signAttachmentUrl,
+  uploadAttachments,
+} from "./attachments-store";
 import { generateDocumentPdf } from "./pdf/generate";
 
 export interface OpsState {
   error: string | null;
+}
+
+const filesFrom = (formData: FormData): File[] =>
+  formData.getAll("files").filter((f): f is File => f instanceof File);
+
+const attachmentsOf = (data: unknown): Attachment[] =>
+  ((data as { attachments?: Attachment[] } | null)?.attachments ?? []) as Attachment[];
+
+/**
+ * Validates and uploads any newly attached files, merging them onto the
+ * document data alongside the attachments the submitter kept. Mutates and
+ * returns `data`; on failure returns the validation error message.
+ */
+async function mergeAttachments(
+  docType: DocType,
+  data: Record<string, unknown>,
+  formData: FormData,
+  userId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!DOC_CONFIG[docType].attachments) return { ok: true };
+  const kept = attachmentsOf(data);
+  const result = await uploadAttachments(filesFrom(formData), userId, kept.length);
+  if (!result.ok) return result;
+  data.attachments = [...kept, ...result.attachments];
+  return { ok: true };
 }
 
 /**
@@ -103,6 +134,8 @@ export async function submitOpsDocument(
   const parsed = parsePayload(docType, formData.get("data"));
   if (!parsed.ok) return { error: parsed.error };
   const data = await withLeaveBalance(docType, parsed.data, profile.id);
+  const merged = await mergeAttachments(docType, data, formData, profile.id);
+  if (!merged.ok) return { error: merged.error };
 
   // Inserted with the user's own session so RLS owner checks apply.
   const supabase = await createSupabaseServerClient();
@@ -327,7 +360,7 @@ export async function editOwnDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_type, doc_number, status, submitted_by")
+    .select("id, doc_type, doc_number, status, submitted_by, data")
     .eq("id", docId)
     .maybeSingle();
   if (!doc || doc.doc_type !== docType) return { error: "Document not found." };
@@ -337,6 +370,14 @@ export async function editOwnDocument(
   if (doc.status !== "submitted") {
     return { error: "Documents can no longer be edited after a final decision." };
   }
+
+  const oldAttachments = attachmentsOf(doc.data);
+  const merged = await mergeAttachments(docType, parsed.data, formData, profile.id);
+  if (!merged.ok) return { error: merged.error };
+  const keptPaths = new Set(attachmentsOf(parsed.data).map((a) => a.path));
+  await removeAttachmentObjects(
+    oldAttachments.filter((a) => !keptPaths.has(a.path)).map((a) => a.path),
+  );
 
   const { count: signOffs } = await db
     .from("ops_approvals")
@@ -394,13 +435,21 @@ export async function updateOpsDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_type, status, submitted_by")
+    .select("id, doc_type, status, submitted_by, data")
     .eq("id", docId)
     .maybeSingle();
   if (!doc || doc.doc_type !== docType) return { error: "Document not found." };
   if (doc.status !== "submitted") {
     return { error: "Only documents still in review can be edited." };
   }
+
+  const oldAttachments = attachmentsOf(doc.data);
+  const merged = await mergeAttachments(docType, parsed.data, formData, doc.submitted_by);
+  if (!merged.ok) return { error: merged.error };
+  const keptPaths = new Set(attachmentsOf(parsed.data).map((a) => a.path));
+  await removeAttachmentObjects(
+    oldAttachments.filter((a) => !keptPaths.has(a.path)).map((a) => a.path),
+  );
 
   const { error } = await db
     .from("ops_documents")
@@ -446,7 +495,7 @@ export async function deleteOpsDocument(
   const db = createSupabaseAdminClient();
   const { data: doc } = await db
     .from("ops_documents")
-    .select("id, doc_type, doc_number, pdf_path, submitted_by")
+    .select("id, doc_type, doc_number, pdf_path, submitted_by, data")
     .eq("id", docId)
     .maybeSingle();
   if (!doc) return { error: "Document not found." };
@@ -455,6 +504,8 @@ export async function deleteOpsDocument(
   const paths = [`${doc.doc_type}/${doc.doc_number}-preview.pdf`];
   if (doc.pdf_path) paths.push(doc.pdf_path);
   await db.storage.from("ops-pdfs").remove(paths);
+  // Remove any uploaded supporting files.
+  await removeAttachmentObjects(attachmentsOf(doc.data).map((a) => a.path));
   const { error } = await db.from("ops_documents").delete().eq("id", docId);
   if (error) return { error: error.message };
 
@@ -538,4 +589,32 @@ export async function getPdfUrl(docId: string): Promise<string | null> {
 
   const { data } = await admin.storage.from("ops-pdfs").createSignedUrl(path, 60);
   return data?.signedUrl ?? null;
+}
+
+/**
+ * Short-lived signed URL to download one of a document's supporting files.
+ * Authorized like the PDF: the submitter, an admin, or an approver of the
+ * request type. The requested path must belong to the document.
+ */
+export async function getAttachmentUrl(
+  docId: string,
+  path: string,
+): Promise<string | null> {
+  const profile = await requireRole();
+
+  const supabase = await createSupabaseServerClient();
+  const { data: doc } = await supabase
+    .from("ops_documents")
+    .select("doc_type, data, submitted_by")
+    .eq("id", docId)
+    .maybeSingle();
+  if (!doc) return null;
+  if (doc.submitted_by !== profile.id && !profile.roles.includes("admin")) {
+    const approvable = await getApprovableTypes(profile.roles);
+    if (!approvable.includes(doc.doc_type)) return null;
+  }
+
+  const attachment = attachmentsOf(doc.data).find((a) => a.path === path);
+  if (!attachment) return null;
+  return signAttachmentUrl(attachment.path, attachment.name);
 }
