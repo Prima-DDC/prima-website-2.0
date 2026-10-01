@@ -5,6 +5,7 @@ import { getSubmittableTypes } from "@/features/ops/stages";
 import {
   DOC_CONFIG,
   DOC_TYPES,
+  docSearchValues,
   type DocStatus,
   type DocType,
 } from "@/features/ops/config";
@@ -37,7 +38,12 @@ export default async function PortalHome({
   if (status) query = query.eq("status", status);
   const { data: allDocs } = await query;
   const docs = (allDocs ?? []).filter((d) =>
-    matchesQuery(q, d.doc_number, DOC_CONFIG[d.doc_type as DocType]?.title),
+    matchesQuery(
+      q,
+      d.doc_number,
+      DOC_CONFIG[d.doc_type as DocType]?.title,
+      ...docSearchValues(d.doc_type as DocType, (d.data ?? {}) as Record<string, unknown>),
+    ),
   );
   const hasDocs = (allDocs ?? []).length > 0;
   const cols = columnsFor(await getColumnConfig(), "my_documents");
@@ -76,7 +82,7 @@ export default async function PortalHome({
         </div>
       ) : (
         <>
-          <ListToolbar action="/portal" q={q} placeholder="Search by number or type">
+          <ListToolbar action="/portal" q={q} placeholder="Search by number, type, purpose, or details">
             <select name="type" defaultValue={type ?? ""} className={filterSelectClass}>
               <option value="">All types</option>
               {DOC_TYPES.map((t) => (

@@ -211,6 +211,7 @@ function BodyByType({ input }: { input: PdfInput }) {
             </View>
           </View>
           <Field label="Notes" value={str(d.notes)} />
+          <Field label="Attachments" value={attachmentNames(d)} />
           <Field label="Prepared by" value={input.submitterName} />
         </>
       );
@@ -251,6 +252,7 @@ function BodyByType({ input }: { input: PdfInput }) {
             </View>
           </View>
           <Field label="Notes" value={str(d.notes)} />
+          <Field label="Attachments" value={attachmentNames(d)} />
         </>
       );
     }
@@ -324,6 +326,7 @@ function BodyByType({ input }: { input: PdfInput }) {
             </View>
           </View>
           <Field label="Payment terms / notes" value={str(d.notes)} />
+          <Field label="Attachments" value={attachmentNames(d)} />
         </>
       );
     }
@@ -337,6 +340,7 @@ function BodyByType({ input }: { input: PdfInput }) {
           <Field label="Work coverage plan" value={str(d.workCoverage)} />
           <Field label="Contact during absence" value={str(d.contactDuringAbsence)} />
           <LeaveBalance d={d} />
+          <Field label="Attachments" value={attachmentNames(d)} />
         </>
       );
     default:

@@ -340,6 +340,16 @@ Submitters can attach supporting files (receipts, invoices, quotations) to Fund 
 
 Verified: tsc, ESLint (0 warnings), clean build; em-dash grep 0; migration applied. A throwaway end-to-end run (31 checks, cleaned up) confirmed the security blocklist and size limits, the schema/config, the private bucket, a signed-URL download round-trip (content + forced original filename), and a real RLS fund request carrying attachment metadata.
 
+## Phase 23 (2026-10-01): Attachments on four more document types + payload search (DONE)
+
+Two feedback items, applied identically to the Ghana and Rwanda repositories.
+
+1. Optional file attachments now also on Honour Certificate, Petty Cash Request, Excuse Duty, and Invoice (joining Fund Request and Field Expenses). Each gains `attachments: true` in `DOC_CONFIG` and an optional `attachments` field on its schema, so a document still submits with no files attached. The existing private `ops-attachments` bucket, security blocklist, size limits, upload/merge/delete lifecycle, signed-URL downloads, and the `DocDetails` list all apply unchanged; their PDFs now list attachment names. Leave Form is the only type without attachments (not requested).
+
+2. Approvals search now matches the document payload, not just the number, type, and submitter. A new `docSearchValues(docType, data)` in `config.ts` returns every configured field value plus the text columns of the line items, so a search matches Purpose / case, Purpose, Expense summary, Client name, Reason, emergency contact, details, notes, and individual item descriptions. Wired into `/portal/approvals`, `/admin/ops`, and `/portal` (My Documents), with the search placeholders updated. Attachment storage paths are deliberately excluded from the search text.
+
+Verified: tsc, ESLint (0 warnings), and a clean build in both repos; em-dash grep 0. A throwaway end-to-end run in each repo (53 checks, cleaned up afterwards) confirmed every document type validates both with and without attachments, oversize attachment metadata is rejected, each named search field matches while a non-matching term does not, document-number and submitter search still work, and a real RLS honour certificate carrying an attachment round-trips and downloads through a signed URL.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   DOC_CONFIG,
   DOC_TYPES,
+  docSearchValues,
   nextStage,
   type DocStatus,
   type DocType,
@@ -63,6 +64,7 @@ export default async function OpsQueuePage({
       DOC_CONFIG[d.doc_type as DocType]?.title,
       submitter?.full_name,
       submitter?.email,
+      ...docSearchValues(d.doc_type as DocType, (d.data ?? {}) as Record<string, unknown>),
     );
   });
   const [approvalsMap, ctx] = await Promise.all([
@@ -128,7 +130,7 @@ export default async function OpsQueuePage({
       <ListToolbar
         action="/admin/ops"
         q={q}
-        placeholder="Search by number, type, or submitter"
+        placeholder="Search by number, type, submitter, purpose, or details"
         hidden={{ status: status === "submitted" ? undefined : status }}
       >
         <select name="type" defaultValue={type ?? ""} className={filterSelectClass}>

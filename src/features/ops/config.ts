@@ -108,6 +108,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     description:
       "Account for money spent without obtainable receipts by listing each expenditure.",
     icon: "Award",
+    attachments: true,
     fields: [
       { name: "purpose", label: "Purpose / case", type: "text", required: true },
       { name: "date", label: "Date of expenditure", type: "date", required: true },
@@ -123,6 +124,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
       ],
     },
     schema: z.object({
+      attachments: attachmentsSchema,
       purpose: z.string().trim().min(3).max(300),
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       currency: z.enum(CURRENCIES as [string, ...string[]]),
@@ -163,6 +165,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     title: "Petty Cash Request",
     description: "Request petty cash for minor day-to-day expenses.",
     icon: "Coins",
+    attachments: true,
     fields: [
       { name: "purpose", label: "Purpose", type: "text", required: true },
       { name: "currency", label: "Currency", type: "select", options: CURRENCIES, required: true },
@@ -179,6 +182,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     schema: z.object({
       purpose: z.string().trim().min(3).max(300),
       currency: z.enum(CURRENCIES as [string, ...string[]]),
+      attachments: attachmentsSchema,
       notes: z.string().trim().max(2000).optional().or(z.literal("")),
       items: z
         .array(
@@ -268,6 +272,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     title: "Excuse Duty Form",
     description: "Account for an absence from duty and its coverage.",
     icon: "CalendarX2",
+    attachments: true,
     leaveBalance: { startField: "dateOfAbsence", endField: "endDate" },
     fields: [
       { name: "dateOfAbsence", label: "First day of absence", type: "date", required: true },
@@ -285,6 +290,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
         reason: z.string().trim().min(3).max(2000),
         workCoverage: z.string().trim().min(3).max(2000),
         contactDuringAbsence: z.string().trim().min(3).max(200),
+        attachments: attachmentsSchema,
       })
       .refine((v) => v.endDate >= v.dateOfAbsence, {
         message: "Last day must be on or after the first day of absence",
@@ -299,6 +305,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     title: "Invoice",
     description: "Issue a client invoice with line items and totals.",
     icon: "FileText",
+    attachments: true,
     fields: [
       { name: "clientName", label: "Client name", type: "text", required: true },
       { name: "clientAddress", label: "Client address", type: "textarea", required: true },
@@ -319,6 +326,7 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
       clientName: z.string().trim().min(2).max(300),
       clientAddress: z.string().trim().min(3).max(1000),
       currency: z.enum(CURRENCIES as [string, ...string[]]),
+      attachments: attachmentsSchema,
       dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       notes: z.string().trim().max(2000).optional().or(z.literal("")),
       items: z
@@ -334,6 +342,30 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
     }),
   },
 };
+
+/**
+ * Free-text search values for a document payload: every configured field value
+ * plus the text columns of its line items. Lets a search match a purpose, case,
+ * expense summary, client name, reason, or an individual item description.
+ */
+export function docSearchValues(
+  docType: DocType,
+  data: Record<string, unknown>,
+): string[] {
+  const config = DOC_CONFIG[docType];
+  if (!config) return [];
+  const values = config.fields.map((f) => String(data[f.name] ?? ""));
+  const lineItems = config.lineItems;
+  if (lineItems) {
+    const rows = (data[lineItems.name] as Array<Record<string, unknown>>) ?? [];
+    for (const row of rows) {
+      for (const col of lineItems.columns) {
+        if (col.type === "text") values.push(String(row[col.name] ?? ""));
+      }
+    }
+  }
+  return values;
+}
 
 export function docTypeFromSlug(slug: string): DocType | null {
   const type = slug.replace(/-/g, "_");

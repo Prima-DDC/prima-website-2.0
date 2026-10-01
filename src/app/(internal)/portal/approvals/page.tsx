@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { DOC_CONFIG, DOC_TYPES, nextStage, type DocType } from "@/features/ops/config";
+import {
+  DOC_CONFIG,
+  DOC_TYPES,
+  docSearchValues,
+  nextStage,
+  type DocType,
+} from "@/features/ops/config";
 import { chainFor, getApprovalContext, requireApprover } from "@/features/ops/stages";
 import { getApprovalsMap } from "@/features/ops/queries";
 import { COLUMN_LABELS, columnsFor } from "@/features/ops/columns";
@@ -59,6 +65,7 @@ export default async function PortalApprovalsPage({
       DOC_CONFIG[r.doc_type as DocType]?.title,
       submitter?.full_name,
       submitter?.email,
+      ...docSearchValues(r.doc_type as DocType, (r.data ?? {}) as Record<string, unknown>),
     );
   });
   const typeOptions = DOC_TYPES.filter(
@@ -82,7 +89,7 @@ export default async function PortalApprovalsPage({
       </p>
 
       {rows.length > 0 ? (
-        <ListToolbar action="/portal/approvals" q={q} placeholder="Search by number, type, or submitter">
+        <ListToolbar action="/portal/approvals" q={q} placeholder="Search by number, type, submitter, purpose, or details">
           <select name="type" defaultValue={type ?? ""} className={filterSelectClass}>
             <option value="">All types</option>
             {typeOptions.map((t) => (
