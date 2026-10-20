@@ -54,6 +54,46 @@ export function attachmentError(name: string, size: number): string | null {
   return null;
 }
 
+/** The parts of a picked file the selection rules need. */
+export interface PickedFile {
+  name: string;
+  size: number;
+  lastModified: number;
+}
+
+/**
+ * Merges newly picked files into the already staged ones, skipping exact
+ * duplicates and enforcing the blocklist, per-file size, total count, and
+ * per-submission size limits. Returns the new list or the reason to reject.
+ */
+export function mergeAttachmentSelection<T extends PickedFile>(
+  staged: T[],
+  picked: T[],
+  existingCount: number,
+): { files: T[] } | { error: string } {
+  const next = [...staged];
+  for (const f of picked) {
+    const err = attachmentError(f.name, f.size);
+    if (err) return { error: err };
+    const duplicate = next.some(
+      (p) =>
+        p.name === f.name &&
+        p.size === f.size &&
+        p.lastModified === f.lastModified,
+    );
+    if (!duplicate) next.push(f);
+  }
+  if (existingCount + next.length > MAX_ATTACHMENTS) {
+    return { error: `A document may have at most ${MAX_ATTACHMENTS} attachments.` };
+  }
+  if (next.reduce((sum, f) => sum + f.size, 0) > MAX_UPLOAD_BATCH_SIZE) {
+    return {
+      error: `Please keep each upload under ${Math.round(MAX_UPLOAD_BATCH_SIZE / (1024 * 1024))} MB in total.`,
+    };
+  }
+  return { files: next };
+}
+
 /** Stored attachment metadata, validated when a document payload is parsed. */
 export const attachmentSchema = z.object({
   path: z.string().min(1).max(500),

@@ -350,6 +350,19 @@ Two feedback items, applied identically to the Ghana and Rwanda repositories.
 
 Verified: tsc, ESLint (0 warnings), and a clean build in both repos; em-dash grep 0. A throwaway end-to-end run in each repo (53 checks, cleaned up afterwards) confirmed every document type validates both with and without attachments, oversize attachment metadata is rejected, each named search field matches while a non-matching term does not, document-number and submitter search still work, and a real RLS honour certificate carrying an attachment round-trips and downloads through a signed URL.
 
+## Phase 24 (2026-10-20): Cumulative attachment picking and removal (DONE)
+
+File uploads on the six document types that accept them now behave like a proper attachment list.
+
+- Adding is cumulative. The hidden file input is the element the form actually submits, so its `FileList` is rebuilt from a staged `File[]` through a `DataTransfer` on every change. Picking files repeatedly now adds to the list instead of replacing the previous selection, and exact duplicates (same name, size and modified time) are skipped.
+- Each staged file can be removed individually before submitting, and each already-uploaded attachment can still be removed on the edit form. Removing a staged file re-syncs the input, so it is genuinely not uploaded.
+- Removal after submission goes through the existing Edit route (the submitter while the document is in review, and administration). Both edit actions diff the kept attachments against the stored ones and delete the removed objects from the private bucket, so nothing is orphaned. Fully approved documents stay locked, as before.
+- The selection rules moved into a pure `mergeAttachmentSelection(staged, picked, existingCount)` in `attachments.ts`: blocklist, per-file size, duplicate skip, the 10-file cap counting files already uploaded, and the per-submission total. The component now just calls it, which removed the duplicated validation branches and the old "replace the whole selection" behaviour.
+
+Verified: tsc, ESLint (0 warnings) and a clean build in both repos; em-dash grep 0. A throwaway end-to-end run in each repo (22 checks, cleaned up afterwards) covered cumulative adds across three separate picks, duplicate skipping, per-file and full removal, every rejection path leaving the staged list untouched, and, against the live database and storage, submitting two attachments, removing one, then confirming the removed object is deleted from storage while the kept one still downloads.
+
+Note: the Rwanda Supabase project had been paused by the provider (free-tier idling), which also took the deployed Rwanda site offline. It was restored and verified healthy with all data intact (Kigali office, 22 content blocks, 6 services, the ops-attachments bucket).
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

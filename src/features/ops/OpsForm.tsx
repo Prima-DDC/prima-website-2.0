@@ -1,7 +1,7 @@
 "use client";
 
 import { Paperclip, Plus, Send, Trash2 } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   editOwnDocument,
   submitOpsDocument,
@@ -16,11 +16,10 @@ import {
   type FieldConfig,
 } from "./config";
 import {
-  attachmentError,
   formatFileSize,
+  mergeAttachmentSelection,
   MAX_ATTACHMENTS,
   MAX_ATTACHMENT_SIZE,
-  MAX_UPLOAD_BATCH_SIZE,
   type Attachment,
 } from "./attachments";
 
@@ -67,8 +66,9 @@ export function OpsForm({
     docId ? (editor === "owner" ? editOwnDocument : updateOpsDocument) : submitOpsDocument,
     { error: null },
   );
-  const [selectedNames, setSelectedNames] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState<Values>(() => ({
     ...Object.fromEntries(
       config.fields.map((f) => [f.name, f.name === "currency" ? "GHS" : ""]),
@@ -87,34 +87,38 @@ export function OpsForm({
   >;
 
   const attachments = (values.attachments as Attachment[] | undefined) ?? [];
+
+  // The hidden input is what the form submits, so its FileList is kept in
+  // sync with this list. That is what makes picking files add to the staged
+  // set instead of replacing it, and lets single files be removed again.
+  const syncInput = (files: File[]) => {
+    const transfer = new DataTransfer();
+    for (const f of files) transfer.items.add(f);
+    if (fileInputRef.current) fileInputRef.current.files = transfer.files;
+  };
+
   const onFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    for (const f of files) {
-      const err = attachmentError(f.name, f.size);
-      if (err) {
-        setFileError(err);
-        setSelectedNames([]);
-        e.target.value = "";
-        return;
-      }
-    }
-    if (attachments.length + files.length > MAX_ATTACHMENTS) {
-      setFileError(`A document may have at most ${MAX_ATTACHMENTS} attachments.`);
-      setSelectedNames([]);
-      e.target.value = "";
-      return;
-    }
-    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-    if (totalSize > MAX_UPLOAD_BATCH_SIZE) {
-      setFileError(
-        `Please keep each upload under ${Math.round(MAX_UPLOAD_BATCH_SIZE / (1024 * 1024))} MB in total.`,
-      );
-      setSelectedNames([]);
-      e.target.value = "";
+    const result = mergeAttachmentSelection(
+      pendingFiles,
+      Array.from(e.target.files ?? []),
+      attachments.length,
+    );
+    if ("error" in result) {
+      // Discard the rejected pick and restore what was already staged.
+      setFileError(result.error);
+      syncInput(pendingFiles);
       return;
     }
     setFileError(null);
-    setSelectedNames(files.map((f) => f.name));
+    setPendingFiles(result.files);
+    syncInput(result.files);
+  };
+
+  const removePending = (index: number) => {
+    const next = pendingFiles.filter((_, i) => i !== index);
+    setFileError(null);
+    setPendingFiles(next);
+    syncInput(next);
   };
   const removeAttachment = (path: string) =>
     set(
@@ -303,6 +307,7 @@ export function OpsForm({
           <p className="text-sm font-semibold text-navy">Attachments (optional)</p>
           <p className="mt-1 text-xs text-slate-body">
             Attach supporting files such as receipts, invoices, or quotations.
+            Add as many as you need and remove any before submitting.
             Up to {MAX_ATTACHMENTS} files, {Math.round(MAX_ATTACHMENT_SIZE / (1024 * 1024))} MB each.
             Executable and script files are not accepted.
           </p>
@@ -334,14 +339,42 @@ export function OpsForm({
             </ul>
           ) : null}
 
+          {pendingFiles.length > 0 ? (
+            <ul className="mt-3 space-y-2">
+              {pendingFiles.map((f, i) => (
+                <li
+                  key={`${f.name}-${f.size}-${f.lastModified}`}
+                  className="flex items-center justify-between gap-2 rounded-md border border-dashed border-brand/40 bg-white px-3 py-2"
+                >
+                  <span className="flex min-w-0 items-center gap-2 text-sm text-navy">
+                    <Paperclip className="h-4 w-4 shrink-0 text-slate-body" aria-hidden />
+                    <span className="truncate">{f.name}</span>
+                    <span className="shrink-0 text-xs text-slate-body">
+                      ({formatFileSize(f.size)}, not uploaded yet)
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${f.name}`}
+                    onClick={() => removePending(i)}
+                    className="rounded p-1.5 text-slate-body/60 transition-colors hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           <label
             htmlFor="ops-files"
             className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded border border-dashed border-line px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-brand hover:text-brand"
           >
             <Paperclip className="h-4 w-4" aria-hidden />
-            Choose files
+            Add files
           </label>
           <input
+            ref={fileInputRef}
             id="ops-files"
             type="file"
             name="files"
@@ -349,11 +382,6 @@ export function OpsForm({
             onChange={onFilesChange}
             className="hidden"
           />
-          {selectedNames.length > 0 ? (
-            <p className="mt-2 text-xs text-slate-body">
-              Ready to upload: {selectedNames.join(", ")}
-            </p>
-          ) : null}
           {fileError ? (
             <p className="mt-2 text-xs text-red-600" role="alert">
               {fileError}
