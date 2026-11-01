@@ -104,8 +104,17 @@ export async function setPassword(
     return { error: "Passwords do not match." };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { error: error.message };
-  return { error: null, success: true };
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return { error: error.message };
+    return { error: null, success: true };
+  } catch (cause) {
+    // An unexpected failure (auth service unreachable, session rotated mid
+    // request) must read as an error on the form, never a blank error page.
+    console.error("setPassword failed:", cause);
+    return {
+      error: "Could not update the password right now. Please try again.",
+    };
+  }
 }

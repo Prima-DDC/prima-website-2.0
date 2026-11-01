@@ -363,6 +363,24 @@ Verified: tsc, ESLint (0 warnings) and a clean build in both repos; em-dash grep
 
 Note: the Rwanda Supabase project had been paused by the provider (free-tier idling), which also took the deployed Rwanda site offline. It was restored and verified healthy with all data intact (Kigali office, 22 content blocks, 6 services, the ops-attachments bucket).
 
+## Phase 25 (2026-11-01): Fix password reset ending in a server error (DONE)
+
+Setting a password from a reset link returned "This page couldn't load. A server error occurred." on the deployed site, and the password was never actually changed.
+
+Root cause: `src/features/profile/actions.ts` imported `sharp` (a native image library) at module top level, and `serverExternalPackages` was not configured, so Next bundled it into that route's server-action chunk. In the deployed serverless function the module fails to load, and because Next groups a route's server actions together, the failure took down every action on `/portal/profile`, not just the photo upload. Reset links land on that page, so submitting the new password hit a dead action. Page loads were unaffected, which is why the form itself looked normal.
+
+Reproduced precisely before changing anything. Against production, `GET /portal/profile` returned 200 while all three of its actions returned 500, including the password path that validates and returns before touching Supabase; meanwhile actions on `/portal/support/new` and `/portal/new/[type]` returned 200. The same build run locally worked until sharp's native packages were made unavailable, at which point it failed identically with "Failed to load external module sharp".
+
+Fixes:
+
+- `serverExternalPackages: ["sharp"]` in `next.config.ts`, so the native module is required from `node_modules` at runtime instead of being bundled.
+- `sharp` is imported lazily inside the photo branch and wrapped, so an image-library problem can now only affect photo upload, never the password or contact-detail actions beside it.
+- `/portal/password`, where reset and invitation links land, renders the password form directly instead of redirecting into the heavier profile page, which cuts the reset path's failure surface.
+- `/portal/profile` no longer crashes when the staff record cannot be read. The query error was previously discarded and `toStaffProfile(null)` threw; the page now reports it and keeps the password and security controls usable.
+- `setPassword` catches unexpected failures and shows them on the form instead of surfacing a blank error page.
+
+Verified: tsc, ESLint (0 warnings) and clean builds in both repos. With sharp deliberately disabled to emulate the deployed environment, the original code reproduced the 500 on all three profile actions and the fixed code returned 200 with the password actually changing. The full reset flow passes 14 checks against a production build: link verifies, form renders, submit succeeds, the new password works, the old one no longer does, and the profile page still loads and can change the password too.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

@@ -4,6 +4,9 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  // sharp ships native bindings; bundling it breaks the serverless
+  // function at runtime, so load it from node_modules instead.
+  serverExternalPackages: ["sharp"],
   experimental: {
     serverActions: {
       // Media library images and fund/expense attachments go through a

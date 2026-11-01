@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import sharp from "sharp";
 import { z } from "zod";
 import { requireRole } from "@/features/auth/helpers";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -56,11 +55,20 @@ export async function updateProfile(
     if (photo.size > PHOTO_MAX_BYTES) {
       return { error: "Photo must be 8 MB or smaller." };
     }
-    const processed = await sharp(Buffer.from(await photo.arrayBuffer()))
-      .rotate()
-      .resize(512, 512, { fit: "cover" })
-      .webp({ quality: 85 })
-      .toBuffer();
+    // Loaded on demand: a failure here must not take down the other
+    // actions on this page (password, contact details).
+    let processed: Buffer;
+    try {
+      const { default: sharp } = await import("sharp");
+      processed = await sharp(Buffer.from(await photo.arrayBuffer()))
+        .rotate()
+        .resize(512, 512, { fit: "cover" })
+        .webp({ quality: 85 })
+        .toBuffer();
+    } catch (cause) {
+      console.error("photo processing failed:", cause);
+      return { error: "The photo could not be processed. Please try again." };
+    }
     const path = `${profile.id}-${Date.now()}.webp`;
     const { error: uploadError } = await admin.storage
       .from("avatars")
