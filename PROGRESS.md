@@ -381,6 +381,17 @@ Fixes:
 
 Verified: tsc, ESLint (0 warnings) and clean builds in both repos. With sharp deliberately disabled to emulate the deployed environment, the original code reproduced the 500 on all three profile actions and the fixed code returned 200 with the password actually changing. The full reset flow passes 14 checks against a production build: link verifies, form renders, submit succeeds, the new password works, the old one no longer does, and the profile page still loads and can change the password too.
 
+## Phase 26 (2026-11-02): Manual password reset for admins (DONE)
+
+Admins could only send a reset email, which is no help when a user cannot reach their mailbox. The user detail page at `/admin/users/[id]` now carries a "Set password manually" card beside the existing emailed reset.
+
+- `adminSetUserPassword` in `src/features/users/actions.ts` is gated on the `manage_users` capability, validates the entry server side (10 characters minimum, both fields matching) and sets the password through `auth.admin.updateUserById`.
+- The acting admin cannot target themselves: that path returns a message pointing at their own profile, where the active session is rotated along with the password. The card is also hidden on their own page.
+- The user is notified ("Your password was changed") so an unexpected change is noticed.
+- `AdminPasswordForm` confirms before submitting, naming the user and their email, since the change takes effect immediately. Validation is server side only, so the dialog never appears for an entry that would be rejected.
+
+Verified: tsc, ESLint (0 warnings) and clean builds in both repos, then 14 end-to-end checks against a production build of each, driving real admin sessions and real server actions: the form renders and names the user, mismatched and too-short entries are rejected, the change succeeds, the new password signs in, the old one no longer does, the user is notified, the card is hidden on the admin's own page, a forged self-target is refused, staff are redirected away from the page, and a staff member posting a forged payload cannot change an admin's password.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

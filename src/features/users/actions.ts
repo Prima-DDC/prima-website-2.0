@@ -70,6 +70,56 @@ export async function sendPasswordReset(
   return { error: null, success: `Password reset email sent to ${email}.` };
 }
 
+const setPasswordSchema = z.object({
+  password: z.string().min(10, "Password must be at least 10 characters."),
+  confirm: z.string(),
+});
+
+/**
+ * Sets a user's password directly, for when an emailed reset link is not an
+ * option. The admin passes the new password to the user out of band, and the
+ * user is told their password changed so an unexpected change is noticed.
+ */
+export async function adminSetUserPassword(
+  _prev: UsersState,
+  formData: FormData,
+): Promise<UsersState> {
+  const acting = await requireCapability("manage_users");
+  const userId = z.string().uuid().parse(formData.get("userId"));
+
+  // Admins change their own password on their profile, where the active
+  // session is rotated along with it.
+  if (userId === acting.id) {
+    return { error: "Change your own password on your profile page." };
+  }
+
+  const parsed = setPasswordSchema.safeParse({
+    password: String(formData.get("password") ?? ""),
+    confirm: String(formData.get("confirm") ?? ""),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  if (parsed.data.password !== parsed.data.confirm) {
+    return { error: "Passwords do not match." };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin.auth.admin.updateUserById(userId, {
+    password: parsed.data.password,
+  });
+  if (error) return { error: error.message };
+
+  await notify([userId], {
+    title: "Your password was changed",
+    body: "An administrator set a new password on your account. If you were not expecting this, contact administration right away.",
+    link: "/portal/profile",
+  });
+
+  return {
+    error: null,
+    success: `Password updated for ${data.user.email ?? "this user"}.`,
+  };
+}
+
 /**
  * Resends the invitation email to a user who has not accepted it yet.
  * Re-inviting a still-pending user issues a fresh link and email; a user who

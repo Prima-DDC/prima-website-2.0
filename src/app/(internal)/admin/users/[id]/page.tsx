@@ -8,6 +8,7 @@ import {
   toStaffProfile,
 } from "@/features/profile/types";
 import { getRoles } from "@/features/roles/queries";
+import { AdminPasswordForm } from "@/features/users/AdminPasswordForm";
 import { AdminUserForm } from "@/features/users/AdminUserForm";
 import { UserRowActions } from "@/features/users/UserRowActions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -64,6 +65,16 @@ export default async function AdminUserPage({
           roles={roles.map((r) => ({ key: r.key, label: r.label }))}
         />
       </div>
+
+      {profile.id !== acting.id ? (
+        <div className="mt-6">
+          <AdminPasswordForm
+            userId={profile.id}
+            name={displayName}
+            email={profile.email}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
