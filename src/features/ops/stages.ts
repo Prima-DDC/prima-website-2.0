@@ -5,7 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   DOC_CONFIG,
   DOC_TYPES,
-  daysInclusive,
+  businessDaysInclusive,
   type ApprovalStage,
   type DocType,
 } from "./config";
@@ -40,7 +40,11 @@ export async function getLeaveUsage(
     const d = row.data as Record<string, string>;
     const start = d[cfg.startField] ?? "";
     if (start.slice(0, 4) !== String(year)) continue;
-    const days = Number(d.daysApplied) || daysInclusive(start, d[cfg.endField] ?? "");
+    // Documents approved before weekends stopped counting keep their stored
+    // figure; only newer ones are computed here.
+    const days =
+      Number(d.daysApplied) ||
+      businessDaysInclusive(start, d[cfg.endField] ?? "");
     used += days;
   }
   return used;

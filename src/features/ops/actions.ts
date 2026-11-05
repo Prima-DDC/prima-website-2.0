@@ -8,7 +8,13 @@ import { requireCapability } from "@/features/capabilities/service";
 import { notify, userIdsByRole } from "@/features/notifications/notify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { DOC_CONFIG, daysInclusive, nextStage, type DocType, DOC_TYPES } from "./config";
+import {
+  DOC_CONFIG,
+  businessDaysInclusive,
+  nextStage,
+  type DocType,
+  DOC_TYPES,
+} from "./config";
 import {
   chainForType,
   getApprovableTypes,
@@ -66,7 +72,10 @@ async function withLeaveBalance(
   const cfg = DOC_CONFIG[docType].leaveBalance;
   if (!cfg) return data;
   const start = String(data[cfg.startField] ?? "");
-  const daysApplied = daysInclusive(start, String(data[cfg.endField] ?? ""));
+  const daysApplied = businessDaysInclusive(
+    start,
+    String(data[cfg.endField] ?? ""),
+  );
   const db = createSupabaseAdminClient();
   const { data: p } = await db
     .from("profiles")

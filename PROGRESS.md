@@ -392,6 +392,19 @@ Admins could only send a reset email, which is no help when a user cannot reach 
 
 Verified: tsc, ESLint (0 warnings) and clean builds in both repos, then 14 end-to-end checks against a production build of each, driving real admin sessions and real server actions: the form renders and names the user, mismatched and too-short entries are rejected, the change succeeds, the new password signs in, the old one no longer does, the user is notified, the card is hidden on the admin's own page, a forged self-target is refused, staff are redirected away from the page, and a staff member posting a forged payload cannot change an admin's password.
 
+## Phase 27 (2026-11-05): Leave and excuse duty count business days only (DONE)
+
+Saturdays and Sundays were consuming leave: the day count was a plain inclusive calendar span, so a Monday to Monday absence was charged as 8 days instead of 6.
+
+- `daysInclusive` in `src/features/ops/config.ts` is replaced by `businessDaysInclusive`, which counts Monday to Friday only, plus `isBusinessDay` for single dates. Dates are plain ISO days, so the arithmetic runs in UTC and is unaffected by daylight saving.
+- Both schemas now refuse a weekend: leave must start and end on a business day, an absence must start and end on a business day, and the resumption date must be a business day too, since nobody resumes duty on a Saturday.
+- `<input type="date">` cannot rule out weekends, so the form flags a weekend date underneath the field as soon as it is picked rather than leaving it for the submit to reject, and the live balance box now reads "N business days".
+- The stored `daysApplied` written at submission is the business-day figure, and it is what the detail view, the PDF and the annual balance all read.
+
+Documents approved before this change keep the figure stored with them: `getLeaveUsage` prefers the stored `daysApplied` and only computes a count when one is missing, so historical records are not silently rewritten.
+
+Verified: tsc, ESLint (0 warnings) and clean builds in both repos. 17 arithmetic checks on the counting itself, with the expected values derived independently, covering the week boundaries, a span across the year end, spans across both the European and US daylight saving changes, and a whole leap February. Then 16 end-to-end checks against a production build of each repo, submitting real leave and excuse-duty requests through the rendered form and the real server action: Monday to Friday stores 5 days, Monday to the following Monday stores 6 and not 8, a Saturday start, a Sunday end and a weekend resumption date are each refused for both request types, and only the valid submissions reach the database.
+
 ## Remaining manual steps (need account access)
 
 1. Push to GitHub and import into Vercel; set env vars (see README) and deploy.

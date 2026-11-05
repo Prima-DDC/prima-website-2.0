@@ -9,7 +9,8 @@ import {
   type OpsState,
 } from "./actions";
 import {
-  daysInclusive,
+  businessDaysInclusive,
+  isBusinessDay,
   formatMoney,
   type DocType,
   type DocTypeConfig,
@@ -128,7 +129,7 @@ export function OpsForm({
 
   const currency = String(values.currency || "GHS");
   const leaveDays = balance
-    ? daysInclusive(
+    ? businessDaysInclusive(
         String(values[balance.startField] ?? ""),
         String(values[balance.endField] ?? ""),
       )
@@ -207,6 +208,17 @@ export function OpsForm({
               {field.label}
             </label>
             {renderField(field)}
+            {/* Date inputs cannot rule out weekends, so flag one immediately
+                rather than leaving it for the submit to reject. */}
+            {balance &&
+            field.type === "date" &&
+            values[field.name] &&
+            !isBusinessDay(String(values[field.name])) ? (
+              <p className="mt-1.5 text-xs text-red-600">
+                Choose a business day. Saturdays and Sundays are not working
+                days.
+              </p>
+            ) : null}
           </div>
         ))}
       </div>
@@ -215,7 +227,10 @@ export function OpsForm({
         <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-line bg-mist/40 p-5 sm:grid-cols-4">
           <Stat label="Days entitled" value={String(balance.entitlement)} />
           <Stat label="Used this year" value={String(balance.usedThisYear)} />
-          <Stat label="This request" value={`${leaveDays} day${leaveDays === 1 ? "" : "s"}`} />
+          <Stat
+            label="This request"
+            value={`${leaveDays} business day${leaveDays === 1 ? "" : "s"}`}
+          />
           <Stat
             label="Remaining"
             value={String(Math.max(0, remaining))}

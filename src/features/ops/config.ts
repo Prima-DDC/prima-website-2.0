@@ -94,12 +94,27 @@ export const LEAVE_TYPES = [
   "Study Leave",
 ] as const;
 
-/** Inclusive whole-day span between two YYYY-MM-DD dates (0 if invalid). */
-export function daysInclusive(start: string, end: string): number {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return 0;
-  const ms = Date.parse(end) - Date.parse(start);
-  if (Number.isNaN(ms) || ms < 0) return 0;
-  return Math.floor(ms / 86_400_000) + 1;
+/** True for Monday to Friday. Dates are plain ISO days, so UTC is exact. */
+export function isBusinessDay(date: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const day = new Date(Date.parse(date)).getUTCDay();
+  return day !== 0 && day !== 6;
+}
+
+/**
+ * Business days in a range, both ends included. Saturdays and Sundays are not
+ * working days, so they never count towards an absence or the leave balance.
+ */
+export function businessDaysInclusive(start: string, end: string): number {
+  if (!isBusinessDay(start) || !isBusinessDay(end)) return 0;
+  const from = Date.parse(start);
+  const to = Date.parse(end);
+  if (to < from) return 0;
+  let days = 0;
+  for (let t = from; t <= to; t += 86_400_000) {
+    if (new Date(t).getUTCDay() % 6 !== 0) days += 1;
+  }
+  return days;
 }
 
 export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
@@ -263,8 +278,20 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
         message: "End date must be on or after the start date",
         path: ["endDate"],
       })
+      .refine((v) => isBusinessDay(v.startDate), {
+        message: "Leave must start on a business day",
+        path: ["startDate"],
+      })
+      .refine((v) => isBusinessDay(v.endDate), {
+        message: "Leave must end on a business day",
+        path: ["endDate"],
+      })
       .refine((v) => v.resumptionDate > v.endDate, {
         message: "Resumption date must be after the last day of leave",
+        path: ["resumptionDate"],
+      })
+      .refine((v) => isBusinessDay(v.resumptionDate), {
+        message: "Resumption date must be a business day",
         path: ["resumptionDate"],
       }),
   },
@@ -296,8 +323,20 @@ export const DOC_CONFIG: Record<DocType, DocTypeConfig> = {
         message: "Last day must be on or after the first day of absence",
         path: ["endDate"],
       })
+      .refine((v) => isBusinessDay(v.dateOfAbsence), {
+        message: "The absence must start on a business day",
+        path: ["dateOfAbsence"],
+      })
+      .refine((v) => isBusinessDay(v.endDate), {
+        message: "The absence must end on a business day",
+        path: ["endDate"],
+      })
       .refine((v) => v.resumptionDate > v.endDate, {
         message: "Resumption date must be after the last day of absence",
+        path: ["resumptionDate"],
+      })
+      .refine((v) => isBusinessDay(v.resumptionDate), {
+        message: "Resumption date must be a business day",
         path: ["resumptionDate"],
       }),
   },
